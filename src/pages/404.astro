@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import { localizedPath } from '../i18n/ui';
+---
+<Base lang="fr" title="Page introuvable | Villa Les Zines">
+  <section class="min-h-[70svh] flex items-center pt-28 pb-20">
+    <div class="wrap max-w-2xl text-center mx-auto">
+      <p class="eyebrow mb-4">Erreur 404</p>
+      <h1 class="h2 mb-5">Cette page s’est envolée avec le vent du Bassin.</h1>
+      <p class="lead mx-auto mb-9">
+        L’adresse demandée n’existe pas ou plus. Retrouvez la villa, les tarifs et la réservation depuis l’accueil.
+      </p>
+      <div class="flex flex-wrap gap-3 justify-center">
+        <a href="/" class="btn btn-primary">Retour à l’accueil</a>
+        <a href={localizedPath('fr', 'reservation')} class="btn btn-ghost">Réserver un séjour</a>
+        <a href="/en" class="btn btn-ghost">English</a>
+      </div>
+    </div>
+  </section>
+</Base>
