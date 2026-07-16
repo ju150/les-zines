@@ -1,0 +1,8 @@
+---
+import Base from '../layouts/Base.astro';
+import CapFerret from '../components/pages/CapFerret.astro';
+const lang = 'fr' as const;
+---
+<Base lang={lang} transparentNav={true} title="Le Cap Ferret, l’emplacement | Villa Les Zines" description="À 400 m de la jetée Bélisaire, à quelques minutes du marché, des plages et des restaurants : la Villa Les Zines est au cœur du Cap Ferret.">
+  <CapFerret lang={lang} />
+</Base>

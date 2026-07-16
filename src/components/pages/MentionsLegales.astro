@@ -1,0 +1,35 @@
+---
+import type { Lang } from '../../i18n/ui';
+import { SITE } from '../../data/site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const fr = lang === 'fr';
+---
+<section class="pt-32 pb-24">
+  <div class="wrap max-w-2xl">
+    <h1 class="h2 mb-8">{fr ? 'Mentions légales' : 'Legal notice'}</h1>
+    <div class="space-y-6 text-ink-soft">
+      <div>
+        <h2 class="font-semibold text-ink mb-1">{fr ? 'Éditeur du site' : 'Site publisher'}</h2>
+        <p>{SITE.name}, Cap Ferret, Bassin d’Arcachon.<br />{fr ? 'Contact' : 'Contact'} : {SITE.phone} · {SITE.email}</p>
+      </div>
+      <div>
+        <h2 class="font-semibold text-ink mb-1">{fr ? 'Hébergement' : 'Hosting'}</h2>
+        <p>{fr ? 'À compléter (Netlify, Vercel ou autre hébergeur retenu).' : 'To be completed (Netlify, Vercel or the chosen host).'}</p>
+      </div>
+      <div>
+        <h2 class="font-semibold text-ink mb-1">{fr ? 'Données personnelles' : 'Personal data'}</h2>
+        <p>{fr
+          ? 'Les informations transmises via les formulaires servent uniquement à répondre à vos demandes de location ou de visite et ne sont ni cédées ni revendues.'
+          : 'Information sent via the forms is used solely to answer your rental or visit requests and is never shared or sold.'}</p>
+      </div>
+      <div>
+        <h2 class="font-semibold text-ink mb-1">{fr ? 'Crédits photos' : 'Photo credits'}</h2>
+        <p>{fr
+          ? 'Photographies de la villa : famille Bernard. Photo du phare du Cap Ferret : © Rundvald, Wikimedia Commons, CC BY-SA 4.0.'
+          : 'Villa photographs: Bernard family. Cap Ferret lighthouse photo: © Rundvald, Wikimedia Commons, CC BY-SA 4.0.'}</p>
+      </div>
+    </div>
+  </div>
+</section>

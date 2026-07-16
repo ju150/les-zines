@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import Home from '../../components/pages/Home.astro';
+const lang = 'en' as const;
+---
+<Base
+  lang={lang}
+  transparentNav={true}
+  title="Villa Les Zines, Villa rental in Cap Ferret (sleeps 12–16)"
+  description="Villa Les Zines: a large timber villa in Cap Ferret, 6 bedrooms, 700 m² garden, sleeps 12 to 16. Weekly rental, steps from the Bélisaire jetty and the beaches."
+>
+  <Home lang={lang} />
+</Base>

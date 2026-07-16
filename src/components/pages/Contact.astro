@@ -1,0 +1,86 @@
+---
+import type { Lang } from '../../i18n/ui';
+import PageHeader from '../PageHeader.astro';
+import { SITE } from '../../data/site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const fr = lang === 'fr';
+---
+<PageHeader
+  image="/photos/villa-jardin.jpeg"
+  eyebrow={fr ? 'Contact' : 'Contact'}
+  title={fr ? 'Parlons de votre séjour.' : 'Let’s talk about your stay.'}
+  intro={fr
+    ? 'Pour une location comme pour une visite, écrivez-nous ou appelez directement, nous répondons vite.'
+    : 'For a rental or a visit, write to us or call directly, we reply fast.'}
+/>
+
+<section class="py-20 sm:py-24">
+  <div class="wrap grid lg:grid-cols-2 gap-12 lg:gap-16">
+    <div class="reveal">
+      <div class="space-y-8">
+        <div>
+          <div class="text-xs uppercase tracking-eyebrow text-ink-mute mb-1">{fr ? 'Téléphone' : 'Phone'}</div>
+          <a href={`tel:${SITE.phoneIntl}`} class="font-serif text-3xl text-pine hover:text-terra transition-colors">{SITE.phone}</a>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-eyebrow text-ink-mute mb-1">Email</div>
+          <a href={`mailto:${SITE.email}`} class="font-serif text-3xl text-pine hover:text-terra transition-colors">{SITE.email}</a>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-eyebrow text-ink-mute mb-1">{fr ? 'Adresse' : 'Address'}</div>
+          <p class="text-ink-soft">Cap Ferret · Bassin d’Arcachon</p>
+        </div>
+      </div>
+      <div class="rounded-2xl overflow-hidden shadow-soft border border-line mt-8">
+        <iframe title="Google Maps, Cap Ferret" src={SITE.mapsEmbed} class="w-full h-[300px]" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <form id="reservation-form" class="reveal space-y-4 self-start" data-email={SITE.email}>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="block"><span class="c-label">{fr ? 'Nom' : 'Name'}</span><input name="name" required autocomplete="name" class="c-input" /></label>
+        <label class="block"><span class="c-label">Email</span><input name="email" type="email" required autocomplete="email" class="c-input" /></label>
+      </div>
+      <label class="block"><span class="c-label">{fr ? 'Téléphone' : 'Phone'}</span><input name="phone" type="tel" autocomplete="tel" class="c-input" /></label>
+      <label class="block"><span class="c-label">{fr ? 'Objet' : 'Subject'}</span>
+        <select name="week" class="c-input">
+          <option value={fr ? 'Location' : 'Rental'}>{fr ? 'Location' : 'Rental'}</option>
+          <option value={fr ? 'Visite / vente' : 'Visit / sale'}>{fr ? 'Visite / vente' : 'Visit / sale'}</option>
+          <option value={fr ? 'Autre' : 'Other'}>{fr ? 'Autre' : 'Other'}</option>
+        </select>
+      </label>
+      <label class="block"><span class="c-label">{fr ? 'Message' : 'Message'}</span><textarea name="message" rows="5" required class="c-input"></textarea></label>
+      <button type="submit" class="btn btn-primary">{fr ? 'Envoyer' : 'Send'}</button>
+      <p id="form-status" class="text-sm text-ink-mute" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<style>
+  .c-label { @apply block text-xs uppercase tracking-wide text-ink-mute mb-2 font-semibold; }
+  .c-input { @apply w-full bg-paper border border-line-strong rounded-xl px-4 py-3 text-ink focus:border-terra outline-none transition; }
+</style>
+
+<script define:vars={{ fr }}>
+  const form = document.getElementById('reservation-form');
+  const status = document.getElementById('form-status');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    status.textContent = fr ? 'Envoi en cours…' : 'Sending…';
+    try {
+      const res = await fetch('/api/reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      if (!res.ok) throw new Error('no endpoint');
+      status.textContent = fr ? 'Merci ! Votre message a bien été envoyé.' : 'Thank you! Your message has been sent.';
+      form.reset();
+    } catch {
+      const to = form.dataset.email;
+      const subject = encodeURIComponent((fr ? 'Contact, ' : 'Contact, ') + (data.week || ''));
+      const body = encodeURIComponent(`${fr ? 'Nom' : 'Name'}: ${data.name}\nEmail: ${data.email}\n${fr ? 'Téléphone' : 'Phone'}: ${data.phone || ''}\n\n${data.message || ''}`);
+      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      status.textContent = fr ? 'Votre logiciel de messagerie va s’ouvrir…' : 'Your email app will open…';
+    }
+  });
+</script>

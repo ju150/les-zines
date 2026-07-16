@@ -1,0 +1,8 @@
+---
+import Base from '../layouts/Base.astro';
+import Contact from '../components/pages/Contact.astro';
+const lang = 'fr' as const;
+---
+<Base lang={lang} transparentNav={true} title="Contact | Villa Les Zines, Cap Ferret" description="Contactez la Villa Les Zines au Cap Ferret : 07 66 42 33 32, contact@leszines.fr. Demande de location ou de visite.">
+  <Contact lang={lang} />
+</Base>

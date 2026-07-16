@@ -1,0 +1,46 @@
+---
+import type { Lang } from '../../i18n/ui';
+import PageHeader from '../PageHeader.astro';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const fr = lang === 'fr';
+
+const gallery = [
+  '/photos/jardin-1.jpg',
+  '/photos/jardin-2.jpg',
+  '/photos/jardin-3.jpg',
+  '/photos/jardin-5.jpg',
+  '/photos/terrasse.jpeg',
+  '/photos/villa-jardin.jpeg',
+];
+---
+<PageHeader
+  image="/photos/jardin-1.jpg"
+  eyebrow={fr ? 'Le Jardin & les extérieurs' : 'The Garden & outdoors'}
+  title={fr ? '700 m² de pins, d’ombre et de soleil.' : '700 m² of pines, shade and sun.'}
+  intro={fr
+    ? 'Un jardin clos et arboré, plusieurs terrasses en bois, un barbecue, des transats et des hamacs.'
+    : 'A walled, tree-lined garden, several wood terraces, a barbecue, sun loungers and hammocks.'}
+/>
+
+<section class="py-20 sm:py-28">
+  <div class="wrap max-w-3xl">
+    <p class="lead reveal">
+      {fr
+        ? 'Le jardin est clos par une murette surmontée d’une palissade en bois, et planté de pins et d’arbres fruitiers. Plusieurs terrasses en caillebotis complètent l’aménagement : des coins ombragés pour les repas, des zones 100 % soleil pour le bronzage. Un barbecue, trois tables de jardin, seize fauteuils, des transats, deux hamacs et de grands parasols équipent les lieux.'
+        : 'The garden is enclosed by a low wall topped with a wooden fence, and planted with pines and fruit trees. Several wood-deck terraces complete the setup: shaded corners for meals, full-sun zones for sunbathing. A barbecue, three garden tables, sixteen armchairs, sun loungers, two hammocks and large parasols equip the space.'}
+    </p>
+  </div>
+</section>
+
+<section class="pb-28">
+  <div class="wrap grid grid-cols-2 lg:grid-cols-3 gap-4">
+    {gallery.map((g, i) => (
+      <figure class:list={['overflow-hidden rounded-2xl reveal', i === 0 && 'col-span-2 lg:col-span-2 lg:row-span-2']}>
+        <img src={g} alt="Le jardin et les terrasses de la villa"
+             class="w-full h-full object-cover aspect-[4/3] hover:scale-[1.05] transition-transform duration-700 ease-smooth" loading="lazy" />
+      </figure>
+    ))}
+  </div>
+</section>

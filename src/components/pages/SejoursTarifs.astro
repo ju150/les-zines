@@ -1,0 +1,75 @@
+---
+import type { Lang } from '../../i18n/ui';
+import { useTranslations, localizedPath } from '../../i18n/ui';
+import PageHeader from '../PageHeader.astro';
+import rates from '../../data/rates.json';
+import { renderAvailability } from '../../scripts/availability';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const fr = lang === 'fr';
+const reservationBase = localizedPath(lang, 'reservation');
+
+const included = fr
+  ? ['Wifi fibre', 'Lave-linge', 'Forfait eau, gaz et électricité (usage normal)', 'Taxe de séjour', 'Ménage de fin de séjour', 'Linge de maison : draps, serviettes, torchons']
+  : ['Fibre wifi', 'Washing machine', 'Water, gas and electricity package (normal use)', 'Tourist tax', 'End-of-stay cleaning', 'Household linen: sheets, towels, cloths'];
+
+const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase });
+---
+<PageHeader
+  image="/photos/terrasse.jpeg"
+  eyebrow={t('rate_eye')}
+  title={t('rate_h')}
+  intro={fr
+    ? 'Retrouvez les semaines disponibles et faites votre demande de réservation. Courts séjours possibles hors saison.'
+    : 'Find the available weeks and send your booking request. Short stays possible off-season.'}
+/>
+
+<section class="py-20 sm:py-24">
+  <div class="wrap">
+    <h2 class="h2 mb-8 reveal">{fr ? 'Tarifs & disponibilités' : 'Rates & availability'}</h2>
+
+    <div id="rates-table" class="av-table card overflow-hidden reveal" data-lang={lang} data-resbase={reservationBase} set:html={tableHtml}></div>
+
+    <div class="flex flex-wrap items-center gap-4 mt-4 text-xs text-ink-mute reveal">
+      <span class="font-semibold uppercase tracking-wide">{fr ? 'Zones scolaires' : 'School zones'} :</span>
+      <span class="flex items-center gap-1.5"><span class="zone zone-a">A</span><span class="zone zone-b">B</span><span class="zone zone-c">C</span> {fr ? 'vacances d’été (toutes zones)' : 'summer holidays (all zones)'}</span>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-8 mt-12">
+      <div class="reveal">
+        <h3 class="h3 mb-4">{fr ? 'Ce qui est inclus' : 'What’s included'}</h3>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+          {included.map((i) => (
+            <li class="flex gap-3 text-ink-soft py-1"><svg class="w-5 h-5 mt-0.5 shrink-0 stroke-pine-2 fill-none" stroke-width="1.6" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>{i}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="reveal">
+        <h3 class="h3 mb-4">{fr ? 'Bon à savoir' : 'Good to know'}</h3>
+        <p class="text-ink-soft mb-5">
+          {fr
+            ? 'La location se fait à la semaine, du samedi au samedi, en juillet et août. Hors saison, des courts séjours sont possibles : indiquez vos dates au moment de la réservation.'
+            : 'Rental is weekly, Saturday to Saturday, in July and August. Off-season, short stays are possible: enter your dates when booking.'}
+        </p>
+        <a href={reservationBase} class="btn btn-pine">{fr ? 'Réserver un séjour' : 'Book a stay'}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { renderAvailability } from '../../scripts/availability';
+  const table = document.getElementById('rates-table');
+  if (table) {
+    const lang = table.dataset.lang || 'fr';
+    const resBase = table.dataset.resbase || '/reservation';
+    fetch('/api/rates')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.weeks?.length) table.innerHTML = renderAvailability(d.weeks, { mode: 'links', lang, reservationBase: resBase });
+      })
+      .catch(() => {});
+  }
+</script>

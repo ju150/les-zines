@@ -1,0 +1,122 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations, localizedPath } from '../i18n/ui';
+import { NAV } from '../data/site';
+
+interface Props { lang: Lang; transparent?: boolean; }
+const { lang, transparent = false } = Astro.props;
+const t = useTranslations(lang);
+
+const path = Astro.url.pathname;
+// Strip any existing /en prefix first, so clicking EN twice doesn't produce /en/en/… (404).
+const bare = path.replace(/^\/en(?=\/|$)/, '') || '/';
+const toFr = bare;
+const toEn = bare === '/' ? '/en' : '/en' + bare;
+const home = localizedPath(lang);
+const bookHref = localizedPath(lang, 'reservation');
+---
+<header
+  id="site-nav"
+  data-transparent={transparent ? 'true' : 'false'}
+  class:list={[
+    'fixed top-0 inset-x-0 z-50 transition-all duration-300',
+    transparent ? 'py-4 nav-over' : 'py-3 nav-solid',
+  ]}
+>
+  <div class="wrap flex items-center justify-between gap-4">
+    <a href={home} class="brand text-[1.7rem] sm:text-[1.9rem] leading-none z-10">Villa&nbsp;Les&nbsp;Zines</a>
+
+    <nav class="hidden lg:flex items-center gap-7" aria-label="Principal">
+      {NAV.map((item) => (
+        <a href={localizedPath(lang, item.slug)} class="nav-link text-sm font-medium transition-colors">{t(item.key as any)}</a>
+      ))}
+    </nav>
+
+    <div class="flex items-center gap-3 sm:gap-4">
+      <a href={localizedPath(lang, 'a-vendre')} class="nav-sale hidden sm:inline-flex items-center gap-1.5 text-[0.72rem] font-semibold uppercase tracking-[.1em] px-3 py-1.5 rounded-full border transition-colors">
+        <span class="nav-sale-dot w-1.5 h-1.5 rounded-full"></span>{t('nav_sale')}
+      </a>
+      <div class="nav-lang hidden sm:flex text-xs font-semibold rounded-full overflow-hidden border">
+        <a href={toFr} class:list={['px-2.5 py-1.5 transition-colors', lang === 'fr' && 'lang-active']}>FR</a>
+        <a href={toEn} class:list={['px-2.5 py-1.5 transition-colors', lang === 'en' && 'lang-active']}>EN</a>
+      </div>
+      <a href={bookHref} class="btn btn-primary !px-5 !py-2.5 hidden sm:inline-flex">{t('nav_book')}</a>
+      <button id="burger" class="lg:hidden flex flex-col gap-[5px] p-1.5" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="burger-bar w-6 h-0.5 transition-all"></span>
+        <span class="burger-bar w-6 h-0.5 transition-all"></span>
+        <span class="burger-bar w-6 h-0.5 transition-all"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="lg:hidden fixed inset-0 z-40 bg-pine text-white translate-x-full transition-transform duration-400 ease-smooth flex flex-col">
+    <div class="flex-1 flex flex-col justify-center gap-1 px-8">
+      {NAV.map((item) => (
+        <a href={localizedPath(lang, item.slug)} class="font-serif text-3xl py-2 border-b border-white/10">{t(item.key as any)}</a>
+      ))}
+      <a href={localizedPath(lang, 'a-vendre')} class="font-serif text-3xl py-2 border-b border-white/10 text-gold">{t('nav_sale')}</a>
+      <a href={bookHref} class="btn btn-primary mt-6 self-start">{t('nav_book')}</a>
+    </div>
+    <div class="px-8 pb-10 flex items-center gap-4 text-white/80">
+      <a href={toFr} class={lang === 'fr' ? 'font-bold text-white' : ''}>FR</a>
+      <a href={toEn} class={lang === 'en' ? 'font-bold text-white' : ''}>EN</a>
+      <span class="mx-2 opacity-40">·</span>
+      <a href="tel:+33766423332" class="hover:text-white">07 66 42 33 32</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Solid vs over-hero styling driven by data-scrolled */
+  #site-nav.nav-solid { background: rgba(251,248,242,.92); backdrop-filter: blur(12px); box-shadow: 0 1px 0 theme(colors.line.DEFAULT); }
+  #site-nav.nav-solid .brand { color: theme(colors.pine.DEFAULT); }
+  #site-nav.nav-solid .nav-link { color: theme(colors.ink.soft); }
+  #site-nav.nav-solid .nav-link:hover { color: theme(colors.terra.DEFAULT); }
+  #site-nav.nav-solid .nav-lang { border-color: theme(colors.line.strong); color: theme(colors.ink.soft); }
+  #site-nav.nav-solid .burger-bar { background: theme(colors.ink.DEFAULT); }
+
+  #site-nav.nav-over .brand { color: #fff; }
+  #site-nav.nav-over .nav-link { color: rgba(255,255,255,.9); }
+  #site-nav.nav-over .nav-link:hover { color: #fff; }
+  #site-nav.nav-over .nav-lang { border-color: rgba(255,255,255,.35); color: rgba(255,255,255,.85); }
+  #site-nav.nav-over .burger-bar { background: #fff; }
+
+  .lang-active { background: #fff; color: theme(colors.ink.DEFAULT); }
+  #site-nav.nav-over .lang-active { color: theme(colors.ink.DEFAULT); }
+
+  #burger.is-open .burger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #burger.is-open .burger-bar:nth-child(2) { opacity: 0; }
+  #burger.is-open .burger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  #mobile-menu.is-open { transform: translateX(0); }
+
+  /* "À vendre" pill */
+  .nav-sale-dot { background: theme(colors.terra.DEFAULT); animation: salepulse 2s infinite; }
+  #site-nav.nav-over .nav-sale { color: #fff; border-color: rgba(255,255,255,.55); }
+  #site-nav.nav-over .nav-sale:hover { background: rgba(255,255,255,.14); }
+  #site-nav.nav-solid .nav-sale { color: theme(colors.terra.DEFAULT); border-color: theme(colors.terra.DEFAULT); }
+  #site-nav.nav-solid .nav-sale:hover { background: theme(colors.terra.DEFAULT); color: #fff; }
+  #site-nav.nav-solid .nav-sale:hover .nav-sale-dot { background: #fff; }
+  @keyframes salepulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+</style>
+
+<script>
+  const nav = document.getElementById('site-nav')!;
+  const isTransparent = nav.dataset.transparent === 'true';
+  const onScroll = () => {
+    const solid = !isTransparent || window.scrollY > 40;
+    nav.classList.toggle('nav-solid', solid);
+    nav.classList.toggle('nav-over', !solid);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  const burger = document.getElementById('burger')!;
+  const menu = document.getElementById('mobile-menu')!;
+  burger.addEventListener('click', () => {
+    const open = burger.classList.toggle('is-open');
+    menu.classList.toggle('is-open', open);
+    burger.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+</script>

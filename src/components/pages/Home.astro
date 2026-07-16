@@ -1,0 +1,190 @@
+---
+import type { Lang } from '../../i18n/ui';
+import { useTranslations, localizedPath } from '../../i18n/ui';
+import { SITE } from '../../data/site';
+import rates from '../../data/rates.json';
+import { renderAvailability } from '../../scripts/availability';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const reservationBase = localizedPath(lang, 'reservation');
+const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase, onlyAvailable: true });
+---
+<!-- ===== HERO ===== -->
+<section class="relative min-h-[100svh] flex items-end text-white overflow-hidden">
+  <div class="absolute inset-0 -z-10">
+    <img src="/photos/villa-jardin.jpeg" alt="La Villa Les Zines et son jardin au Cap Ferret"
+         class="w-full h-full object-cover" fetchpriority="high" />
+    <div class="absolute inset-0 bg-gradient-to-b from-pine-deep/55 via-pine-deep/10 to-pine-deep/85"></div>
+  </div>
+
+  <div class="wrap w-full pb-16 sm:pb-24 pt-32">
+    <p class="eyebrow !text-white/90 flex items-center gap-3 mb-5 reveal">
+      <span class="bg-terra px-3 py-1 rounded-full tracking-[.12em]">{t('hero_tag')}</span>
+      {t('hero_eyebrow')}
+    </p>
+    <h1 class="text-[clamp(2.6rem,6.4vw,5.6rem)] font-semibold max-w-[18ch] [text-wrap:balance] drop-shadow-[0_2px_30px_rgba(0,0,0,0.25)] reveal" set:html={t('hero_h1')}></h1>
+    <p class="lead !text-white/90 !max-w-[52ch] mt-6 mb-8 reveal">{t('hero_sub')}</p>
+    <div class="flex flex-wrap gap-3.5 reveal">
+      <a href={localizedPath(lang, 'sejours-tarifs')} class="btn btn-primary">{t('hero_cta1')}</a>
+      <a href={localizedPath(lang, 'la-villa')} class="btn btn-light">{t('hero_cta2')}</a>
+    </div>
+
+    <div class="flex flex-wrap mt-12 sm:mt-16 border-t border-white/25 reveal">
+      {[
+        { n: SITE.sleeps, l: t('stat_guests') },
+        { n: '6+1', l: t('stat_rooms') },
+        { n: '700 m²', l: t('stat_garden') },
+        { n: String(SITE.bathrooms), l: t('stat_baths') },
+      ].map((s) => (
+        <div class="pr-8 mr-8 pt-5">
+          <div class="font-serif font-semibold text-[clamp(1.8rem,3vw,2.5rem)] leading-none">{s.n}</div>
+          <div class="text-xs uppercase tracking-wide text-white/80 mt-1.5">{s.l}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTRO ===== -->
+<section class="py-24 sm:py-32">
+  <div class="wrap max-w-3xl text-center">
+    <p class="eyebrow eyebrow-muted mb-5 reveal">{t('intro_eyebrow')}</p>
+    <h2 class="h2 mb-6 reveal">{t('intro_h')}</h2>
+    <p class="lead mx-auto reveal">{t('intro_p')}</p>
+  </div>
+</section>
+
+<!-- ===== VILLA TEASER ===== -->
+<section class="pb-24 sm:pb-28">
+  <div class="wrap grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div class="rounded-2xl overflow-hidden shadow-deep reveal order-1 md:order-none">
+      <img src="/photos/villa/vie-cuisine/00-cover.jpg" alt="La pièce de vie ouverte sur le jardin" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+    </div>
+    <div class="reveal">
+      <p class="eyebrow mb-4">{t('t_villa_eye')}</p>
+      <h2 class="h2 mb-5">{t('t_villa_h')}</h2>
+      <p class="lead mb-7">{t('t_villa_p')}</p>
+      <a href={localizedPath(lang, 'la-villa')} class="btn btn-ghost">{t('discover')} →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== JARDIN TEASER ===== -->
+<section class="pb-24 sm:pb-28">
+  <div class="wrap grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div class="reveal">
+      <p class="eyebrow mb-4">{t('t_jardin_eye')}</p>
+      <h2 class="h2 mb-5">{t('t_jardin_h')}</h2>
+      <p class="lead mb-7">{t('t_jardin_p')}</p>
+      <a href={localizedPath(lang, 'le-jardin')} class="btn btn-ghost">{t('discover')} →</a>
+    </div>
+    <div class="rounded-2xl overflow-hidden shadow-deep reveal">
+      <img src="/photos/jardin-1.jpg" alt="Le jardin arboré de 700 m²" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<!-- ===== NIGHT MOMENT (fixed background) ===== -->
+<section class="night-band relative py-32 sm:py-44 text-white text-center">
+  <div class="absolute inset-0 bg-pine-deep/70"></div>
+  <div class="wrap relative max-w-2xl mx-auto reveal">
+    <p class="eyebrow !text-gold mb-4">{lang === 'fr' ? 'À la tombée de la nuit' : 'As night falls'}</p>
+    <h2 class="h2 !text-white italic font-medium mb-5">
+      {lang === 'fr' ? 'Quand le bois s’illumine.' : 'When the wood lights up.'}
+    </h2>
+    <p class="lead !text-white/85 mx-auto">
+      {lang === 'fr'
+        ? 'Le soir venu, la villa se pare de lumières chaudes et la terrasse devient le cœur des soirées d’été.'
+        : 'At nightfall, the villa glows with warm light and the terrace becomes the heart of summer evenings.'}
+    </p>
+  </div>
+</section>
+
+<style>
+  .night-band {
+    background-image: url('/photos/nuit-1.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+  /* background-attachment: fixed is janky on touch devices → fall back to scroll */
+  @media (hover: none) { .night-band { background-attachment: scroll; } }
+</style>
+
+<!-- ===== CAP FERRET TEASER ===== -->
+<section class="py-24 sm:py-28 bg-paper">
+  <div class="wrap grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div class="rounded-2xl overflow-hidden shadow-deep reveal order-1 md:order-none">
+      <img src="/photos/cap-ferret.jpg" alt="Le phare et la plage du Cap Ferret" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+    </div>
+    <div class="reveal">
+      <p class="eyebrow mb-4">{t('t_loc_eye')}</p>
+      <h2 class="h2 mb-5">{t('t_loc_h')}</h2>
+      <p class="lead mb-7">{t('t_loc_p')}</p>
+      <a href={localizedPath(lang, 'le-cap-ferret')} class="btn btn-ghost">{t('discover')} →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== RATES TEASER ===== -->
+<section class="py-24 sm:py-28">
+  <div class="wrap">
+    <div class="max-w-2xl mb-10 reveal">
+      <p class="eyebrow mb-4">{t('rate_eye')}</p>
+      <h2 class="h2 mb-5">{t('rate_h')}</h2>
+      <p class="lead">{t('rate_p')}</p>
+    </div>
+    <div id="home-avail" class="av-table card overflow-hidden reveal" data-lang={lang} data-resbase={reservationBase} set:html={availHtml}></div>
+    <div class="mt-8 reveal">
+      <a href={localizedPath(lang, 'sejours-tarifs')} class="btn btn-primary">{t('rate_cta')}</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SALE (discreet) ===== -->
+<section class="pb-24 sm:pb-28">
+  <div class="wrap">
+    <div class="card !bg-pine text-white/85 rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row md:items-center gap-6 justify-between reveal">
+      <div>
+        <p class="eyebrow !text-gold mb-3">{t('sale_eye')}</p>
+        <h2 class="h3 !text-white mb-3">{t('sale_h')}</h2>
+        <p class="max-w-xl text-white/75">{t('sale_p')}</p>
+      </div>
+      <div class="flex flex-col items-start md:items-end gap-3 shrink-0">
+        <span class="font-serif text-2xl text-white">{t('sale_price')}</span>
+        <a href={localizedPath(lang, 'a-vendre')} class="btn btn-light">{t('sale_cta')}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MONTUZET ===== -->
+<section class="pb-28">
+  <div class="wrap">
+    <div class="card overflow-hidden grid md:grid-cols-2 shadow-soft reveal">
+      <img src="/photos/montuzet.jpeg" alt="Le Chai de Montuzet" class="w-full h-full object-cover min-h-[280px]" loading="lazy" />
+      <div class="p-8 sm:p-12">
+        <p class="eyebrow !text-gold mb-4">{t('mont_eye')}</p>
+        <h3 class="h3 mb-4">{t('mont_h')}</h3>
+        <p class="lead mb-7">{t('mont_p')}</p>
+        <a href={SITE.montuzetUrl} target="_blank" rel="noopener" class="btn btn-ghost">{t('mont_cta')} →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { renderAvailability } from '../../scripts/availability';
+  const el = document.getElementById('home-avail');
+  if (el) {
+    const lang = el.dataset.lang || 'fr';
+    const resBase = el.dataset.resbase || '/reservation';
+    fetch('/api/rates')
+      .then((r) => r.json())
+      .then((d) => { if (d?.weeks?.length) el.innerHTML = renderAvailability(d.weeks, { mode: 'links', lang, reservationBase: resBase, onlyAvailable: true }); })
+      .catch(() => {});
+  }
+</script>

@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Manrope:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { --nav-h: 76px; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-sand text-ink font-sans antialiased;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+  h1, h2, h3 { @apply font-serif font-semibold leading-[1.05] tracking-[-0.01em]; }
+  ::selection { @apply bg-terra text-white; }
+  :focus-visible { @apply outline-none ring-2 ring-terra ring-offset-2 ring-offset-sand rounded-sm; }
+}
+
+@layer components {
+  .wrap { @apply max-w-content mx-auto px-6 sm:px-8; }
+  .eyebrow { @apply text-[0.74rem] font-semibold uppercase tracking-eyebrow text-terra; }
+  .eyebrow-muted { @apply text-ink-mute; }
+  .lead { @apply text-lg sm:text-xl text-ink-soft font-normal; max-width: 62ch; }
+  .h2 { @apply text-[clamp(2rem,4.4vw,3.4rem)]; }
+  .h3 { @apply text-[clamp(1.5rem,2.6vw,2.1rem)]; }
+
+  .btn {
+    @apply inline-flex items-center gap-2 font-semibold text-[0.92rem] px-6 py-3.5 rounded-full
+           border border-transparent cursor-pointer transition-all duration-300 ease-smooth;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { @apply bg-terra text-white hover:bg-terra-2 shadow-[0_10px_24px_-12px_rgba(165,72,43,0.55)]; }
+  .btn-ghost   { @apply bg-transparent text-ink border-line-strong hover:border-ink hover:bg-pine/5; }
+  .btn-light   { @apply bg-white/10 text-white border-white/50 backdrop-blur hover:bg-white/20; }
+  .btn-pine    { @apply bg-pine text-white hover:bg-pine-2; }
+
+  .brand { @apply font-script text-white leading-none; }
+
+  .card { @apply bg-paper border border-line rounded-2xl; }
+
+  .badge { @apply text-[0.74rem] font-semibold px-3 py-1 rounded-full whitespace-nowrap; }
+  .badge-free   { @apply text-[#2E6B4F] bg-[rgba(46,107,79,0.14)]; }
+  .badge-booked { @apply text-[#9a6a2a] bg-[rgba(176,134,59,0.16)]; }
+
+  /* Reservation week cards (used in template AND injected via JS, so kept global) */
+  .wk-card { @apply relative flex flex-col gap-1 cursor-pointer rounded-xl border border-line-strong bg-white pl-5 pr-11 py-4 transition-all; }
+  .wk-card:hover { @apply border-pine-2 shadow-soft; }
+  .wk-card:has(input:checked) { @apply border-terra bg-[rgba(191,88,54,0.06)] ring-1 ring-terra; }
+  .wk-card-alt { @apply border-dashed bg-paper; }
+  .wk-dates { @apply font-serif text-xl text-ink leading-tight; }
+  .wk-price { @apply text-sm text-ink-soft; }
+  .wk-check { @apply absolute top-4 right-4 w-5 h-5 rounded-full border border-line-strong transition-colors; }
+  .wk-card:has(input:checked) .wk-check { @apply bg-terra border-terra; }
+  .wk-card:has(input:checked) .wk-check::after { content: ''; @apply absolute left-[6px] top-[2px] w-[7px] h-[11px] border-r-2 border-b-2 border-white rotate-45; }
+
+  /* ——— Availability table (shared: tarifs = links, reservation = select) ——— */
+  .av-month { @apply px-5 py-2.5 bg-sand-2 text-sm font-semibold uppercase tracking-wide text-pine capitalize; }
+  .av-row { @apply grid items-center gap-x-4 gap-y-2 px-5 py-3.5 border-t border-line; grid-template-columns: 1.5fr auto 1fr auto auto; }
+  .av-free { @apply bg-[rgba(46,107,79,0.05)]; }
+  .av-booked .av-label { @apply line-through text-ink-mute; }
+  .av-booked .av-price { @apply text-ink-mute; }
+  .av-c { @apply min-w-0; }
+  .av-label { @apply block font-semibold; }
+  .av-sub { @apply block text-xs text-ink-mute; }
+  .av-zones { @apply flex gap-1; }
+  .av-price { @apply font-serif text-xl text-pine text-right whitespace-nowrap; }
+  .av-price small { @apply font-sans text-xs text-ink-mute; }
+  .av-req { @apply text-base; }
+  .av-nozone { @apply text-ink-mute/40; }
+  .av-btn { @apply !px-4 !py-2 !text-[0.8rem]; }
+  .zone { @apply inline-flex items-center justify-center w-5 h-5 rounded text-[0.65rem] font-bold text-white; }
+  .zone-a { @apply bg-[#3f9b6b]; }
+  .zone-b { @apply bg-[#d9a441]; }
+  .zone-c { @apply bg-[#c9683f]; }
+  .av-pick { @apply cursor-pointer transition-colors; }
+  .av-pick:hover { @apply bg-[rgba(46,107,79,0.1)]; }
+  .av-radio { @apply inline-block w-5 h-5 rounded-full border-2 border-line-strong transition-all; }
+  .av-pick:has(input:checked) { @apply bg-[rgba(191,88,54,0.08)] ring-1 ring-inset ring-terra; }
+  .av-pick:has(input:checked) .av-radio { @apply border-terra bg-terra; box-shadow: inset 0 0 0 3px #fff; }
+
+  @media (max-width: 640px) {
+    .av-row { grid-template-columns: 1fr auto; }
+    .av-dates { grid-column: 1 / -1; }
+    .av-price { order: 2; text-align: left; }
+    .av-status { order: 3; }
+    .av-zones { order: 4; }
+    .av-action { order: 5; justify-self: end; }
+  }
+}
+
+/* Reveal-on-scroll base (JS toggles .is-in). Progressive enhancement:
+   hidden only when JS is active, so no-JS/crawlers always see content. */
+.reveal { transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+html.js .reveal { opacity: 0; transform: translateY(28px); }
+html.js .reveal.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

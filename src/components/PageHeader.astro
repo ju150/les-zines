@@ -1,0 +1,21 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  image: string;
+  imageAlt?: string;
+}
+const { eyebrow, title, intro, image, imageAlt = '' } = Astro.props;
+---
+<header class="relative min-h-[62svh] flex items-end text-white overflow-hidden">
+  <div class="absolute inset-0 -z-10">
+    <img src={image} alt={imageAlt} class="w-full h-full object-cover" fetchpriority="high" />
+    <div class="absolute inset-0 bg-gradient-to-b from-pine-deep/55 via-pine-deep/20 to-pine-deep/85"></div>
+  </div>
+  <div class="wrap w-full pb-14 sm:pb-20 pt-32">
+    <p class="eyebrow !text-white/90 mb-4 reveal">{eyebrow}</p>
+    <h1 class="text-[clamp(2.2rem,5.2vw,4.4rem)] font-semibold max-w-[20ch] [text-wrap:balance] reveal">{title}</h1>
+    {intro && <p class="lead !text-white/90 !max-w-[56ch] mt-5 reveal">{intro}</p>}
+  </div>
+</header>

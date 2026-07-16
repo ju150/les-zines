@@ -1,0 +1,159 @@
+---
+import type { Lang } from '../../i18n/ui';
+import { useTranslations } from '../../i18n/ui';
+import { SITE } from '../../data/site';
+import rates from '../../data/rates.json';
+import { renderAvailability } from '../../scripts/availability';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const fr = lang === 'fr';
+const preWeek = Astro.url.searchParams.get('week') || '';
+const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
+---
+<section class="pt-28 sm:pt-32 pb-6">
+  <div class="wrap max-w-4xl page-in">
+    <p class="eyebrow mb-3">{fr ? 'Réservation' : 'Booking'}</p>
+    <h1 class="h2 mb-4">{fr ? 'Réserver votre séjour' : 'Book your stay'}</h1>
+    <p class="lead">{fr
+      ? 'Choisissez une semaine disponible (ou vos dates pour un court séjour hors saison), laissez vos coordonnées, et nous vous répondons rapidement pour confirmer.'
+      : 'Choose an available week (or your dates for a short off-season stay), leave your details, and we’ll get back to you quickly to confirm.'}</p>
+  </div>
+</section>
+
+<section class="pb-24">
+  <form id="reservation-form" class="wrap max-w-4xl page-in" data-email={SITE.email} data-preweek={preWeek} data-lang={lang}>
+    <!-- Step 1 -->
+    <div class="mb-10">
+      <div class="step-h"><span class="step-n">1</span>{fr ? 'Votre semaine' : 'Your week'}</div>
+      <div id="week-table" class="av-table card overflow-hidden" set:html={tableHtml}></div>
+
+      <div class="mt-3 card overflow-hidden">
+        <label class="av-row av-pick av-offseason">
+          <div class="av-c av-dates"><span class="av-label">{fr ? 'Autres dates' : 'Other dates'}</span><span class="av-sub">{fr ? 'Court séjour / hors saison' : 'Short stay / off-season'}</span></div>
+          <div class="av-c av-zones"></div>
+          <div class="av-c av-price"></div>
+          <div class="av-c av-status"></div>
+          <div class="av-c av-action"><input type="radio" name="week" value="offseason" id="rad-offseason" class="sr-only" /><span class="av-radio" aria-hidden="true"></span></div>
+        </label>
+        <div id="offseason-dates" class="hidden px-5 py-4 border-t border-line bg-paper">
+          <label class="c-label">{fr ? 'Vos dates (arrivée → départ)' : 'Your dates (arrival → departure)'}</label>
+          <div class="date-field">
+            <svg class="date-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <input id="daterange" class="c-input date-input" placeholder={fr ? 'Choisir vos dates…' : 'Pick your dates…'} readonly />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-ink-mute">
+        <span class="font-semibold uppercase tracking-wide">{fr ? 'Zones scolaires' : 'School zones'} :</span>
+        <span class="flex items-center gap-1.5"><span class="zone zone-a">A</span><span class="zone zone-b">B</span><span class="zone zone-c">C</span> {fr ? 'vacances d’été' : 'summer holidays'}</span>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="mb-8">
+      <div class="step-h"><span class="step-n">2</span>{fr ? 'Vos coordonnées' : 'Your details'}</div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="block"><span class="c-label">{fr ? 'Nom' : 'Name'}</span><input name="name" required autocomplete="name" class="c-input" /></label>
+        <label class="block"><span class="c-label">Email</span><input name="email" type="email" required autocomplete="email" class="c-input" /></label>
+        <label class="block"><span class="c-label">{fr ? 'Téléphone' : 'Phone'}</span><input name="phone" type="tel" autocomplete="tel" class="c-input" /></label>
+        <label class="block"><span class="c-label">{fr ? 'Nombre de personnes' : 'Number of guests'}</span><input name="guests" type="number" min="1" max="16" class="c-input" /></label>
+      </div>
+      <label class="block mt-4"><span class="c-label">{fr ? 'Message' : 'Message'}</span><textarea name="message" rows="4" class="c-input" placeholder={fr ? 'Une question, une précision…' : 'A question, a detail…'}></textarea></label>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-5">
+      <button type="submit" class="btn btn-primary">{fr ? 'Envoyer ma demande' : 'Send my request'}</button>
+      <div class="text-sm text-ink-mute">
+        {fr ? 'ou appelez le' : 'or call'} <a href={`tel:${SITE.phoneIntl}`} class="text-pine font-semibold hover:text-terra">{SITE.phone}</a>
+      </div>
+    </div>
+    <p id="form-status" class="text-sm text-ink-soft mt-4" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<style>
+  .page-in { animation: pagein .5s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes pagein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .page-in { animation: none; } }
+
+  .step-h { @apply flex items-center gap-3 font-serif text-2xl mb-5; }
+  .step-n { @apply inline-flex items-center justify-center w-8 h-8 rounded-full bg-pine text-white text-base font-sans font-semibold; }
+
+  .c-label { @apply block text-xs uppercase tracking-wide text-ink-mute mb-2 font-semibold; }
+  .c-input { @apply w-full bg-white border border-line-strong rounded-xl px-4 py-3 text-ink focus:border-terra outline-none transition; }
+
+  .date-field { @apply relative; }
+  .date-ico { @apply absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-pine-2 pointer-events-none; }
+  .date-input { @apply !pl-11 font-serif text-lg text-pine; }
+  .date-input::placeholder { @apply font-sans text-base text-ink-mute; }
+</style>
+
+<script>
+  import flatpickr from 'flatpickr';
+  import { French } from 'flatpickr/dist/l10n/fr.js';
+  import 'flatpickr/dist/flatpickr.min.css';
+  import { renderAvailability } from '../../scripts/availability';
+
+  const form = document.getElementById('reservation-form') as HTMLFormElement;
+  const lang = form.dataset.lang || 'fr';
+  const fr = lang === 'fr';
+  const table = document.getElementById('week-table')!;
+  const offBox = document.getElementById('offseason-dates')!;
+  const status = document.getElementById('form-status')!;
+
+  const syncOffseason = () => {
+    const off = (document.getElementById('rad-offseason') as HTMLInputElement)?.checked;
+    offBox.classList.toggle('hidden', !off);
+  };
+  form.addEventListener('change', syncOffseason);
+
+  flatpickr('#daterange', {
+    mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
+    altInput: true, altFormat: fr ? 'j M' : 'M j',
+    locale: fr ? French : 'default',
+    onChange: (dates) => {
+      const rad = document.getElementById('rad-offseason') as HTMLInputElement;
+      if (dates.length === 2 && rad) {
+        const f = (d: Date) => d.toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
+        rad.value = `${fr ? 'Hors saison' : 'Off-season'} : ${f(dates[0])} → ${f(dates[1])}`;
+        rad.checked = true;
+        syncOffseason();
+      }
+    },
+  });
+
+  const preselect = () => {
+    const pre = form.dataset.preweek;
+    if (!pre) return;
+    const m = [...table.querySelectorAll('input[name="week"]')].find((i) => (i as HTMLInputElement).value === pre) as HTMLInputElement | undefined;
+    if (m) m.checked = true;
+  };
+  preselect();
+
+  // Live availability from the sheet
+  fetch('/api/rates').then((r) => r.json()).then((d) => {
+    if (d?.weeks?.length) { table.innerHTML = renderAvailability(d.weeks, { mode: 'select', lang }); preselect(); }
+  }).catch(() => {});
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
+    if (!data.week) { status.textContent = fr ? 'Merci de choisir une semaine ou vos dates.' : 'Please choose a week or your dates.'; return; }
+    status.textContent = fr ? 'Envoi en cours…' : 'Sending…';
+    try {
+      const res = await fetch('/api/reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      if (!res.ok) throw new Error('no endpoint');
+      status.textContent = fr ? 'Merci, votre demande a bien été envoyée. Nous revenons vers vous très vite.' : 'Thank you, your request has been sent. We’ll get back to you very soon.';
+      form.reset(); offBox.classList.add('hidden');
+    } catch {
+      const to = form.dataset.email;
+      const subject = encodeURIComponent((fr ? 'Demande de réservation, ' : 'Booking request, ') + (data.week || ''));
+      const body = encodeURIComponent(`${fr ? 'Nom' : 'Name'}: ${data.name}\nEmail: ${data.email}\n${fr ? 'Téléphone' : 'Phone'}: ${data.phone || ''}\n${fr ? 'Personnes' : 'Guests'}: ${data.guests || ''}\n${fr ? 'Semaine' : 'Week'}: ${data.week || ''}\n\n${data.message || ''}`);
+      window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      status.textContent = fr ? 'Votre logiciel de messagerie va s’ouvrir…' : 'Your email app will open…';
+    }
+  });
+</script>

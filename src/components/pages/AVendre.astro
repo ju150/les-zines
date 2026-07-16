@@ -1,0 +1,110 @@
+---
+import type { Lang } from '../../i18n/ui';
+import { localizedPath } from '../../i18n/ui';
+import PageHeader from '../PageHeader.astro';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const fr = lang === 'fr';
+
+const facts = [
+  { n: '8', fr: ['pièces', '6 chambres + dortoir enfants'], en: ['rooms', '6 bedrooms + kids’ dorm'] },
+  { n: '12–16', fr: ['couchages', 'Idéal pour deux familles'], en: ['sleeps', 'Ideal for two families'] },
+  { n: '700 m²', fr: ['de terrain', 'Jardin clos et arboré'], en: ['of land', 'Walled, wooded garden'] },
+  { n: '4', fr: ['salles d’eau', '+ douche & WC extérieurs'], en: ['bathrooms', '+ outdoor shower & WC'] },
+  { n: 'DPE C', fr: ['GES B', 'Maison bois performante'], en: ['GHG B', 'Efficient timber house'] },
+  { n: 'Centre', fr: ['du Cap Ferret', 'À pied des plages & du marché'], en: ['of Cap Ferret', 'Walk to beaches & market'] },
+];
+
+const atouts = fr
+  ? [
+      'Un emplacement rare, au cœur du Cap Ferret, à pied des deux plages, du marché et de la jetée',
+      'L’authenticité d’une grande maison en bois « esprit Bassin », lumineuse et chaleureuse',
+      'Une forte capacité d’accueil (12 à 16 personnes) et de très beaux extérieurs',
+      'Un excellent rapport locatif, déjà éprouvé saison après saison',
+      'Un jardin clos et arboré de 700 m², avec de multiples terrasses',
+    ]
+  : [
+      'A rare location, in the heart of Cap Ferret, walking distance to both beaches, the market and the jetty',
+      'The authenticity of a large timber “esprit Bassin” house, bright and warm',
+      'High capacity (12 to 16 guests) and beautiful outdoor spaces',
+      'Excellent rental yield, proven season after season',
+      'A walled, wooded 700 m² garden with multiple terraces',
+    ];
+
+const strip = ['/photos/nuit-2.jpeg', '/photos/villa-jardin.jpeg', '/photos/villa/vie-cuisine/00-cover.jpg', '/photos/jardin-1.jpg'];
+---
+<PageHeader
+  image="/photos/nuit-1.jpeg"
+  eyebrow={fr ? 'À vendre, en toute discrétion' : 'For sale, discreetly'}
+  title={fr ? 'Transmettre une maison de famille.' : 'Passing on a family home.'}
+  intro={fr
+    ? 'La villa continue d’être louée, mais elle est aussi à vendre. Si le lieu vous touche, parlons-en simplement.'
+    : 'The villa is still rented, but it is also for sale. If the place speaks to you, let’s simply talk.'}
+/>
+
+<section class="py-20 sm:py-28">
+  <div class="wrap max-w-3xl">
+    <p class="lead reveal">
+      {fr
+        ? 'Après plusieurs années de bonheur familial, nous avons décidé de transmettre ce lieu rare, au cœur du Cap Ferret. Une grande maison en bois pensée pour les grandes tablées, à quelques pas des plages, du marché et du village, prête à écrire sa prochaine histoire.'
+        : 'After several years of family happiness, we have decided to pass on this rare place in the heart of Cap Ferret. A large timber house made for big gatherings, steps from the beaches, market and village, ready to write its next chapter.'}
+    </p>
+  </div>
+</section>
+
+<!-- Key figures -->
+<section class="pb-20">
+  <div class="wrap grid grid-cols-2 lg:grid-cols-3 gap-4">
+    {facts.map((f) => (
+      <div class="card p-6 sm:p-7 reveal">
+        <div class="font-serif text-3xl sm:text-4xl text-pine leading-none mb-2">{f.n}</div>
+        <div class="font-semibold text-ink">{fr ? f.fr[0] : f.en[0]}</div>
+        <p class="text-ink-soft text-sm mt-0.5">{fr ? f.fr[1] : f.en[1]}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<!-- Photo strip -->
+<section class="pb-20">
+  <div class="wrap grid grid-cols-2 lg:grid-cols-4 gap-3">
+    {strip.map((src) => (
+      <img src={src} alt="Villa Les Zines" class="w-full h-full object-cover aspect-[3/4] rounded-xl reveal" loading="lazy" />
+    ))}
+  </div>
+</section>
+
+<!-- Atouts -->
+<section class="pb-24">
+  <div class="wrap grid lg:grid-cols-2 gap-10 lg:gap-16">
+    <div class="reveal">
+      <p class="eyebrow mb-4">{fr ? 'Les atouts' : 'The highlights'}</p>
+      <h2 class="h2">{fr ? 'Pourquoi la Villa Les Zines.' : 'Why Villa Les Zines.'}</h2>
+    </div>
+    <ul class="space-y-4 reveal">
+      {atouts.map((a) => (
+        <li class="flex gap-3 text-ink-soft text-lg"><svg class="w-6 h-6 mt-0.5 shrink-0 stroke-terra fill-none" stroke-width="1.6" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>{a}</li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="pb-28">
+  <div class="wrap">
+    <div class="card !bg-pine text-white rounded-3xl p-8 sm:p-14 text-center reveal">
+      <p class="eyebrow !text-gold mb-3">{fr ? 'Vente de gré à gré' : 'Private sale'}</p>
+      <p class="font-serif text-3xl sm:text-4xl mb-3">{fr ? 'Prix sur demande' : 'Price on request'}</p>
+      <p class="text-white/75 max-w-xl mx-auto mb-8">
+        {fr
+          ? 'Pour recevoir le dossier complet ou organiser une visite, écrivez-nous : nous répondons personnellement et en toute confidentialité.'
+          : 'To receive the full file or arrange a visit, write to us: we reply personally and confidentially.'}
+      </p>
+      <div class="flex flex-wrap gap-3 justify-center">
+        <a href={localizedPath(lang, 'contact')} class="btn btn-primary">{fr ? 'Demander une visite' : 'Request a visit'}</a>
+        <a href={localizedPath(lang, 'contact')} class="btn btn-light">{fr ? 'Recevoir le dossier' : 'Get the file'}</a>
+      </div>
+    </div>
+  </div>
+</section>

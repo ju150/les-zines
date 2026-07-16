@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Villa Les Zines — Cap Ferret · À vendre & à louer</title>
+<meta name="description" content="Villa Les Zines, cabane bois d'exception au Cap Ferret. 12 à 16 personnes, jardin arboré de 700 m², à deux pas de la jetée Bélisaire. À vendre et à louer à la semaine." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  :root{
+    --sand:#F5F0E6; --sand-2:#EFE7D8; --paper:#FBF8F2;
+    --ink:#20302C; --ink-soft:#465651; --muted:#7C8A85;
+    --line:#E4DBCB; --line-strong:#D6CBB6;
+    --pine:#123F39; --pine-2:#2E6B63; --ocean:#35726E;
+    --terra:#BF5836; --terra-2:#A5482B; --gold:#B0863B;
+    --shadow:0 24px 60px -30px rgba(31,45,40,.45);
+    --shadow-soft:0 12px 34px -18px rgba(31,45,40,.35);
+    --r:14px; --maxw:1200px;
+    --serif:"Cormorant Garamond",Georgia,serif;
+    --sans:"Manrope",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--sand);
+    line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  img{max-width:100%;display:block}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  .eyebrow{font-size:.74rem;letter-spacing:.28em;text-transform:uppercase;font-weight:600;color:var(--terra)}
+  .eyebrow.muted{color:var(--muted)}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.05;letter-spacing:-.01em}
+  h2{font-size:clamp(2.1rem,4.6vw,3.6rem)}
+  .lead{font-size:clamp(1.05rem,1.5vw,1.28rem);color:var(--ink-soft);font-weight:400;max-width:60ch}
+  section{padding:clamp(64px,9vw,120px) 0}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:.55em;font-weight:600;font-size:.92rem;
+    padding:.95em 1.6em;border-radius:100px;cursor:pointer;border:1px solid transparent;
+    transition:transform .25s ease,background .25s ease,color .25s ease,box-shadow .25s ease;letter-spacing:.01em}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--terra);color:#fff;box-shadow:0 10px 24px -12px var(--terra-2)}
+  .btn-primary:hover{background:var(--terra-2)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+  .btn-ghost:hover{border-color:var(--ink);background:rgba(18,63,57,.04)}
+  .btn-light{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.5);backdrop-filter:blur(6px)}
+  .btn-light:hover{background:rgba(255,255,255,.24)}
+
+  /* Nav */
+  header.nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .35s ease,box-shadow .35s ease,padding .35s ease;padding:18px 0}
+  header.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px}
+  .brand{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:.02em;color:#fff;transition:color .35s}
+  .brand span{color:var(--terra)}
+  .navlinks{display:flex;gap:26px;align-items:center}
+  .navlinks a{font-size:.86rem;font-weight:500;color:rgba(255,255,255,.9);transition:color .2s;position:relative}
+  .navlinks a::after{content:"";position:absolute;left:0;bottom:-5px;width:0;height:1.5px;background:var(--terra);transition:width .28s ease}
+  .navlinks a:hover::after{width:100%}
+  .nav-right{display:flex;align-items:center;gap:16px}
+  .sale-pill{display:inline-flex;align-items:center;gap:.5em;font-size:.72rem;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:#fff;background:var(--terra);padding:.5em 1em;border-radius:100px;white-space:nowrap}
+  .sale-pill .dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .lang{display:flex;gap:2px;font-size:.8rem;font-weight:600;color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.3);border-radius:100px;overflow:hidden}
+  .lang button{background:none;border:none;color:inherit;cursor:pointer;padding:.4em .7em;font-family:inherit;font-weight:600;transition:background .2s,color .2s}
+  .lang button.active{background:#fff;color:var(--ink)}
+  /* scrolled nav */
+  header.nav.scrolled{background:rgba(251,248,242,.92);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line);padding:12px 0}
+  header.nav.scrolled .brand{color:var(--ink)}
+  header.nav.scrolled .navlinks a{color:var(--ink-soft)}
+  header.nav.scrolled .lang{border-color:var(--line-strong);color:var(--ink-soft)}
+  header.nav.scrolled .btn-light{background:var(--pine);color:#fff;border-color:var(--pine)}
+  .burger{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+  .burger span{width:24px;height:2px;background:#fff;transition:background .3s}
+  header.nav.scrolled .burger span{background:var(--ink)}
+
+  /* Hero */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
+  .hero-media{position:absolute;inset:0;z-index:-2}
+  .hero-media img{width:100%;height:120%;object-fit:cover;will-change:transform}
+  .hero::after{content:"";position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(180deg,rgba(18,32,28,.5) 0%,rgba(18,32,28,.15) 32%,rgba(18,32,28,.15) 55%,rgba(18,32,28,.82) 100%)}
+  .hero-inner{padding-bottom:clamp(48px,7vw,88px);padding-top:140px;width:100%}
+  .hero h1{font-size:clamp(2.9rem,7vw,6rem);font-weight:600;max-width:16ch;text-shadow:0 2px 30px rgba(0,0,0,.25)}
+  .hero .eyebrow{color:#fff;opacity:.92;margin-bottom:22px;display:flex;align-items:center;gap:12px}
+  .hero .eyebrow .tag{background:var(--terra);padding:.35em .8em;border-radius:100px;letter-spacing:.12em}
+  .hero .lead{color:rgba(255,255,255,.92);margin:22px 0 34px;font-size:clamp(1.05rem,1.6vw,1.35rem);max-width:52ch}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .stats{display:flex;flex-wrap:wrap;gap:0;margin-top:clamp(44px,6vw,72px);border-top:1px solid rgba(255,255,255,.25)}
+  .stat{padding:22px 34px 4px 0;margin-right:34px}
+  .stat .n{font-family:var(--serif);font-size:clamp(1.9rem,3vw,2.6rem);font-weight:600;line-height:1}
+  .stat .l{font-size:.8rem;letter-spacing:.04em;color:rgba(255,255,255,.8);text-transform:uppercase;margin-top:6px}
+  .scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.7);display:flex;flex-direction:column;align-items:center;gap:8px}
+  .scroll-hint .line{width:1px;height:34px;background:linear-gradient(rgba(255,255,255,.7),transparent);animation:drop 1.8s infinite}
+  @keyframes drop{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  /* Section headers */
+  .sec-head{max-width:64ch;margin-bottom:clamp(38px,5vw,60px)}
+  .sec-head .eyebrow{margin-bottom:16px;display:block}
+  .sec-head p.lead{margin-top:18px}
+
+  /* Sale band */
+  .sale{background:var(--pine);color:#F3EFE4;position:relative;overflow:hidden}
+  .sale .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(36px,5vw,72px);align-items:center}
+  .sale h2{color:#fff;font-style:italic;font-weight:500}
+  .sale .lead{color:rgba(243,239,228,.82)}
+  .sale .eyebrow{color:#E7A17F}
+  .sale-figures{display:flex;gap:34px;margin:30px 0 34px;flex-wrap:wrap}
+  .sale-figures .n{font-family:var(--serif);font-size:2rem;color:#fff}
+  .sale-figures .l{font-size:.82rem;color:rgba(243,239,228,.7)}
+  .sale-photo{border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);aspect-ratio:4/5}
+  .sale-photo img{width:100%;height:100%;object-fit:cover}
+  .sale-note{font-size:.85rem;color:rgba(243,239,228,.6);margin-top:14px}
+
+  /* Villa / features */
+  .villa .grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,5vw,72px);align-items:center}
+  .villa-photo{border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+  .villa-photo img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4}
+  .features{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:2px 30px;margin-top:26px}
+  .features li{padding:14px 0;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;font-size:.95rem;color:var(--ink-soft)}
+  .features li b{color:var(--ink);font-weight:600}
+  .ico{flex:0 0 auto;width:20px;height:20px;stroke:var(--pine-2);stroke-width:1.6;fill:none;margin-top:2px}
+
+  /* Gallery */
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:200px;gap:14px}
+  .gallery figure{overflow:hidden;border-radius:12px;position:relative}
+  .gallery img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+  .gallery figure:hover img{transform:scale(1.06)}
+  .g-tall{grid-row:span 2}
+  .g-wide{grid-column:span 2}
+
+  /* Location */
+  .loc{background:var(--paper)}
+  .loc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:12px}
+  .loc-card{background:var(--sand);border:1px solid var(--line);border-radius:var(--r);padding:26px 24px;transition:transform .3s ease,box-shadow .3s ease}
+  .loc-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-soft)}
+  .loc-card .d{font-family:var(--serif);font-size:1.7rem;color:var(--pine);font-weight:600}
+  .loc-card h3{font-size:1.15rem;font-family:var(--sans);font-weight:600;margin:8px 0 6px}
+  .loc-card p{font-size:.9rem;color:var(--ink-soft)}
+
+  /* Tarifs / dispo */
+  .rates .head-row{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px}
+  .sheet-badge{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;color:var(--pine-2);background:rgba(46,107,99,.1);padding:.5em 1em;border-radius:100px}
+  .weeks{margin-top:38px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--paper)}
+  .week{display:grid;grid-template-columns:1.4fr 1fr .8fr auto;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line);transition:background .2s}
+  .week:last-child{border-bottom:none}
+  .week:hover{background:var(--sand)}
+  .week .dates{font-weight:600;font-size:1rem}
+  .week .season{font-size:.82rem;color:var(--muted)}
+  .week .price{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--pine)}
+  .week .price small{font-family:var(--sans);font-size:.72rem;color:var(--muted);font-weight:500}
+  .badge{font-size:.74rem;font-weight:600;padding:.4em .9em;border-radius:100px;white-space:nowrap;text-align:center}
+  .badge.free{color:#2E6B4F;background:rgba(46,107,79,.12)}
+  .badge.booked{color:#9a6a2a;background:rgba(176,134,59,.14)}
+  .week .btn{padding:.6em 1.2em;font-size:.82rem}
+  .rates-note{font-size:.82rem;color:var(--muted);margin-top:16px}
+
+  /* Montuzet */
+  .montuzet .card{display:grid;grid-template-columns:.9fr 1.1fr;gap:0;border-radius:var(--r);overflow:hidden;background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-soft)}
+  .montuzet .card img{width:100%;height:100%;object-fit:cover;min-height:320px}
+  .montuzet .card .body{padding:clamp(30px,4vw,52px)}
+  .montuzet .card .eyebrow{color:var(--gold);display:block;margin-bottom:14px}
+  .montuzet .card h3{font-size:clamp(1.7rem,2.6vw,2.3rem)}
+  .montuzet .soon{font-size:.78rem;color:var(--muted);font-style:italic;margin-top:18px}
+
+  /* Contact */
+  .contact{background:var(--pine);color:#F3EFE4}
+  .contact .grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,5vw,64px)}
+  .contact h2{color:#fff}
+  .contact .eyebrow{color:#E7A17F}
+  .contact a.big{font-family:var(--serif);font-size:clamp(1.5rem,3vw,2.2rem);color:#fff;display:inline-block;margin:6px 0;border-bottom:1px solid rgba(255,255,255,.3);transition:border-color .3s}
+  .contact a.big:hover{border-color:#fff}
+  .contact .co{margin-bottom:26px}
+  .contact .co .l{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(243,239,228,.6)}
+  form .field{margin-bottom:16px}
+  form label{display:block;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:rgba(243,239,228,.75);margin-bottom:7px;font-weight:600}
+  form input,form textarea{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:10px;
+    padding:13px 15px;color:#fff;font-family:inherit;font-size:.95rem;transition:border-color .2s,background .2s}
+  form input:focus,form textarea:focus{outline:none;border-color:#E7A17F;background:rgba(255,255,255,.12)}
+  form input::placeholder,form textarea::placeholder{color:rgba(243,239,228,.4)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  /* Footer */
+  footer{background:#0E322D;color:rgba(243,239,228,.7);padding:44px 0;font-size:.86rem}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px}
+  footer .brand{font-size:1.2rem}
+
+  /* Reveal animation base */
+  .reveal{opacity:0;transform:translateY(28px)}
+
+  /* Note banner (prototype) */
+  .proto-note{background:var(--gold);color:#3a2c10;text-align:center;font-size:.82rem;font-weight:600;padding:9px 16px;letter-spacing:.02em}
+
+  @media(max-width:900px){
+    .navlinks{display:none}
+    .burger{display:flex}
+    .sale .grid,.villa .grid,.contact .grid,.montuzet .card{grid-template-columns:1fr}
+    .villa-photo img{aspect-ratio:16/10}
+    .montuzet .card img{min-height:240px}
+    .gallery{grid-template-columns:repeat(2,1fr);grid-auto-rows:160px}
+    .week{grid-template-columns:1fr auto;gap:8px 14px}
+    .week .price{grid-column:1}
+    .form-row{grid-template-columns:1fr}
+    .sale-pill{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="proto-note" data-i18n="proto">Maquette — direction de design v1. Textes & tarifs = exemples. Photos actuelles du site (intérieurs & vues de nuit à venir).</div>
+
+<!-- NAV -->
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a href="#top" class="brand">Les <span>Zines</span></a>
+    <nav class="navlinks">
+      <a href="#villa" data-i18n="nav_villa">La Villa</a>
+      <a href="#jardin" data-i18n="nav_jardin">Le Jardin</a>
+      <a href="#capferret" data-i18n="nav_loc">Le Cap Ferret</a>
+      <a href="#tarifs" data-i18n="nav_rates">Séjours &amp; Tarifs</a>
+      <a href="#vente" data-i18n="nav_buy">Acheter</a>
+      <a href="#contact" data-i18n="nav_contact">Contact</a>
+    </nav>
+    <div class="nav-right">
+      <span class="sale-pill"><span class="dot"></span><span data-i18n="pill">À vendre</span></span>
+      <div class="lang">
+        <button data-lang="fr" class="active">FR</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <a href="#contact" class="btn btn-light" data-i18n="nav_cta">Nous contacter</a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-media"><img src="assets/photos-current-site/img_02_bf7a74_fb67ee5e2db049b1968a2e50ab775d97.jpeg" alt="Villa Les Zines et son jardin au Cap Ferret" id="heroImg" /></div>
+  <div class="wrap hero-inner">
+    <div class="eyebrow reveal"><span class="tag" data-i18n="hero_tag">À vendre</span><span data-i18n="hero_loc">Cap Ferret · Bassin d'Arcachon</span></div>
+    <h1 class="reveal" data-i18n="hero_h1">Une cabane d'exception, à deux pas du Bassin.</h1>
+    <p class="lead reveal" data-i18n="hero_sub">Villa en bois de 12 à 16 personnes, jardin arboré de 700 m², à quelques minutes de la jetée Bélisaire. À vivre le temps d'un été… ou pour toujours.</p>
+    <div class="hero-cta reveal">
+      <a href="#vente" class="btn btn-primary" data-i18n="hero_cta1">Découvrir la vente</a>
+      <a href="#tarifs" class="btn btn-light" data-i18n="hero_cta2">Voir les disponibilités</a>
+    </div>
+    <div class="stats reveal">
+      <div class="stat"><div class="n">12–16</div><div class="l" data-i18n="stat1">personnes</div></div>
+      <div class="stat"><div class="n">6+1</div><div class="l" data-i18n="stat2">chambres + dortoir</div></div>
+      <div class="stat"><div class="n">700<small style="font-family:var(--sans);font-size:1rem"> m²</small></div><div class="l" data-i18n="stat3">de jardin clos</div></div>
+      <div class="stat"><div class="n">4</div><div class="l" data-i18n="stat4">salles d'eau</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint"><span data-i18n="scroll">Découvrir</span><span class="line"></span></div>
+</section>
+
+<!-- SALE -->
+<section class="sale" id="vente">
+  <div class="wrap grid">
+    <div>
+      <span class="eyebrow reveal" data-i18n="sale_eye">À vendre — une transmission</span>
+      <h2 class="reveal" data-i18n="sale_h">Et si cette maison<br>devenait la vôtre ?</h2>
+      <p class="lead reveal" data-i18n="sale_p">Après plusieurs années de bonheur familial, nous avons décidé de transmettre ce lieu rare. Une cabane en bois pensée pour les grandes tablées, à quelques pas des plages et du village — prête à écrire sa prochaine histoire.</p>
+      <div class="sale-figures reveal">
+        <div><div class="n">~240 m²</div><div class="l" data-i18n="sale_f1">habitables</div></div>
+        <div><div class="n">700 m²</div><div class="l" data-i18n="sale_f2">de terrain</div></div>
+        <div><div class="n">400 m</div><div class="l" data-i18n="sale_f3">de la jetée</div></div>
+      </div>
+      <a href="#contact" class="btn btn-primary reveal" data-i18n="sale_cta">Demander le dossier de vente</a>
+      <p class="sale-note reveal" data-i18n="sale_note">Surfaces indiquées à titre d'exemple — à confirmer.</p>
+    </div>
+    <div class="sale-photo reveal"><img src="assets/photos-current-site/img_01_bf7a74_1bd83d5bccf6489388f688a22ff42b2e.jpeg" alt="Terrasse et pièce de vie ouverte de la villa" /></div>
+  </div>
+</section>
+
+<!-- VILLA -->
+<section class="villa" id="villa">
+  <div class="wrap grid">
+    <div class="villa-photo reveal"><img src="assets/photos-current-site/img_01_bf7a74_1bd83d5bccf6489388f688a22ff42b2e.jpeg" alt="La villa, terrasse et transats" /></div>
+    <div>
+      <span class="eyebrow reveal" data-i18n="villa_eye">La villa</span>
+      <h2 class="reveal" data-i18n="villa_h">Le confort d'une maison,<br>l'âme d'une cabane.</h2>
+      <p class="lead reveal" data-i18n="villa_p">Une grande pièce de vie ouverte sur la terrasse, six chambres climatisées et un grenier-dortoir : de quoi réunir toute la famille ou les amis en toute liberté.</p>
+      <ul class="features reveal">
+        <li><svg class="ico" viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg><span><b data-i18n="f1b">6 chambres + dortoir</b><br><span data-i18n="f1s">lits 160×200, dortoir 4×80×200</span></span></li>
+        <li><svg class="ico" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M6 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><path d="M4 12v5m16-5v5"/></svg><span><b data-i18n="f2b">12 à 16 couchages</b><br><span data-i18n="f2s">toutes chambres climatisées</span></span></li>
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg><span><b data-i18n="f3b">Pièce de vie 60 m²</b><br><span data-i18n="f3s">cuisine ouverte & grande tablée</span></span></li>
+        <li><svg class="ico" viewBox="0 0 24 24"><path d="M6 12V5a3 3 0 0 1 6 0v0"/><path d="M4 12h16v2a6 6 0 0 1-12 0"/><path d="M8 20l-1 2m10-2l1 2"/></svg><span><b data-i18n="f4b">4 salles d'eau</b><br><span data-i18n="f4s">+ douche & WC extérieurs</span></span></li>
+        <li><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v4"/><circle cx="12" cy="13" r="6"/><path d="M12 11v4"/></svg><span><b data-i18n="f5b">Climatisation</b><br><span data-i18n="f5s">dans toute la maison</span></span></li>
+        <li><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V8l8-5 8 5v12"/><path d="M4 20h16"/><path d="M10 20v-5h4v5"/></svg><span><b data-i18n="f6b">Grandes terrasses</b><br><span data-i18n="f6s">caillebotis bois, plein sud</span></span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- JARDIN -->
+<section class="jardin" id="jardin">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow reveal" data-i18n="gard_eye">Le jardin & les extérieurs</span>
+      <h2 class="reveal" data-i18n="gard_h">700 m² de pins, d'ombre et de soleil.</h2>
+      <p class="lead reveal" data-i18n="gard_p">Un jardin clos et arboré, plusieurs terrasses en caillebotis, un barbecue, des transats et des hamacs. Des coins ombragés pour les repas, des zones 100 % soleil pour le bronzage.</p>
+    </div>
+    <div class="gallery reveal">
+      <figure class="g-wide g-tall"><img src="assets/photos-current-site/img_04_bf7a74_6505ae72f575418ba484a5b6a573a0a4.jpg" alt="Jardin arboré" /></figure>
+      <figure><img src="assets/photos-current-site/img_05_bf7a74_d82c2319474946f184dcf46b608e975e.jpg" alt="Extérieur" /></figure>
+      <figure><img src="assets/photos-current-site/img_06_bf7a74_81129afd1a7b4a79bc0b09ff539c6803.jpg" alt="Transats au jardin" /></figure>
+      <figure class="g-wide"><img src="assets/photos-current-site/img_07_bf7a74_33df8c987af54b819f34fc80b65d5844.jpg" alt="Terrasse et jardin" /></figure>
+      <figure><img src="assets/photos-current-site/img_08_bf7a74_78837bde66f24101bf2ca4a95d86c18a.jpg" alt="Coin détente" /></figure>
+      <figure><img src="assets/photos-current-site/img_02_bf7a74_fb67ee5e2db049b1968a2e50ab775d97.jpeg" alt="La villa depuis le jardin" /></figure>
+    </div>
+  </div>
+</section>
+
+<!-- CAP FERRET -->
+<section class="loc" id="capferret">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow reveal" data-i18n="cf_eye">L'emplacement</span>
+      <h2 class="reveal" data-i18n="cf_h">Le meilleur du Cap Ferret,<br>à pied ou à vélo.</h2>
+    </div>
+    <div class="loc-grid">
+      <div class="loc-card reveal"><div class="d">400 m</div><h3 data-i18n="cf1h">Jetée Bélisaire</h3><p data-i18n="cf1p">Liaisons maritimes vers Arcachon, coucher de soleil sur le Bassin.</p></div>
+      <div class="loc-card reveal"><div class="d">5 min</div><h3 data-i18n="cf2h">Marché du Cap Ferret</h3><p data-i18n="cf2p">Le marché, les commerces et le petit train à deux pas.</p></div>
+      <div class="loc-card reveal"><div class="d">10 min</div><h3 data-i18n="cf3h">Plage des Américains</h3><p data-i18n="cf3p">L'océan et ses plages surveillées côté Atlantique.</p></div>
+      <div class="loc-card reveal"><div class="d">2 min</div><h3 data-i18n="cf4h">L'Escale & Le Pinasse</h3><p data-i18n="cf4p">Restaurants, cabanes à huîtres et boulevard de la Plage.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TARIFS / DISPO -->
+<section class="rates" id="tarifs">
+  <div class="wrap">
+    <div class="head-row">
+      <div class="sec-head" style="margin-bottom:0">
+        <span class="eyebrow reveal" data-i18n="rate_eye">Séjours & disponibilités</span>
+        <h2 class="reveal" data-i18n="rate_h">Location à la semaine,<br>du samedi au samedi.</h2>
+      </div>
+      <span class="sheet-badge reveal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        <span data-i18n="rate_sheet">Mis à jour en direct via Google Sheets</span>
+      </span>
+    </div>
+    <div class="weeks reveal" id="weeks"><!-- injected by JS --></div>
+    <p class="rates-note" data-i18n="rate_note">Tarifs & disponibilités = exemples. Ils seront pilotés par la feuille Google que votre oncle met à jour — aucune manipulation de code. Inclus : forfait eau/gaz/électricité, taxe de séjour, ménage & linge en fin de séjour.</p>
+  </div>
+</section>
+
+<!-- MONTUZET -->
+<section class="montuzet" id="montuzet">
+  <div class="wrap">
+    <div class="card">
+      <img src="assets/photos-current-site/img_03_bf7a74_d538522d797c4ba48cfc52466f6a13d5.jpeg" alt="Le Chai de Montuzet" />
+      <div class="body">
+        <span class="eyebrow" data-i18n="mont_eye">À découvrir aussi — la famille</span>
+        <h3 data-i18n="mont_h">Le Chai de Montuzet</h3>
+        <p class="lead" data-i18n="mont_p">Séjournez dans un chai bordelais rénové, à la campagne : 3 chambres d'hôtes et une piscine, tenus par la famille.</p>
+        <p style="margin:20px 0 0"><a href="https://www.montuzet.fr" target="_blank" rel="noopener" class="btn btn-ghost" data-i18n="mont_cta">Visiter Montuzet →</a></p>
+        <p class="soon" data-i18n="mont_soon">Nouvelle présentation de Montuzet à venir (phase 2).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="wrap grid">
+    <div>
+      <span class="eyebrow reveal" data-i18n="ct_eye">Contact</span>
+      <h2 class="reveal" data-i18n="ct_h">Parlons de votre projet.</h2>
+      <p class="lead reveal" style="color:rgba(243,239,228,.82)" data-i18n="ct_p">Pour un séjour comme pour l'achat, écrivez-nous ou appelez directement — nous répondons vite.</p>
+      <div style="margin-top:34px">
+        <div class="co reveal"><div class="l" data-i18n="ct_tel">Téléphone</div><a href="tel:+33766423332" class="big">07 66 42 33 32</a></div>
+        <div class="co reveal"><div class="l">Email</div><a href="mailto:contact@leszines.fr" class="big">contact@leszines.fr</a></div>
+      </div>
+    </div>
+    <form class="reveal" onsubmit="event.preventDefault();alert('Maquette — le formulaire sera connecté (email) lors du build.');">
+      <div class="form-row">
+        <div class="field"><label data-i18n="ct_name">Nom</label><input type="text" required placeholder="Jean Dupont" /></div>
+        <div class="field"><label data-i18n="ct_email">Email</label><input type="email" required placeholder="vous@email.fr" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label data-i18n="ct_obj">Objet</label><input type="text" placeholder="Location / Achat" /></div>
+        <div class="field"><label data-i18n="ct_dates">Dates souhaitées</label><input type="text" placeholder="Ex. 12–19 juil." /></div>
+      </div>
+      <div class="field"><label data-i18n="ct_msg">Message</label><textarea rows="4" placeholder="Votre message…"></textarea></div>
+      <button class="btn btn-primary" type="submit" data-i18n="ct_send">Envoyer la demande</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="brand" style="color:#fff">Les <span style="color:var(--terra)">Zines</span></div>
+      <div style="margin-top:6px">Cap Ferret · Bassin d'Arcachon</div>
+    </div>
+    <div style="text-align:right">
+      <div data-i18n="foot1">Villa Les Zines — à vendre & à louer</div>
+      <div style="margin-top:6px;opacity:.7">© 2026 · Famille Bernard</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- Weekly availability & pricing (SAMPLE — will come from Google Sheet) ---------- */
+const WEEKS = [
+  {from:"28 juin", to:"5 juil.", season:"Juin",         price:3200, free:true},
+  {from:"5 juil.", to:"12 juil.",season:"Juillet",      price:4200, free:true},
+  {from:"12 juil.",to:"19 juil.",season:"Juillet",      price:4600, free:false},
+  {from:"19 juil.",to:"26 juil.",season:"Haute saison", price:5200, free:true},
+  {from:"26 juil.",to:"2 août",  season:"Haute saison", price:5200, free:false},
+  {from:"2 août",  to:"9 août",  season:"Août",         price:5600, free:true},
+  {from:"9 août",  to:"16 août", season:"Août — 15/8",  price:5900, free:false},
+  {from:"16 août", to:"23 août", season:"Août",         price:5400, free:true},
+  {from:"23 août", to:"30 août", season:"Fin de saison",price:4600, free:true}
+];
+function renderWeeks(){
+  const t = I18N[LANG];
+  document.getElementById('weeks').innerHTML = WEEKS.map(w=>`
+    <div class="week">
+      <div><div class="dates">${w.from} → ${w.to}</div><div class="season">${w.season}</div></div>
+      <div class="price">${w.price.toLocaleString('fr-FR')} €<small> /${t.perweek}</small></div>
+      <div><span class="badge ${w.free?'free':'booked'}">${w.free?t.free:t.booked}</span></div>
+      <div>${w.free?`<a href="#contact" class="btn btn-primary">${t.ask}</a>`:`<a href="#contact" class="btn btn-ghost">${t.info}</a>`}</div>
+    </div>`).join('');
+}
+
+/* ---------- i18n ---------- */
+const I18N = {
+  fr:{ perweek:"sem.", free:"Disponible", booked:"Réservé", ask:"Demander", info:"Liste d'attente",
+    proto:"Maquette — direction de design v1. Textes & tarifs = exemples. Photos actuelles du site (intérieurs & vues de nuit à venir).",
+    nav_villa:"La Villa",nav_jardin:"Le Jardin",nav_loc:"Le Cap Ferret",nav_rates:"Séjours & Tarifs",nav_buy:"Acheter",nav_contact:"Contact",nav_cta:"Nous contacter",pill:"À vendre",
+    hero_tag:"À vendre",hero_loc:"Cap Ferret · Bassin d'Arcachon",hero_h1:"Une cabane d'exception, à deux pas du Bassin.",
+    hero_sub:"Villa en bois de 12 à 16 personnes, jardin arboré de 700 m², à quelques minutes de la jetée Bélisaire. À vivre le temps d'un été… ou pour toujours.",
+    hero_cta1:"Découvrir la vente",hero_cta2:"Voir les disponibilités",scroll:"Découvrir",
+    stat1:"personnes",stat2:"chambres + dortoir",stat3:"de jardin clos",stat4:"salles d'eau",
+    sale_eye:"À vendre — une transmission",sale_h:"Et si cette maison<br>devenait la vôtre ?",
+    sale_p:"Après plusieurs années de bonheur familial, nous avons décidé de transmettre ce lieu rare. Une cabane en bois pensée pour les grandes tablées, à quelques pas des plages et du village — prête à écrire sa prochaine histoire.",
+    sale_f1:"habitables",sale_f2:"de terrain",sale_f3:"de la jetée",sale_cta:"Demander le dossier de vente",sale_note:"Surfaces indiquées à titre d'exemple — à confirmer.",
+    villa_eye:"La villa",villa_h:"Le confort d'une maison,<br>l'âme d'une cabane.",
+    villa_p:"Une grande pièce de vie ouverte sur la terrasse, six chambres climatisées et un grenier-dortoir : de quoi réunir toute la famille ou les amis en toute liberté.",
+    f1b:"6 chambres + dortoir",f1s:"lits 160×200, dortoir 4×80×200",f2b:"12 à 16 couchages",f2s:"toutes chambres climatisées",
+    f3b:"Pièce de vie 60 m²",f3s:"cuisine ouverte & grande tablée",f4b:"4 salles d'eau",f4s:"+ douche & WC extérieurs",
+    f5b:"Climatisation",f5s:"dans toute la maison",f6b:"Grandes terrasses",f6s:"caillebotis bois, plein sud",
+    gard_eye:"Le jardin & les extérieurs",gard_h:"700 m² de pins, d'ombre et de soleil.",
+    gard_p:"Un jardin clos et arboré, plusieurs terrasses en caillebotis, un barbecue, des transats et des hamacs. Des coins ombragés pour les repas, des zones 100 % soleil pour le bronzage.",
+    cf_eye:"L'emplacement",cf_h:"Le meilleur du Cap Ferret,<br>à pied ou à vélo.",
+    cf1h:"Jetée Bélisaire",cf1p:"Liaisons maritimes vers Arcachon, coucher de soleil sur le Bassin.",
+    cf2h:"Marché du Cap Ferret",cf2p:"Le marché, les commerces et le petit train à deux pas.",
+    cf3h:"Plage des Américains",cf3p:"L'océan et ses plages surveillées côté Atlantique.",
+    cf4h:"L'Escale & Le Pinasse",cf4p:"Restaurants, cabanes à huîtres et boulevard de la Plage.",
+    rate_eye:"Séjours & disponibilités",rate_h:"Location à la semaine,<br>du samedi au samedi.",rate_sheet:"Mis à jour en direct via Google Sheets",
+    rate_note:"Tarifs & disponibilités = exemples. Ils seront pilotés par la feuille Google que votre oncle met à jour — aucune manipulation de code. Inclus : forfait eau/gaz/électricité, taxe de séjour, ménage & linge en fin de séjour.",
+    mont_eye:"À découvrir aussi — la famille",mont_h:"Le Chai de Montuzet",
+    mont_p:"Séjournez dans un chai bordelais rénové, à la campagne : 3 chambres d'hôtes et une piscine, tenus par la famille.",
+    mont_cta:"Visiter Montuzet →",mont_soon:"Nouvelle présentation de Montuzet à venir (phase 2).",
+    ct_eye:"Contact",ct_h:"Parlons de votre projet.",ct_p:"Pour un séjour comme pour l'achat, écrivez-nous ou appelez directement — nous répondons vite.",
+    ct_tel:"Téléphone",ct_name:"Nom",ct_email:"Email",ct_obj:"Objet",ct_dates:"Dates souhaitées",ct_msg:"Message",ct_send:"Envoyer la demande",
+    foot1:"Villa Les Zines — à vendre & à louer" },
+  en:{ perweek:"wk", free:"Available", booked:"Booked", ask:"Enquire", info:"Waitlist",
+    proto:"Prototype — design direction v1. Copy & rates are placeholders. Current site photos (interiors & night shots coming).",
+    nav_villa:"The Villa",nav_jardin:"The Garden",nav_loc:"Cap Ferret",nav_rates:"Stays & Rates",nav_buy:"Buy",nav_contact:"Contact",nav_cta:"Get in touch",pill:"For sale",
+    hero_tag:"For sale",hero_loc:"Cap Ferret · Arcachon Bay",hero_h1:"An exceptional wood cabin, steps from the Bay.",
+    hero_sub:"A timber villa sleeping 12 to 16, a 700 m² wooded garden, minutes from the Bélisaire jetty. For a summer… or for good.",
+    hero_cta1:"Discover the sale",hero_cta2:"Check availability",scroll:"Scroll",
+    stat1:"guests",stat2:"bedrooms + dorm",stat3:"walled garden",stat4:"bathrooms",
+    sale_eye:"For sale — passing it on",sale_h:"What if this home<br>became yours?",
+    sale_p:"After many years of family happiness, we've decided to pass on this rare place. A timber cabin built for big gatherings, steps from the beaches and the village — ready to write its next chapter.",
+    sale_f1:"living space",sale_f2:"of land",sale_f3:"to the jetty",sale_cta:"Request the sale file",sale_note:"Surfaces shown as an example — to be confirmed.",
+    villa_eye:"The villa",villa_h:"The comfort of a home,<br>the soul of a cabin.",
+    villa_p:"A large living space opening onto the terrace, six air-conditioned bedrooms and an attic dorm — room for the whole family or friends, in total freedom.",
+    f1b:"6 bedrooms + dorm",f1s:"160×200 beds, dorm 4×80×200",f2b:"Sleeps 12 to 16",f2s:"all bedrooms air-conditioned",
+    f3b:"60 m² living room",f3s:"open kitchen & big table",f4b:"4 bathrooms",f4s:"+ outdoor shower & WC",
+    f5b:"Air conditioning",f5s:"throughout the house",f6b:"Large terraces",f6s:"wood decking, south-facing",
+    gard_eye:"The garden & outdoors",gard_h:"700 m² of pines, shade and sun.",
+    gard_p:"A walled, tree-lined garden, several wood-deck terraces, a barbecue, sun loungers and hammocks. Shaded corners for meals, full-sun zones for sunbathing.",
+    cf_eye:"The location",cf_h:"The best of Cap Ferret,<br>on foot or by bike.",
+    cf1h:"Bélisaire jetty",cf1p:"Boat links to Arcachon, sunsets over the Bay.",
+    cf2h:"Cap Ferret market",cf2p:"Market, shops and the little train nearby.",
+    cf3h:"Américains beach",cf3p:"The ocean and its supervised Atlantic beaches.",
+    cf4h:"L'Escale & Le Pinasse",cf4p:"Restaurants, oyster huts and Boulevard de la Plage.",
+    rate_eye:"Stays & availability",rate_h:"Weekly rental,<br>Saturday to Saturday.",rate_sheet:"Updated live via Google Sheets",
+    rate_note:"Rates & availability are placeholders. They'll be driven by the Google Sheet your uncle updates — no code involved. Included: water/gas/electricity package, tourist tax, cleaning & linen at the end of the stay.",
+    mont_eye:"Also worth discovering — the family",mont_h:"Le Chai de Montuzet",
+    mont_p:"Stay in a renovated Bordeaux wine cellar in the countryside: 3 guest rooms and a pool, run by the family.",
+    mont_cta:"Visit Montuzet →",mont_soon:"A new Montuzet showcase is coming (phase 2).",
+    ct_eye:"Contact",ct_h:"Let's talk about your plans.",ct_p:"For a stay or a purchase, write to us or call directly — we reply fast.",
+    ct_tel:"Phone",ct_name:"Name",ct_email:"Email",ct_obj:"Subject",ct_dates:"Preferred dates",ct_msg:"Message",ct_send:"Send enquiry",
+    foot1:"Villa Les Zines — for sale & to rent" }
+};
+let LANG = "fr";
+function applyLang(l){
+  LANG=l; document.documentElement.lang=l;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k=el.getAttribute("data-i18n"); if(I18N[l][k]!==undefined) el.innerHTML=I18N[l][k];
+  });
+  document.querySelectorAll(".lang button").forEach(b=>b.classList.toggle("active",b.dataset.lang===l));
+  renderWeeks();
+}
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>applyLang(b.dataset.lang)));
+
+/* ---------- Nav scroll state ---------- */
+const nav=document.getElementById("nav");
+addEventListener("scroll",()=>nav.classList.toggle("scrolled",scrollY>60));
+
+/* ---------- Animations ---------- */
+renderWeeks();
+if(!matchMedia("(prefers-reduced-motion: reduce)").matches && window.gsap){
+  gsap.registerPlugin(ScrollTrigger);
+  // hero entrance
+  gsap.timeline().to(".hero .reveal",{opacity:1,y:0,duration:.9,stagger:.12,ease:"power3.out",delay:.15});
+  gsap.set(".hero .reveal",{opacity:0,y:24});
+  gsap.to(".hero .reveal",{opacity:1,y:0,duration:.9,stagger:.12,ease:"power3.out",delay:.2});
+  // hero parallax
+  gsap.to("#heroImg",{yPercent:12,ease:"none",scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:true}});
+  // section reveals
+  gsap.utils.toArray("section:not(.hero) .reveal").forEach(el=>{
+    gsap.fromTo(el,{opacity:0,y:30},{opacity:1,y:0,duration:.8,ease:"power2.out",
+      scrollTrigger:{trigger:el,start:"top 88%"}});
+  });
+  // gallery stagger
+  gsap.fromTo(".gallery figure",{opacity:0,scale:.94,y:16},{opacity:1,scale:1,y:0,duration:.5,stagger:{each:.06,grid:"auto",from:"start"},ease:"back.out(1.4)",
+    scrollTrigger:{trigger:".gallery",start:"top 85%"}});
+}else{
+  document.querySelectorAll(".reveal").forEach(e=>{e.style.opacity=1;e.style.transform="none";});
+}
+</script>
+</body>
+</html>

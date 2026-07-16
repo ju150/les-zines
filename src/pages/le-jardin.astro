@@ -1,0 +1,8 @@
+---
+import Base from '../layouts/Base.astro';
+import Jardin from '../components/pages/Jardin.astro';
+const lang = 'fr' as const;
+---
+<Base lang={lang} transparentNav={true} title="Le Jardin, 700 m² arborés | Villa Les Zines" description="Un jardin clos et arboré de 700 m² : pins, terrasses en bois, barbecue, transats et hamacs. Les extérieurs de la Villa Les Zines au Cap Ferret.">
+  <Jardin lang={lang} />
+</Base>

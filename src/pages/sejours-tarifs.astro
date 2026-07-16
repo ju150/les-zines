@@ -1,0 +1,8 @@
+---
+import Base from '../layouts/Base.astro';
+import SejoursTarifs from '../components/pages/SejoursTarifs.astro';
+const lang = 'fr' as const;
+---
+<Base lang={lang} transparentNav={true} title="Séjours & Tarifs, disponibilités 2026 | Villa Les Zines" description="Tarifs et disponibilités 2026 de la Villa Les Zines au Cap Ferret. Location à la semaine du samedi au samedi, courts séjours hors saison. Demande de réservation en ligne.">
+  <SejoursTarifs lang={lang} />
+</Base>

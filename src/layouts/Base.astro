@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description?: string;
+  transparentNav?: boolean;
+}
+const { lang, title, description = '', transparentNav = false } = Astro.props;
+const t = useTranslations(lang);
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#123F39" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-white focus:text-ink focus:px-4 focus:py-2 focus:rounded-full">{t('skip')}</a>
+    <Nav lang={lang} transparent={transparentNav} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+
+    <script>
+      // Reveal-on-scroll via a rAF-throttled scroll sweep. Bulletproof: any .reveal that
+      // enters the viewport gets .is-in, regardless of scroll speed (IntersectionObserver
+      // can skip elements on very fast scroll/jumps). CSS handles the animation + reduced-motion.
+      const pending = () => document.querySelectorAll('.reveal:not(.is-in)');
+      const sweep = () => {
+        const vh = window.innerHeight;
+        pending().forEach((el) => {
+          if ((el as HTMLElement).getBoundingClientRect().top < vh * 0.9) el.classList.add('is-in');
+        });
+      };
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => { sweep(); ticking = false; });
+      };
+      const init = () => {
+        sweep();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+      };
+      if (document.readyState !== 'loading') init();
+      else document.addEventListener('DOMContentLoaded', init);
+      window.addEventListener('load', sweep);
+    </script>
+  </body>
+</html>

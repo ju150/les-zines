@@ -1,0 +1,92 @@
+---
+import type { Lang } from '../../i18n/ui';
+import { localizedPath } from '../../i18n/ui';
+import PageHeader from '../PageHeader.astro';
+import { SITE } from '../../data/site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const fr = lang === 'fr';
+
+const spots = [
+  { d: '400 m', fr: ['Jetée Bélisaire', 'Navettes vers Arcachon, terrasses et couchers de soleil sur le Bassin.'], en: ['Bélisaire jetty', 'Boats to Arcachon, terraces and sunsets over the Bay.'] },
+  { d: '5 min', fr: ['Plage de l’Horizon', 'Grande plage océane, dunes et vagues côté Atlantique.'], en: ['Plage de l’Horizon', 'Large ocean beach, dunes and Atlantic waves.'] },
+  { d: '5 min', fr: ['Marché du Cap Ferret', 'Le marché couvert, ses cabanes, ses commerces et ses restos.'], en: ['Cap Ferret market', 'The covered market, its huts, shops and restaurants.'] },
+  { d: '10 min', fr: ['Plage des Américains', 'Plage familiale côté Bassin, calme et surveillée l’été.'], en: ['Américains beach', 'Family beach on the Bay side, calm and supervised in summer.'] },
+  { d: '10 min', fr: ['Le Phare du Cap Ferret', 'Panorama à 360° sur la presqu’île, la Dune du Pilat et le Banc d’Arguin.'], en: ['Cap Ferret lighthouse', '360° view over the peninsula, the Dune du Pilat and Banc d’Arguin.'] },
+  { d: '5 min', fr: ['Office de tourisme', 'Conseils, balades, événements et sorties en bateau.'], en: ['Tourist office', 'Tips, walks, events and boat trips.'] },
+  { d: 'sur place', fr: ['Pistes cyclables', 'Des kilomètres de pistes à vélo entre océan, Bassin et forêt.'], en: ['Cycle paths', 'Miles of bike paths between ocean, Bay and forest.'] },
+  { d: 'l’été', fr: ['Le petit train', 'Le petit train de la jetée à la plage de l’océan.'], en: ['The little train', 'The little train from the jetty to the ocean beach.'] },
+];
+
+const activities = fr
+  ? ['Déguster des huîtres dans les cabanes ostréicoles', 'Faire le tour de la presqu’île à vélo', 'Prendre le bateau pour Arcachon ou le Cap', 'Grimper au phare pour la vue', 'Surf et baignade côté océan', 'Apéro face au coucher de soleil sur le Bassin']
+  : ['Taste oysters in the oyster huts', 'Cycle around the peninsula', 'Take the boat to Arcachon or the Cap', 'Climb the lighthouse for the view', 'Surf and swim on the ocean side', 'Sunset drinks over the Bay'];
+---
+<PageHeader
+  image="/photos/cap-ferret.jpg"
+  eyebrow={fr ? 'Le Cap Ferret' : 'Cap Ferret'}
+  title={fr ? 'Le meilleur du Cap, à pied ou à vélo.' : 'The best of the Cap, on foot or by bike.'}
+  intro={fr
+    ? 'Entre océan et Bassin, la villa est idéalement placée au cœur de la presqu’île, à quelques minutes des plages, du marché et de la jetée.'
+    : 'Between ocean and Bay, the villa sits ideally in the heart of the peninsula, minutes from the beaches, the market and the jetty.'}
+/>
+
+<section class="py-20 sm:py-24">
+  <div class="wrap max-w-3xl">
+    <p class="lead reveal">
+      {fr
+        ? 'Le Cap Ferret, c’est deux visages à quelques pas l’un de l’autre : côté Bassin, les cabanes ostréicoles, les pinasses et les couchers de soleil ; côté océan, les grandes plages, les dunes et les vagues. Depuis la villa, tout se fait à pied ou à vélo, sans reprendre la voiture.'
+        : 'Cap Ferret has two faces a few steps apart: on the Bay side, oyster huts, pinasses and sunsets; on the ocean side, wide beaches, dunes and waves. From the villa, everything is done on foot or by bike, without getting back in the car.'}
+    </p>
+  </div>
+</section>
+
+<section class="pb-20">
+  <div class="wrap grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    {spots.map((s) => (
+      <div class="card p-6 hover:-translate-y-1 hover:shadow-soft transition-all duration-300 reveal">
+        <div class="text-xs font-semibold uppercase tracking-eyebrow text-terra mb-2">{s.d}</div>
+        <h3 class="font-sans font-semibold text-lg mb-1">{fr ? s.fr[0] : s.en[0]}</h3>
+        <p class="text-ink-soft text-sm">{fr ? s.fr[1] : s.en[1]}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<section class="pb-20">
+  <div class="wrap grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div class="rounded-2xl overflow-hidden shadow-deep reveal order-1 lg:order-none">
+      <img src="/photos/cap-ferret.jpg" alt="Le phare et la plage du Cap Ferret" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+    </div>
+    <div class="reveal">
+      <p class="eyebrow mb-4">{fr ? 'À vivre' : 'To experience'}</p>
+      <h2 class="h2 mb-6">{fr ? 'Une journée au Cap.' : 'A day at the Cap.'}</h2>
+      <ul class="space-y-2.5">
+        {activities.map((a) => (
+          <li class="flex gap-3 text-ink-soft"><svg class="w-5 h-5 mt-0.5 shrink-0 stroke-pine-2 fill-none" stroke-width="1.6" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>{a}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="pb-28">
+  <div class="wrap">
+    <h2 class="h2 mb-6 reveal">{fr ? 'Nous situer' : 'Find us'}</h2>
+    <div class="rounded-2xl overflow-hidden shadow-soft border border-line reveal">
+      <iframe
+        title="Google Maps, Villa Les Zines"
+        src={SITE.mapsEmbed}
+        class="w-full h-[380px] sm:h-[460px]"
+        style="border:0"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+      ></iframe>
+    </div>
+    <div class="mt-8 text-center reveal">
+      <a href={localizedPath(lang, 'reservation')} class="btn btn-primary">{fr ? 'Réserver un séjour' : 'Book a stay'}</a>
+    </div>
+  </div>
+</section>

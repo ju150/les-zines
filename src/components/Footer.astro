@@ -1,0 +1,45 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations, localizedPath } from '../i18n/ui';
+import { NAV, SITE } from '../data/site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = 2026;
+---
+<footer class="bg-pine-deep text-white/70 pt-16 pb-10">
+  <div class="wrap grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+    <div>
+      <div class="brand text-4xl mb-3">Villa Les Zines</div>
+      <p class="text-sm max-w-xs">{t('foot_tagline')}</p>
+      <a href={localizedPath(lang, 'a-vendre')} class="inline-flex items-center gap-2 mt-5 text-sm font-medium text-white/90 border border-white/25 rounded-full pl-3 pr-4 py-2 hover:border-gold hover:text-gold transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-gold"></span>{t('foot_sale_line')}
+      </a>
+    </div>
+
+    <div>
+      <div class="text-xs uppercase tracking-eyebrow text-white/45 mb-4">{t('foot_nav')}</div>
+      <ul class="space-y-2 text-sm">
+        {NAV.map((item) => (
+          <li><a href={localizedPath(lang, item.slug)} class="hover:text-white transition-colors">{t(item.key as any)}</a></li>
+        ))}
+        <li><a href={SITE.montuzetUrl} target="_blank" rel="noopener" class="hover:text-white transition-colors">{t('nav_montuzet')}</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="text-xs uppercase tracking-eyebrow text-white/45 mb-4">{t('foot_contact')}</div>
+      <ul class="space-y-2 text-sm">
+        <li><a href={`tel:${SITE.phoneIntl}`} class="hover:text-white transition-colors">{SITE.phone}</a></li>
+        <li><a href={`mailto:${SITE.email}`} class="hover:text-white transition-colors">{SITE.email}</a></li>
+        <li class="text-white/50 pt-1">Cap Ferret · Bassin d’Arcachon</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="wrap mt-14 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/45">
+    <span>© {year} · {SITE.name} · {t('foot_rights')}</span>
+    <a href={localizedPath(lang, 'mentions-legales')} class="hover:text-white transition-colors">{t('foot_legal')}</a>
+  </div>
+</footer>

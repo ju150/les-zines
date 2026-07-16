@@ -1,0 +1,8 @@
+---
+import Base from '../../layouts/Base.astro';
+import Reservation from '../../components/pages/Reservation.astro';
+const lang = 'en' as const;
+---
+<Base lang={lang} title="Book your stay, Villa Les Zines, Cap Ferret" description="Book Villa Les Zines in Cap Ferret: choose an available week or your off-season dates and send your request.">
+  <Reservation lang={lang} />
+</Base>
