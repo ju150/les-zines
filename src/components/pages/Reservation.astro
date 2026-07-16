@@ -29,7 +29,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
       <div class="step-h"><span class="step-n">1</span>{fr ? 'Votre semaine' : 'Your week'}</div>
       <div id="week-table" class="av-table card overflow-hidden" set:html={tableHtml}></div>
 
-      <div class="mt-3 card overflow-hidden">
+      <div class="mt-3 card overflow-hidden off-card">
         <label class="av-row av-pick av-offseason">
           <div class="av-c av-dates"><span class="av-label">{fr ? 'Autres dates' : 'Other dates'}</span><span class="av-sub">{fr ? 'Court séjour / hors saison' : 'Short stay / off-season'}</span></div>
           <div class="av-c av-zones"></div>
@@ -81,14 +81,23 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 
   .step-h { @apply flex items-center gap-3 font-serif text-2xl mb-5; }
   .step-n { @apply inline-flex items-center justify-center w-8 h-8 rounded-full bg-pine text-white text-base font-sans font-semibold; }
+</style>
 
+<!-- Global on purpose: flatpickr clones the date input at runtime (altInput), which
+     doesn't carry Astro's scoping attribute — scoped styles would never reach it. -->
+<style is:global>
   .c-label { @apply block text-xs uppercase tracking-wide text-ink-mute mb-2 font-semibold; }
   .c-input { @apply w-full bg-white border border-line-strong rounded-xl px-4 py-3 text-ink focus:border-terra outline-none transition; }
 
   .date-field { @apply relative; }
-  .date-ico { @apply absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-pine-2 pointer-events-none; }
+  .date-ico { @apply absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-pine-2 pointer-events-none z-10; }
   .date-input { @apply !pl-11 font-serif text-lg text-pine; }
   .date-input::placeholder { @apply font-sans text-base text-ink-mute; }
+
+  /* Checked highlight on the WHOLE rounded card: the row's inset ring was clipped
+     by the card's overflow-hidden rounded corners (broken orange outline). */
+  .off-card:has(input[name='week']:checked) { @apply border-terra ring-1 ring-terra; }
+  .off-card .av-offseason:has(input:checked) { box-shadow: none !important; }
 </style>
 
 <script>

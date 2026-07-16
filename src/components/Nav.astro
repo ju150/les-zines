@@ -24,7 +24,8 @@ const bookHref = localizedPath(lang, 'reservation');
   ]}
 >
   <div class="wrap flex items-center justify-between gap-4">
-    <a href={home} class="brand text-[1.7rem] sm:text-[1.9rem] leading-none z-10">Villa&nbsp;Les&nbsp;Zines</a>
+    <!-- z-[60]: stays clickable ABOVE the mobile menu overlay (closes it / goes home) -->
+    <a href={home} class="brand text-[1.7rem] sm:text-[1.9rem] leading-none relative z-[60]">Villa&nbsp;Les&nbsp;Zines</a>
 
     <nav class="hidden lg:flex items-center gap-7" aria-label="Principal">
       {NAV.map((item) => (
@@ -41,7 +42,7 @@ const bookHref = localizedPath(lang, 'reservation');
         <a href={toEn} class:list={['px-2.5 py-1.5 transition-colors', lang === 'en' && 'lang-active']}>EN</a>
       </div>
       <a href={bookHref} class="btn btn-primary !px-5 !py-2.5 hidden sm:inline-flex">{t('nav_book')}</a>
-      <button id="burger" class="lg:hidden flex flex-col gap-[5px] p-1.5" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+      <button id="burger" class="lg:hidden flex flex-col gap-[5px] p-1.5 relative z-[60]" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
         <span class="burger-bar w-6 h-0.5 transition-all"></span>
         <span class="burger-bar w-6 h-0.5 transition-all"></span>
         <span class="burger-bar w-6 h-0.5 transition-all"></span>
@@ -49,20 +50,21 @@ const bookHref = localizedPath(lang, 'reservation');
     </div>
   </div>
 
-  <!-- Mobile menu -->
-  <div id="mobile-menu" class="lg:hidden fixed inset-0 z-40 bg-pine text-white translate-x-full transition-transform duration-400 ease-smooth flex flex-col">
-    <div class="flex-1 flex flex-col justify-center gap-1 px-8">
+  <!-- Mobile menu (z-40 < brand/burger z-60 so both stay usable to close it) -->
+  <div id="mobile-menu" class="lg:hidden fixed inset-0 z-40 bg-pine text-white translate-x-full flex flex-col" aria-hidden="true">
+    <div class="flex-1 flex flex-col justify-center gap-1 px-8 pt-20 overflow-y-auto">
       {NAV.map((item) => (
         <a href={localizedPath(lang, item.slug)} class="font-serif text-3xl py-2 border-b border-white/10">{t(item.key as any)}</a>
       ))}
       <a href={localizedPath(lang, 'a-vendre')} class="font-serif text-3xl py-2 border-b border-white/10 text-gold">{t('nav_sale')}</a>
       <a href={bookHref} class="btn btn-primary mt-6 self-start">{t('nav_book')}</a>
     </div>
-    <div class="px-8 pb-10 flex items-center gap-4 text-white/80">
-      <a href={toFr} class={lang === 'fr' ? 'font-bold text-white' : ''}>FR</a>
-      <a href={toEn} class={lang === 'en' ? 'font-bold text-white' : ''}>EN</a>
-      <span class="mx-2 opacity-40">·</span>
-      <a href="tel:+33766423332" class="hover:text-white">07 66 42 33 32</a>
+    <div class="px-8 pb-10 flex items-center justify-between gap-4 text-white/85">
+      <div class="flex rounded-full border border-white/35 overflow-hidden text-sm font-semibold">
+        <a href={toFr} class:list={['px-4 py-2 transition-colors', lang === 'fr' ? 'bg-white text-ink' : 'hover:bg-white/10']}>FR</a>
+        <a href={toEn} class:list={['px-4 py-2 transition-colors', lang === 'en' ? 'bg-white text-ink' : 'hover:bg-white/10']}>EN</a>
+      </div>
+      <a href="tel:+33766423332" class="hover:text-white font-medium">07 66 42 33 32</a>
     </div>
   </div>
 </header>
@@ -88,7 +90,16 @@ const bookHref = localizedPath(lang, 'reservation');
   #burger.is-open .burger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   #burger.is-open .burger-bar:nth-child(2) { opacity: 0; }
   #burger.is-open .burger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-  #mobile-menu.is-open { transform: translateX(0); }
+
+  /* Closed = invisible AND click-through: even if a transform glitches, the overlay
+     can never sit transparent over the page and block navigation. */
+  #mobile-menu { visibility: hidden; pointer-events: none; transition: transform .45s cubic-bezier(.2,.7,.2,1), visibility 0s linear .45s; }
+  #mobile-menu.is-open { transform: translateX(0); visibility: visible; pointer-events: auto; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+  @media (prefers-reduced-motion: reduce) { #mobile-menu { transition: none; } }
+
+  /* Menu open: brand + burger switch to white so they stay visible on the pine overlay */
+  #site-nav.menu-open .brand { color: #fff; }
+  #site-nav.menu-open .burger-bar { background: #fff; }
 
   /* "À vendre" pill */
   .nav-sale-dot { background: theme(colors.terra.DEFAULT); animation: salepulse 2s infinite; }
@@ -113,10 +124,22 @@ const bookHref = localizedPath(lang, 'reservation');
 
   const burger = document.getElementById('burger')!;
   const menu = document.getElementById('mobile-menu')!;
-  burger.addEventListener('click', () => {
-    const open = burger.classList.toggle('is-open');
+
+  const setMenu = (open: boolean) => {
+    burger.classList.toggle('is-open', open);
     menu.classList.toggle('is-open', open);
+    nav.classList.toggle('menu-open', open);
     burger.setAttribute('aria-expanded', String(open));
+    menu.setAttribute('aria-hidden', String(!open));
     document.body.style.overflow = open ? 'hidden' : '';
-  });
+  };
+
+  burger.addEventListener('click', () => setMenu(!menu.classList.contains('is-open')));
+  // Any link inside the menu (pages, langue, tel) closes it before navigating.
+  menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
+  // The brand link also closes it (and goes home).
+  document.querySelector('#site-nav .brand')?.addEventListener('click', () => setMenu(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  // Back/forward cache restore: never come back with a stuck open menu / frozen scroll.
+  window.addEventListener('pageshow', () => setMenu(false));
 </script>
