@@ -44,7 +44,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const inner = (w: Week) => `
     <div class="av-c av-dates"><span class="av-label">${esc(w.label)}</span><span class="av-sub">${esc(w.id)} · ${t.sat}</span></div>
     <div class="av-c av-zones" title="Zones scolaires">${zonesCell(w)}</div>
-    <div class="av-c av-price">${priceCell(w)}</div>
+    <div class="av-c av-price">${w.status === 'available' ? priceCell(w) : '<span class="av-nozone">—</span>'}</div>
     <div class="av-c av-status"><span class="badge ${w.status === 'available' ? 'badge-free' : 'badge-booked'}">${w.status === 'available' ? t.available : t.booked}</span></div>`;
 
   const row = (w: Week) => {

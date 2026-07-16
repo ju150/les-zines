@@ -8,15 +8,16 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const fr = lang === 'fr';
 
+// Photos libres de droits (Wikimedia Commons) — attributions dans les mentions légales.
 const spots = [
-  { d: '400 m', fr: ['Jetée Bélisaire', 'Navettes vers Arcachon, terrasses et couchers de soleil sur le Bassin.'], en: ['Bélisaire jetty', 'Boats to Arcachon, terraces and sunsets over the Bay.'] },
-  { d: '5 min', fr: ['Plage de l’Horizon', 'Grande plage océane, dunes et vagues côté Atlantique.'], en: ['Plage de l’Horizon', 'Large ocean beach, dunes and Atlantic waves.'] },
-  { d: '5 min', fr: ['Marché du Cap Ferret', 'Le marché couvert, ses cabanes, ses commerces et ses restos.'], en: ['Cap Ferret market', 'The covered market, its huts, shops and restaurants.'] },
-  { d: '10 min', fr: ['Plage des Américains', 'Plage familiale côté Bassin, calme et surveillée l’été.'], en: ['Américains beach', 'Family beach on the Bay side, calm and supervised in summer.'] },
-  { d: '10 min', fr: ['Le Phare du Cap Ferret', 'Panorama à 360° sur la presqu’île, la Dune du Pilat et le Banc d’Arguin.'], en: ['Cap Ferret lighthouse', '360° view over the peninsula, the Dune du Pilat and Banc d’Arguin.'] },
-  { d: '5 min', fr: ['Office de tourisme', 'Conseils, balades, événements et sorties en bateau.'], en: ['Tourist office', 'Tips, walks, events and boat trips.'] },
-  { d: 'sur place', fr: ['Pistes cyclables', 'Des kilomètres de pistes à vélo entre océan, Bassin et forêt.'], en: ['Cycle paths', 'Miles of bike paths between ocean, Bay and forest.'] },
-  { d: 'l’été', fr: ['Le petit train', 'Le petit train de la jetée à la plage de l’océan.'], en: ['The little train', 'The little train from the jetty to the ocean beach.'] },
+  { d: '400 m', img: '/photos/cap-ferret/belisaire.jpg', fr: ['Jetée Bélisaire', 'Navettes vers Arcachon, petit train vers l’océan, terrasses et couchers de soleil sur le Bassin.'], en: ['Bélisaire jetty', 'Boats to Arcachon, the little train to the ocean, terraces and sunsets over the Bay.'] },
+  { d: '5 min', img: '/photos/cap-ferret/plage-ocean.jpg', fr: ['Plage de l’Horizon', 'Grande plage océane, dunes et vagues côté Atlantique, face à la Dune du Pilat.'], en: ['Plage de l’Horizon', 'Large ocean beach, dunes and Atlantic waves, facing the Dune du Pilat.'] },
+  { d: '5 min', img: '/photos/cap-ferret/village.jpg', fr: ['Marché & village', 'Le marché couvert, les ruelles, les villas en bois, les commerces et les restos.'], en: ['Market & village', 'The covered market, the lanes, the timber villas, shops and restaurants.'] },
+  { d: '10 min', img: '/photos/cap-ferret/bassin-maree-basse.jpg', fr: ['Plage des Américains', 'Plage familiale côté Bassin, calme et surveillée l’été, au rythme des marées.'], en: ['Américains beach', 'Family beach on the Bay side, calm and supervised in summer, ruled by the tides.'] },
+  { d: '10 min', img: '/photos/cap-ferret.jpg', fr: ['Le Phare du Cap Ferret', 'Panorama à 360° sur la presqu’île, la Dune du Pilat et le Banc d’Arguin.'], en: ['Cap Ferret lighthouse', '360° view over the peninsula, the Dune du Pilat and Banc d’Arguin.'] },
+  { d: '10 min à vélo', img: '/photos/cap-ferret/parcs-huitres.jpg', fr: ['Les villages ostréicoles', 'L’Herbe, le Canon : cabanes colorées et dégustation d’huîtres les pieds dans l’eau.'], en: ['Oyster villages', 'L’Herbe, le Canon: colourful huts and oyster tasting at the water’s edge.'] },
+  { d: 'sur place', img: '/photos/cap-ferret/presquile.jpg', fr: ['Pistes cyclables', 'Des kilomètres de pistes à vélo entre océan, Bassin et forêt de pins.'], en: ['Cycle paths', 'Miles of bike paths between ocean, Bay and pine forest.'] },
+  { d: 'chaque soir', img: '/photos/cap-ferret/sunset-bassin.jpg', fr: ['Couchers de soleil', 'Le grand spectacle quotidien du Bassin, un verre à la main.'], en: ['Sunsets', 'The Bay’s daily show, drink in hand.'] },
 ];
 
 const activities = fr
@@ -24,7 +25,7 @@ const activities = fr
   : ['Taste oysters in the oyster huts', 'Cycle around the peninsula', 'Take the boat to Arcachon or the Cap', 'Climb the lighthouse for the view', 'Surf and swim on the ocean side', 'Sunset drinks over the Bay'];
 ---
 <PageHeader
-  image="/photos/cap-ferret.jpg"
+  image="/photos/cap-ferret/belisaire.jpg"
   eyebrow={fr ? 'Le Cap Ferret' : 'Cap Ferret'}
   title={fr ? 'Le meilleur du Cap, à pied ou à vélo.' : 'The best of the Cap, on foot or by bike.'}
   intro={fr
@@ -42,22 +43,51 @@ const activities = fr
   </div>
 </section>
 
+<!-- ===== Interactive spots explorer ===== -->
 <section class="pb-20">
-  <div class="wrap grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-    {spots.map((s) => (
-      <div class="card p-6 hover:-translate-y-1 hover:shadow-soft transition-all duration-300 reveal">
-        <div class="text-xs font-semibold uppercase tracking-eyebrow text-terra mb-2">{s.d}</div>
-        <h3 class="font-sans font-semibold text-lg mb-1">{fr ? s.fr[0] : s.en[0]}</h3>
-        <p class="text-ink-soft text-sm">{fr ? s.fr[1] : s.en[1]}</p>
+  <div class="wrap">
+    <p class="eyebrow mb-3 reveal">{fr ? 'Autour de la villa' : 'Around the villa'}</p>
+    <h2 class="h2 mb-8 reveal">{fr ? 'Survolez, explorez.' : 'Hover, explore.'}</h2>
+
+    <div class="grid lg:grid-cols-[1.05fr,1fr] gap-6 lg:gap-12 items-start">
+      <!-- Photo panel (crossfade) -->
+      <div class="spot-panel sticky top-20 lg:top-24 z-10 relative overflow-hidden rounded-2xl shadow-deep aspect-[16/10] lg:aspect-[4/3] reveal">
+        {spots.map((s, i) => (
+          <img
+            src={s.img}
+            alt={fr ? s.fr[0] : s.en[0]}
+            class:list={['spot-img', i === 0 && 'active']}
+            loading={i === 0 ? 'eager' : 'lazy'}
+          />
+        ))}
+        <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-pine-deep/70 to-transparent pointer-events-none">
+          <span id="spot-caption" class="text-white font-serif text-lg sm:text-xl drop-shadow">{fr ? spots[0].fr[0] : spots[0].en[0]} · {spots[0].d}</span>
+        </div>
       </div>
-    ))}
+
+      <!-- Spot list -->
+      <div class="divide-y divide-line reveal" id="spot-list">
+        {spots.map((s, i) => (
+          <button type="button" class:list={['spot-row', i === 0 && 'active']} data-i={i}>
+            <span class="spot-d">{s.d}</span>
+            <span class="min-w-0">
+              <b class="block font-sans font-semibold text-ink">{fr ? s.fr[0] : s.en[0]}</b>
+              <span class="text-ink-soft text-sm">{fr ? s.fr[1] : s.en[1]}</span>
+            </span>
+            <svg class="spot-arrow w-5 h-5 shrink-0 stroke-current fill-none mt-1" stroke-width="1.8" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+          </button>
+        ))}
+      </div>
+    </div>
   </div>
 </section>
 
+<!-- ===== A day at the Cap ===== -->
 <section class="pb-20">
   <div class="wrap grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-    <div class="rounded-2xl overflow-hidden shadow-deep reveal order-1 lg:order-none">
-      <img src="/photos/cap-ferret.jpg" alt="Le phare et la plage du Cap Ferret" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+    <div class="grid grid-cols-2 gap-3 order-1 lg:order-none reveal">
+      <img src="/photos/cap-ferret.jpg" alt={fr ? 'Le phare du Cap Ferret' : 'Cap Ferret lighthouse'} class="w-full h-full object-cover aspect-[3/4] rounded-2xl shadow-soft" loading="lazy" />
+      <img src="/photos/cap-ferret/sunset-bassin.jpg" alt={fr ? 'Coucher de soleil sur le Bassin' : 'Sunset over the Bay'} class="w-full h-full object-cover aspect-[3/4] rounded-2xl shadow-soft mt-10" loading="lazy" />
     </div>
     <div class="reveal">
       <p class="eyebrow mb-4">{fr ? 'À vivre' : 'To experience'}</p>
@@ -90,3 +120,44 @@ const activities = fr
     </div>
   </div>
 </section>
+
+<style>
+  .spot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.05); transition: opacity .55s ease, transform 5s ease-out; }
+  .spot-img.active { opacity: 1; transform: scale(1); }
+
+  .spot-row { display: flex; gap: 1rem; width: 100%; text-align: left; padding: 1.05rem .6rem; align-items: flex-start; cursor: pointer; background: transparent; border: none; border-left: 3px solid transparent; transition: background .25s, border-color .25s, padding-left .25s; }
+  .spot-row .spot-d { flex: 0 0 92px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #C4633C; padding-top: .3rem; }
+  .spot-row .spot-arrow { margin-left: auto; color: #C4633C; opacity: 0; transform: translateX(-6px); transition: opacity .25s, transform .25s; }
+  .spot-row:hover, .spot-row.active { background: #F7F4EE; border-left-color: #C4633C; padding-left: .95rem; }
+  .spot-row.active .spot-arrow, .spot-row:hover .spot-arrow { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spot-img { transition: opacity .2s ease; transform: none; }
+    .spot-row, .spot-row .spot-arrow { transition: none; }
+  }
+</style>
+
+<script>
+  const rows = [...document.querySelectorAll<HTMLButtonElement>('.spot-row')];
+  const imgs = [...document.querySelectorAll<HTMLImageElement>('.spot-img')];
+  const caption = document.getElementById('spot-caption');
+
+  const activate = (i: number) => {
+    rows.forEach((r, j) => r.classList.toggle('active', j === i));
+    imgs.forEach((im, j) => im.classList.toggle('active', j === i));
+    const row = rows[i];
+    if (caption && row) {
+      const title = row.querySelector('b')?.textContent || '';
+      const d = row.querySelector('.spot-d')?.textContent || '';
+      caption.textContent = `${title} · ${d}`;
+    }
+  };
+
+  rows.forEach((row, i) => {
+    row.addEventListener('click', () => activate(i));
+    // Hover preview on devices that actually hover.
+    if (window.matchMedia('(hover: hover)').matches) {
+      row.addEventListener('mouseenter', () => activate(i));
+    }
+  });
+</script>

@@ -1,18 +1,28 @@
 ---
+import fs from 'node:fs';
 import type { Lang } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
+import Lightbox from '../Lightbox.astro';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const fr = lang === 'fr';
 
+// Family photos of the garden (01.jpg = the featured « avant » shot), plus the
+// original pro shots. New drops in public/photos/villa/jardin/ appear automatically.
+const dir = 'public/photos/villa/jardin';
+const jardinPhotos = fs.existsSync(dir)
+  ? fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort().map((f) => `/photos/villa/jardin/${f}`)
+  : [];
 const gallery = [
+  ...(jardinPhotos.length ? [jardinPhotos[0]] : []),
   '/photos/jardin-1.jpg',
   '/photos/jardin-2.jpg',
   '/photos/jardin-3.jpg',
   '/photos/jardin-5.jpg',
   '/photos/terrasse.jpeg',
   '/photos/villa-jardin.jpeg',
+  ...jardinPhotos.slice(1),
 ];
 ---
 <PageHeader
@@ -39,8 +49,10 @@ const gallery = [
     {gallery.map((g, i) => (
       <figure class:list={['overflow-hidden rounded-2xl reveal', i === 0 && 'col-span-2 lg:col-span-2 lg:row-span-2']}>
         <img src={g} alt="Le jardin et les terrasses de la villa"
-             class="w-full h-full object-cover aspect-[4/3] hover:scale-[1.05] transition-transform duration-700 ease-smooth" loading="lazy" />
+             class="js-lb w-full h-full object-cover aspect-[4/3] cursor-pointer hover:scale-[1.05] transition-transform duration-700 ease-smooth" loading="lazy" />
       </figure>
     ))}
   </div>
 </section>
+
+<Lightbox />

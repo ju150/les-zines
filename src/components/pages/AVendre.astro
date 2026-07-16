@@ -32,7 +32,14 @@ const atouts = fr
       'A walled, wooded 700 m² garden with multiple terraces',
     ];
 
-const strip = ['/photos/nuit-2.jpeg', '/photos/villa-jardin.jpeg', '/photos/villa/vie-cuisine/00-cover.jpg', '/photos/jardin-1.jpg'];
+const slides = [
+  { src: '/photos/villa-jardin.jpeg', fr: 'La villa et son jardin clos de 700 m²', en: 'The villa and its walled 700 m² garden' },
+  { src: '/photos/villa/vie-cuisine/01.jpg', fr: 'La pièce de vie de 60 m², ouverte sur la terrasse', en: 'The 60 m² living space, opening onto the terrace' },
+  { src: '/photos/villa/chambres/01.jpg', fr: 'Six chambres climatisées + un dortoir', en: 'Six air-conditioned bedrooms + a dorm' },
+  { src: '/photos/villa/terrasses/01.jpg', fr: 'De grandes terrasses en caillebotis, plein sud', en: 'Large south-facing wood-deck terraces' },
+  { src: '/photos/villa/jardin/01.jpg', fr: 'Pins et arbres fruitiers, coins d’ombre et de soleil', en: 'Pines and fruit trees, shade and sun' },
+  { src: '/photos/nuit-2.jpeg', fr: 'La villa illuminée, le soir venu', en: 'The villa lit up at nightfall' },
+];
 ---
 <PageHeader
   image="/photos/nuit-1.jpeg"
@@ -66,14 +73,87 @@ const strip = ['/photos/nuit-2.jpeg', '/photos/villa-jardin.jpeg', '/photos/vill
   </div>
 </section>
 
-<!-- Photo strip -->
+<!-- Photo carousel -->
 <section class="pb-20">
-  <div class="wrap grid grid-cols-2 lg:grid-cols-4 gap-3">
-    {strip.map((src) => (
-      <img src={src} alt="Villa Les Zines" class="w-full h-full object-cover aspect-[3/4] rounded-xl reveal" loading="lazy" />
-    ))}
+  <div class="wrap">
+    <div class="car relative overflow-hidden rounded-3xl shadow-deep reveal aspect-[4/3] sm:aspect-[16/9] max-h-[620px] w-full" data-carousel>
+      {slides.map((s, i) => (
+        <figure class:list={['car-slide', i === 0 && 'active']}>
+          <img src={s.src} alt={fr ? s.fr : s.en} loading={i === 0 ? 'eager' : 'lazy'} draggable="false" />
+          <figcaption class="car-cap">{fr ? s.fr : s.en}</figcaption>
+        </figure>
+      ))}
+      <button class="car-btn car-prev" aria-label={fr ? 'Photo précédente' : 'Previous photo'}>&#8249;</button>
+      <button class="car-btn car-next" aria-label={fr ? 'Photo suivante' : 'Next photo'}>&#8250;</button>
+      <div class="car-dots">
+        {slides.map((_, i) => (
+          <button class:list={['car-dot', i === 0 && 'active']} data-i={i} aria-label={`Photo ${i + 1}`}></button>
+        ))}
+      </div>
+    </div>
   </div>
 </section>
+
+<style>
+  .car-slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity .9s ease; pointer-events: none; }
+  .car-slide.active { opacity: 1; pointer-events: auto; }
+  .car-slide img { width: 100%; height: 100%; object-fit: cover; }
+  /* Slow Ken Burns drift on the visible slide */
+  .car-slide.active img { animation: kenburns 7s ease-out forwards; }
+  @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+  .car-cap { position: absolute; inset-inline: 0; bottom: 0; padding: 3.2rem 1.4rem 1.1rem; color: #fff; font-size: .95rem; background: linear-gradient(to top, rgba(14,50,45,.72), transparent); }
+
+  .car-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.7rem; line-height: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.9); color: #123F39; box-shadow: 0 6px 24px rgba(14,50,45,.2); transition: background .2s, color .2s, transform .2s; }
+  .car-btn:hover { background: #123F39; color: #fff; transform: translateY(-50%) scale(1.06); }
+  .car-prev { left: 14px; }
+  .car-next { right: 14px; }
+
+  .car-dots { position: absolute; bottom: 12px; right: 16px; z-index: 5; display: flex; gap: 7px; }
+  .car-dot { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: none; cursor: pointer; background: rgba(255,255,255,.45); transition: background .25s, transform .25s; }
+  .car-dot.active { background: #fff; transform: scale(1.25); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .car-slide { transition: none; }
+    .car-slide.active img { animation: none; }
+  }
+</style>
+
+<script>
+  const car = document.querySelector<HTMLElement>('[data-carousel]');
+  if (car) {
+    const slides = [...car.querySelectorAll('.car-slide')];
+    const dots = [...car.querySelectorAll('.car-dot')];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let idx = 0;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const show = (i: number) => {
+      idx = (i + slides.length) % slides.length;
+      slides.forEach((s, j) => s.classList.toggle('active', j === idx));
+      dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+    };
+    const play = () => { if (!reduce && !timer) timer = setInterval(() => show(idx + 1), 5000); };
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+    const manual = (i: number) => { stop(); show(i); play(); };
+
+    car.querySelector('.car-prev')?.addEventListener('click', () => manual(idx - 1));
+    car.querySelector('.car-next')?.addEventListener('click', () => manual(idx + 1));
+    dots.forEach((d, j) => d.addEventListener('click', () => manual(j)));
+
+    // Swipe (touch)
+    let x0 = 0;
+    car.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
+    car.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - x0;
+      if (Math.abs(dx) > 45) manual(idx + (dx < 0 ? 1 : -1));
+    });
+
+    car.addEventListener('pointerenter', stop);
+    car.addEventListener('pointerleave', play);
+    play();
+  }
+</script>
 
 <!-- Atouts -->
 <section class="pb-24">

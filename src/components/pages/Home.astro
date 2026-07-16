@@ -61,7 +61,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 <section class="pb-24 sm:pb-28">
   <div class="wrap grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
     <div class="rounded-2xl overflow-hidden shadow-deep reveal order-1 md:order-none">
-      <img src="/photos/villa/vie-cuisine/00-cover.jpg" alt="La pièce de vie ouverte sur le jardin" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+      <img src="/photos/villa/vie-cuisine/01.jpg" alt="La pièce de vie ouverte sur le jardin" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
     </div>
     <div class="reveal">
       <p class="eyebrow mb-4">{t('t_villa_eye')}</p>
@@ -89,8 +89,9 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 
 <!-- ===== NIGHT MOMENT (fixed background) ===== -->
 <section class="night-band relative py-32 sm:py-44 text-white text-center">
-  <div class="absolute inset-0 bg-pine-deep/70"></div>
-  <div class="wrap relative max-w-2xl mx-auto reveal">
+  <!-- Light gradient only: keep the illuminated villa clearly visible behind the text -->
+  <div class="absolute inset-0 bg-gradient-to-b from-pine-deep/40 via-pine-deep/10 to-pine-deep/45"></div>
+  <div class="wrap relative max-w-2xl mx-auto reveal [text-shadow:0_2px_24px_rgba(0,0,0,.55)]">
     <p class="eyebrow !text-gold mb-4">{lang === 'fr' ? 'À la tombée de la nuit' : 'As night falls'}</p>
     <h2 class="h2 !text-white italic font-medium mb-5">
       {lang === 'fr' ? 'Quand le bois s’illumine.' : 'When the wood lights up.'}

@@ -12,7 +12,7 @@ const fr = lang === 'fr';
 const reservationBase = localizedPath(lang, 'reservation');
 
 const included = fr
-  ? ['Wifi fibre', 'Lave-linge', 'Forfait eau, gaz et électricité (usage normal)', 'Taxe de séjour', 'Ménage de fin de séjour', 'Linge de maison : draps, serviettes, torchons']
+  ? ['Wifi fibre', 'Lave-linge', 'Forfait eau, gaz et électricité (usage limité)', 'Taxe de séjour', 'Ménage de fin de séjour', 'Linge de maison : draps, serviettes, torchons']
   : ['Fibre wifi', 'Washing machine', 'Water, gas and electricity package (normal use)', 'Tourist tax', 'End-of-stay cleaning', 'Household linen: sheets, towels, cloths'];
 
 const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase });
