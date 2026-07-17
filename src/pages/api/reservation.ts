@@ -8,21 +8,50 @@ const env = (k: string): string | undefined =>
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 
-async function sendEmail(fields: Record<string, string>): Promise<boolean> {
-  const key = env('RESEND_API_KEY');
-  const to = env('RESERVATION_TO') || 'contact@leszines.fr';
-  const from = env('RESERVATION_FROM') || 'Villa Les Zines <onboarding@resend.dev>';
-  if (!key) return false;
-
+function buildEmail(fields: Record<string, string>) {
   const subject = `Demande de réservation, ${fields.week || 'sans semaine'}, ${fields.name || ''}`.trim();
   const text = [
     `Nom : ${fields.name || ''}`,
     `Email : ${fields.email || ''}`,
     `Téléphone : ${fields.phone || ''}`,
+    `Personnes : ${fields.guests || ''}`,
     `Semaine / objet : ${fields.week || ''}`,
     '',
     fields.message || '',
   ].join('\n');
+  return { subject, text };
+}
+
+// Brevo (ex-Sendinblue) transactional email — used if BREVO_API_KEY is set.
+async function sendEmailBrevo(fields: Record<string, string>): Promise<boolean> {
+  const key = env('BREVO_API_KEY');
+  if (!key) return false;
+  const toEmail = env('RESERVATION_TO') || 'contact@leszines.fr';
+  const fromEmail = env('BREVO_FROM') || env('RESERVATION_FROM') || 'contact@leszines.fr';
+  const fromName = env('BREVO_FROM_NAME') || 'Villa Les Zines';
+  const { subject, text } = buildEmail(fields);
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': key, 'Content-Type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: fromName, email: fromEmail },
+      to: [{ email: toEmail }],
+      replyTo: fields.email ? { email: fields.email, name: fields.name || undefined } : undefined,
+      subject,
+      textContent: text,
+    }),
+  });
+  return res.ok;
+}
+
+// Resend — used if RESEND_API_KEY is set (and Brevo is not).
+async function sendEmailResend(fields: Record<string, string>): Promise<boolean> {
+  const key = env('RESEND_API_KEY');
+  if (!key) return false;
+  const to = env('RESERVATION_TO') || 'contact@leszines.fr';
+  const from = env('RESERVATION_FROM') || 'Villa Les Zines <onboarding@resend.dev>';
+  const { subject, text } = buildEmail(fields);
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -30,6 +59,13 @@ async function sendEmail(fields: Record<string, string>): Promise<boolean> {
     body: JSON.stringify({ from, to: [to], reply_to: fields.email, subject, text }),
   });
   return res.ok;
+}
+
+// Prefer Brevo (the account the owner already uses); fall back to Resend.
+async function sendEmail(fields: Record<string, string>): Promise<boolean> {
+  if (env('BREVO_API_KEY')) return sendEmailBrevo(fields);
+  if (env('RESEND_API_KEY')) return sendEmailResend(fields);
+  return false;
 }
 
 async function sendSms(fields: Record<string, string>): Promise<boolean> {
@@ -64,7 +100,8 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: false, error: 'missing_fields' }, 422);
   }
 
-  const providersConfigured = Boolean(env('RESEND_API_KEY')) || Boolean(env('TWILIO_ACCOUNT_SID'));
+  const providersConfigured =
+    Boolean(env('BREVO_API_KEY')) || Boolean(env('RESEND_API_KEY')) || Boolean(env('TWILIO_ACCOUNT_SID'));
   // No provider configured yet → tell the client to fall back to a mailto link.
   if (!providersConfigured) {
     return json({ ok: false, fallback: true, error: 'no_provider' }, 501);
