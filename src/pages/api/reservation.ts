@@ -219,10 +219,11 @@ async function sendResend(mail: Mail): Promise<boolean> {
   return res.ok;
 }
 
-// Prefer Brevo (the account the owner already uses); fall back to Resend.
+// Brevo d'abord s'il est configuré, puis Resend en secours : une clé morte ou un
+// quota épuisé chez l'un ne doit jamais bloquer l'envoi si l'autre fonctionne.
 async function send(mail: Mail): Promise<boolean> {
-  if (env('BREVO_API_KEY')) return sendBrevo(mail);
-  if (env('RESEND_API_KEY')) return sendResend(mail);
+  if (env('BREVO_API_KEY') && (await sendBrevo(mail).catch(() => false))) return true;
+  if (env('RESEND_API_KEY') && (await sendResend(mail).catch(() => false))) return true;
   return false;
 }
 
