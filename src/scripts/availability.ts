@@ -30,7 +30,14 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     perweek: fr ? 'sem.' : 'wk',
     onrequest: fr ? 'Sur demande' : 'On request',
     sat: fr ? 'sam. → sam.' : 'Sat → Sat',
+    h_week: fr ? 'Semaine' : 'Week',
+    h_zone: fr ? 'Zone de vacances' : 'Holiday zone',
+    h_price: fr ? 'Prix' : 'Price',
+    h_status: fr ? 'Disponibilité' : 'Availability',
   };
+  // Column header row (desktop only; mobile uses the card layout + the legend below the table).
+  const head =
+    `<div class="av-head"><div>${t.h_week}</div><div>${t.h_zone}</div><div class="av-head-price">${t.h_price}</div><div>${t.h_status}</div><div></div></div>`;
   const list = opts.onlyAvailable ? weeks.filter((w) => w.status === 'available') : weeks;
   const months = [...new Set(list.map((w) => w.month))];
 
@@ -60,7 +67,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     }</div></div>`;
   };
 
-  return months
+  return head + months
     .map((m) => `<div class="av-month">${esc(m)}</div>${list.filter((w) => w.month === m).map(row).join('')}`)
     .join('');
 }

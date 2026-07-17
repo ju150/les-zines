@@ -55,8 +55,13 @@
   .wk-card:has(input:checked) .wk-check::after { content: ''; @apply absolute left-[6px] top-[2px] w-[7px] h-[11px] border-r-2 border-b-2 border-white rotate-45; }
 
   /* ——— Availability table (shared: tarifs = links, reservation = select) ——— */
+  /* Fixed column template shared by header + rows so columns line up (each row is
+     its own grid, so only explicit widths guarantee alignment across rows). */
+  .av-grid { grid-template-columns: minmax(0,1.5fr) 148px minmax(96px,0.9fr) 128px minmax(96px,auto); }
+  .av-head { @apply hidden sm:grid av-grid items-center gap-x-4 px-5 py-2.5 bg-white border-t border-line text-[0.68rem] font-semibold uppercase tracking-wide text-ink-mute; }
+  .av-head-price { @apply text-right; }
   .av-month { @apply px-5 py-2.5 bg-sand-2 text-sm font-semibold uppercase tracking-wide text-pine capitalize; }
-  .av-row { @apply grid items-center gap-x-4 gap-y-2 px-5 py-3.5 border-t border-line; grid-template-columns: 1.5fr auto 1fr auto auto; }
+  .av-row { @apply grid av-grid items-center gap-x-4 gap-y-2 px-5 py-3.5 border-t border-line; }
   .av-free { @apply bg-[rgba(46,107,79,0.05)]; }
   .av-booked .av-label { @apply line-through text-ink-mute; }
   .av-booked .av-price { @apply text-ink-mute; }

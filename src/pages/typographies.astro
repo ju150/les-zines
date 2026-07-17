@@ -1,0 +1,107 @@
+---
+// Standalone (no nav/footer) wordmark picker to share with the family.
+// Not in the site navigation; noindex so it never surfaces publicly.
+const wordmark = 'Villa Les Zines';
+const options = [
+  { n: 1, font: "'Great Vibes', cursive", name: 'Great Vibes', desc: 'Cursive fine et aérienne — l’actuelle du site.', size: '3.6rem' },
+  { n: 2, font: "'Lobster', cursive", name: 'Lobster', desc: 'Rétro et chaleureuse, esprit enseigne.', size: '3.1rem' },
+  { n: 3, font: "'Parisienne', cursive", name: 'Parisienne', desc: 'Script délicate, proche du panneau du portail.', size: '3.4rem' },
+  { n: 4, font: "'Pinyon Script', cursive", name: 'Pinyon Script', desc: 'Calligraphie raffinée, très chic.', size: '3.6rem' },
+  { n: 5, font: "'Sacramento', cursive", name: 'Sacramento', desc: 'Trait fin et régulier, moderne et léger.', size: '3.6rem' },
+  { n: 6, font: "'Dancing Script', cursive", name: 'Dancing Script', desc: 'Décontractée et vivante, arrondie.', size: '3.2rem' },
+  { n: 7, font: "'Cormorant Garamond', serif", name: 'Cormorant (italique)', desc: 'Serif élégante, non cursive — sobre et intemporelle.', size: '3rem', italic: true },
+  { n: 8, font: "'Playfair Display', serif", name: 'Playfair Display (italique)', desc: 'Serif éditorial, contrasté et haut de gamme.', size: '2.7rem', italic: true },
+];
+---
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Choix de la typographie · Villa Les Zines</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Dancing+Script:wght@600&family=Great+Vibes&family=Lobster&family=Manrope:wght@400;500;600&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@1,600&family=Sacramento&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root { --pine: #123F39; --pine-deep: #0E322D; --cream: #FBF8F2; --terra: #C4633C; --gold: #C9A24B; --ink: #22302C; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--cream); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem; }
+    header { text-align: center; margin-bottom: 2.5rem; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; font-weight: 600; color: var(--terra); }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1.1; margin: .6rem 0 .8rem; color: var(--pine); }
+    .sub { max-width: 46ch; margin: 0 auto; color: #5c665f; }
+    .toggle { display: inline-flex; margin-top: 1.6rem; border: 1px solid #d9d2c4; border-radius: 999px; overflow: hidden; background: #fff; font-weight: 600; font-size: .82rem; }
+    .toggle button { border: none; background: transparent; padding: .55rem 1.1rem; cursor: pointer; color: #5c665f; transition: background .2s, color .2s; }
+    .toggle button.on { background: var(--pine); color: #fff; }
+
+    .grid { display: grid; gap: 1rem; }
+    @media (min-width: 680px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+    .card { position: relative; border-radius: 18px; padding: 2rem 1.4rem 1.4rem; border: 1px solid #ece5d7; background: #fff; transition: background .35s ease, color .35s ease, border-color .35s, transform .2s; overflow: hidden; }
+    .card:hover { transform: translateY(-3px); }
+    .num { position: absolute; top: .9rem; left: 1.1rem; width: 1.9rem; height: 1.9rem; border-radius: 50%; background: var(--terra); color: #fff; font-weight: 700; font-size: .85rem; display: flex; align-items: center; justify-content: center; }
+    .mark { display: flex; align-items: center; justify-content: center; min-height: 120px; text-align: center; color: var(--pine); padding: .4rem .2rem; word-break: break-word; }
+    .meta { border-top: 1px dashed #e4ddce; padding-top: .8rem; margin-top: .4rem; }
+    .meta .fname { font-weight: 700; font-size: .92rem; color: var(--ink); }
+    .meta .fdesc { font-size: .82rem; color: #6a736c; }
+
+    /* Dark (pine) mode — the portail reference: script crème sur vert bouteille */
+    body.dark { background: var(--pine-deep); color: #e9efe9; }
+    body.dark h1 { color: #fff; }
+    body.dark .sub { color: #b9c6bd; }
+    body.dark .toggle { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); }
+    body.dark .toggle button { color: #b9c6bd; }
+    body.dark .toggle button.on { background: var(--cream); color: var(--pine); }
+    body.dark .card { background: var(--pine); border-color: rgba(255,255,255,.12); }
+    body.dark .mark { color: var(--cream); }
+    body.dark .meta { border-color: rgba(255,255,255,.14); }
+    body.dark .meta .fname { color: #fff; }
+    body.dark .meta .fdesc { color: #a9b6ac; }
+
+    footer { text-align: center; margin-top: 3rem; font-size: .85rem; color: #7a837c; }
+    footer a { color: var(--terra); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">Villa Les Zines</p>
+      <h1>Quelle écriture pour le nom de la villa ?</h1>
+      <p class="sub">Regardez les propositions sur votre téléphone et dites-nous le <strong>numéro</strong> que vous préférez. Vous pouvez comparer sur fond clair ou sur le vert du panneau du portail.</p>
+      <div class="toggle" role="group" aria-label="Fond">
+        <button id="btn-light" class="on" type="button">Fond crème</button>
+        <button id="btn-dark" type="button">Fond vert</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      {options.map((o) => (
+        <div class="card">
+          <span class="num">{o.n}</span>
+          <div class="mark" style={`font-family:${o.font}; font-size:${o.size}; ${o.italic ? 'font-style:italic;' : ''}`}>{wordmark}</div>
+          <div class="meta">
+            <div class="fname">{o.name}</div>
+            <div class="fdesc">{o.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <footer>
+      Une préférence ? Répondez simplement avec le numéro (ex. « le 3 »). · <a href="/">Retour au site</a>
+    </footer>
+  </div>
+
+  <script is:inline>
+    const b = document.body, l = document.getElementById('btn-light'), d = document.getElementById('btn-dark');
+    l.addEventListener('click', () => { b.classList.remove('dark'); l.classList.add('on'); d.classList.remove('on'); });
+    d.addEventListener('click', () => { b.classList.add('dark'); d.classList.add('on'); l.classList.remove('on'); });
+  </script>
+</body>
+</html>

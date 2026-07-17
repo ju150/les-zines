@@ -1,36 +1,62 @@
 # 📊 Gérer les tarifs & disponibilités — Guide simple
 
-Le site affiche automatiquement les tarifs et les disponibilités depuis **une feuille Google** que vous
-modifiez comme d'habitude. Rien à toucher dans le site : vous changez un prix ou une disponibilité dans
-la feuille, et le site se met à jour tout seul.
+Le site affiche automatiquement les tarifs et les disponibilités depuis **une feuille Google**.
+Vous ne touchez jamais au site : vous cochez/décochez une case ou changez un prix dans la
+feuille, et le site se met à jour tout seul (en quelques minutes).
 
-## 1) Créer la feuille (une seule fois)
+La feuille est déjà créée et pré-remplie pour 2026 :
+**« Villa Les Zines — Tarifs & disponibilités 2026 »** (dans votre Google Drive).
 
-1. Ouvrez **Google Sheets** (sheets.google.com) → nouvelle feuille de calcul.
-2. Importez le modèle `tarifs-modele.csv` (Fichier → Importer → Importer le fichier), **ou** recopiez les colonnes :
+---
 
-| Mois | Semaine | Du | Au | Prix | Disponibilité |
-|------|---------|----|----|------|---------------|
-| Juillet | S29 | 11 juil. | 18 juil. | 6900 | disponible |
-| Août | S32 | 1 août | 8 août | 9500 | loué |
+## Les colonnes
 
-**Règles :**
-- Colonne **Prix** : juste le nombre, sans le « € » (ex. `6900`).
-- Colonne **Disponibilité** : écrire `disponible` ou `loué` (ou `réservé`).
-- Une ligne = une semaine.
+| Mois | Semaine | Du | Au | Prix | Loué | Zone A | Zone B | Zone C |
+|------|---------|----|----|------|------|--------|--------|--------|
+| Juillet | S31 | 25 juil. | 1 août | 7900 | ☐ | ☑ | ☑ | ☑ |
+| Août | S32 | 1 août | 8 août | 9500 | ☑ | ☑ | ☑ | ☑ |
 
-## 2) Publier la feuille sur le web (une seule fois)
+- **Prix** : juste le nombre, sans le « € » (ex. `7900`).
+- **Loué** : une case à cocher. **Cochée = louée** (le site barre la semaine et masque le prix). Décochée = disponible.
+- **Zone A / B / C** : cases à cocher des zones de vacances scolaires concernées par la semaine
+  (l'été, les trois zones sont en vacances → cochez les trois ; en septembre, décochez tout).
+- Une ligne = une semaine. Pour ajouter une semaine, ajoutez simplement une ligne en bas.
 
-1. Dans la feuille : **Fichier → Partager → Publier sur le web**.
-2. Onglet **« Lien »** → choisir **« Valeurs séparées par des virgules (.csv) »**.
-3. Cliquer **Publier** → copier le lien qui se termine par `output=csv`.
-4. M'envoyer ce lien (ou le coller dans `src/data/site.ts`, champ `ratesSheetCsv`).
+> 💡 Le site comprend aussi le texte : dans la colonne « Loué » vous pouvez écrire `oui`/`non`,
+> et une seule colonne « Zones » avec `A B C` fonctionne aussi. Mais les **cases à cocher** sont
+> le plus simple et le plus sûr.
 
-## 3) Au quotidien
+---
 
-- Une semaine est réservée ? Changez `disponible` → `loué`. **C'est tout.**
+## Une seule fois : transformer les colonnes en cases à cocher (2 min)
+
+1. Ouvrez la feuille dans Google Sheets.
+2. Sélectionnez la colonne **Loué** (les cellules, pas le titre) → menu **Insertion → Case à cocher**.
+3. Faites pareil pour **Zone A**, **Zone B**, **Zone C**.
+   → Les `TRUE`/`FALSE` deviennent de vraies cases à cocher.
+
+*(Facultatif : c'est joli et pratique, mais même sans cette étape le site fonctionne, car il lit aussi `TRUE`/`FALSE`.)*
+
+---
+
+## Une seule fois : rendre la feuille visible par le site (1 min)
+
+Le site a besoin de **lire** la feuille (jamais de la modifier). Deux options, au choix :
+
+- **Simple** : bouton **Partager** (en haut à droite) → « Accès général » → **« Tout utilisateur disposant du lien »** → rôle **Lecteur** → Terminé.
+- *(ou)* **Fichier → Partager → Publier sur le web**.
+
+C'est tout : le site est déjà branché sur cette feuille. Dès qu'elle est partagée, les valeurs
+s'affichent en ligne.
+
+---
+
+## Au quotidien
+
+- Une semaine est réservée ? **Cochez la case « Loué ».** Le site la barre et masque le prix. ✅
+- Une semaine se libère ? **Décochez** la case.
 - Un prix change ? Modifiez la case **Prix**.
-- Le site reprend automatiquement les nouvelles valeurs (rafraîchissement à chaque visite).
+- Nouvelle semaine ? Ajoutez une ligne (Mois, Semaine `S40`, Du, Au, Prix, puis les cases).
 
-> Tant que le lien n'est pas renseigné, le site affiche les valeurs de secours (`src/data/rates.json`),
-> déjà remplies avec les tarifs 2026 actuels — donc rien n'est jamais cassé.
+> Tant que la feuille n'est pas partagée, le site affiche des valeurs de secours déjà correctes
+> (`src/data/rates.json`) — donc rien n'est jamais cassé, même en cas de souci.

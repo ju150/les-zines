@@ -73,7 +73,7 @@ export const ui = {
     //, , , Montuzet, , , 
     mont_eye: 'À découvrir aussi, en famille',
     mont_h: 'Le Chai de Montuzet',
-    mont_p: 'Séjournez dans un chai bordelais rénové, à la campagne : trois chambres d’hôtes et une piscine, tenus par la famille.',
+    mont_p: 'Séjournez dans un chai bordelais rénové, à la campagne : trois chambres et une piscine.',
     mont_cta: 'Visiter Montuzet',
 
     //, , , Footer, , , 
@@ -146,7 +146,7 @@ export const ui = {
 
     mont_eye: 'Also worth discovering, the family',
     mont_h: 'Le Chai de Montuzet',
-    mont_p: 'Stay in a renovated Bordeaux wine cellar in the countryside: three guest rooms and a pool, run by the family.',
+    mont_p: 'Stay in a renovated Bordeaux wine cellar in the countryside: three rooms and a pool.',
     mont_cta: 'Visit Montuzet',
 
     foot_tagline: 'Villa rental in Cap Ferret · by the week',

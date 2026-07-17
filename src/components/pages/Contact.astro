@@ -30,7 +30,9 @@ const fr = lang === 'fr';
         </div>
         <div>
           <div class="text-xs uppercase tracking-eyebrow text-ink-mute mb-1">{fr ? 'Adresse' : 'Address'}</div>
-          <p class="text-ink-soft">Cap Ferret · Bassin d’Arcachon</p>
+          <a href={SITE.mapsLink} target="_blank" rel="noopener" class="text-ink-soft not-italic hover:text-terra transition-colors">
+            {SITE.street}<br />{SITE.postcode} {SITE.city}<br /><span class="text-ink-mute">Cap Ferret · Bassin d’Arcachon</span>
+          </a>
         </div>
       </div>
       <div class="rounded-2xl overflow-hidden shadow-soft border border-line mt-8">

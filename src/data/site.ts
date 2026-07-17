@@ -5,16 +5,23 @@ export const SITE = {
   phone: '07 66 42 33 32',
   phoneIntl: '+33766423332',
   email: 'contact@leszines.fr',
+  // Postal address
+  street: '10 rue des Arbousiers',
+  postcode: '33950',
+  city: 'Lège-Cap-Ferret',
+  addressLine: '10 rue des Arbousiers, 33950 Lège-Cap-Ferret',
   bedrooms: 6,
   sleeps: '12–16',
   garden: 700,
   bathrooms: 4,
   montuzetUrl: 'https://www.montuzet.fr',
-  // Google Maps embed, the "Villa Les Zines" place.
+  // Google Maps, pinned on the exact address.
   mapsEmbed:
-    'https://www.google.com/maps?q=Villa+Les+Zines%2C+Cap+Ferret&output=embed',
-  mapsLink: 'https://maps.google.com/?q=Villa+Les+Zines+Cap+Ferret',
-  // Live Google Sheet the uncle edits (read server-side by /api/rates). Empty = local rates.json fallback.
+    'https://www.google.com/maps?q=10+rue+des+Arbousiers+33950+L%C3%A8ge-Cap-Ferret&output=embed',
+  mapsLink: 'https://maps.google.com/?q=10+rue+des+Arbousiers+33950+L%C3%A8ge-Cap-Ferret',
+  // Live Google Sheet (read server-side by /api/rates). New clean sheet 2026:
+  // "Villa Les Zines — Tarifs & disponibilités 2026". Empty = local rates.json fallback.
+  // NB: the sheet must be shared "Anyone with the link: Viewer" for this to load.
   ratesSheetCsv:
     'https://docs.google.com/spreadsheets/d/REDACTED_SHEET_ID/gviz/tq?tqx=out:csv',
 } as const;
