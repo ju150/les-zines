@@ -1,5 +1,6 @@
 ---
 import type { Lang } from '../../i18n/ui';
+import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import { SITE } from '../../data/site';
 import JsonLd from '../JsonLd.astro';
@@ -43,7 +44,7 @@ const fr = lang === 'fr';
       </div>
     </div>
 
-    <form id="reservation-form" class="reveal space-y-4 self-start" data-email={SITE.email}>
+    <form id="reservation-form" class="reveal space-y-4 self-start" data-email={SITE.email} data-lang={lang} data-home={localizedPath(lang)}>
       <div class="grid sm:grid-cols-2 gap-4">
         <label class="block"><span class="c-label">{fr ? 'Nom' : 'Name'}</span><input name="name" required autocomplete="name" class="c-input" /></label>
         <label class="block"><span class="c-label">Email</span><input name="email" type="email" required autocomplete="email" class="c-input" /></label>
@@ -70,14 +71,18 @@ const fr = lang === 'fr';
   .c-input { @apply w-full bg-paper border border-line-strong rounded-xl px-4 py-3 text-ink focus:border-terra outline-none transition; }
 </style>
 
-<script define:vars={{ fr }}>
-  const form = document.getElementById('reservation-form');
-  const status = document.getElementById('form-status');
-  const submitBtn = form?.querySelector('button[type="submit"]');
-  form?.addEventListener('submit', async (e) => {
+<script>
+  import { showConfirmation } from '../../scripts/confirmPopup';
+
+  const form = document.getElementById('reservation-form') as HTMLFormElement;
+  const status = document.getElementById('form-status')!;
+  const fr = (form.dataset.lang || 'fr') === 'fr';
+  const home = form.dataset.home || '/';
+  const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (submitBtn?.disabled) return;
-    const data = Object.fromEntries(new FormData(form).entries());
+    if (submitBtn.disabled) return;
+    const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     data.form = 'contact';
     data.lang = fr ? 'fr' : 'en';
     submitBtn.disabled = true;
@@ -86,12 +91,20 @@ const fr = lang === 'fr';
       const res = await fetch('/api/reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       if (!res.ok) throw new Error('no endpoint');
       const out = await res.json().catch(() => ({}));
-      status.textContent = out.confirmation
-        ? (fr
-            ? 'Merci ! Votre message a bien été envoyé. Un e-mail de confirmation vient de vous être adressé.'
-            : 'Thank you! Your message has been sent. A confirmation email is on its way.')
-        : (fr ? 'Merci ! Votre message a bien été envoyé.' : 'Thank you! Your message has been sent.');
+      status.textContent = '';
       form.reset();
+      showConfirmation({
+        fr, home,
+        title: fr ? 'Message envoyé !' : 'Message sent!',
+        message: fr
+          ? 'Nous avons bien reçu votre message et vous répondons très vite.'
+          : 'We have received your message and will reply very soon.',
+        note: out.confirmation
+          ? (fr
+              ? 'Un e-mail de confirmation vient de vous être adressé (pensez à vérifier vos indésirables).'
+              : 'A confirmation email is on its way (check your spam folder just in case).')
+          : undefined,
+      });
     } catch {
       const to = form.dataset.email;
       const subject = encodeURIComponent((fr ? 'Contact, ' : 'Contact, ') + (data.week || ''));
