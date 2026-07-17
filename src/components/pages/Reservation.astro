@@ -108,9 +108,6 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 </style>
 
 <script>
-  import flatpickr from 'flatpickr';
-  import { French } from 'flatpickr/dist/l10n/fr.js';
-  import 'flatpickr/dist/flatpickr.min.css';
   import { renderAvailability } from '../../scripts/availability';
 
   const form = document.getElementById('reservation-form') as HTMLFormElement;
@@ -126,19 +123,39 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
   };
   form.addEventListener('change', syncOffseason);
 
-  flatpickr('#daterange', {
-    mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
-    altInput: true, altFormat: fr ? 'j F Y' : 'F j, Y',
-    locale: fr ? French : 'default',
-    onChange: (dates) => {
-      const rad = document.getElementById('rad-offseason') as HTMLInputElement;
-      if (dates.length === 2 && rad) {
-        const f = (d: Date) => d.toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-        rad.value = `${fr ? 'Hors saison' : 'Off-season'} : ${f(dates[0])} → ${f(dates[1])}`;
-        rad.checked = true;
-        syncOffseason();
-      }
-    },
+  // flatpickr est chargé dynamiquement : si son chargement échoue (cache Vite,
+  // réseau…), le calendrier manque mais le FORMULAIRE reste 100 % fonctionnel.
+  Promise.all([
+    import('flatpickr'),
+    import('flatpickr/dist/l10n/fr.js'),
+    import('flatpickr/dist/flatpickr.min.css'),
+  ]).then(([{ default: flatpickr }, { French }]) => {
+    flatpickr('#daterange', {
+      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
+      altInput: true, altFormat: fr ? 'j F Y' : 'F j, Y',
+      locale: fr ? French : 'default',
+      onChange: (dates) => {
+        const rad = document.getElementById('rad-offseason') as HTMLInputElement;
+        if (dates.length === 2 && rad) {
+          const f = (d: Date) => d.toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+          rad.value = `${fr ? 'Hors saison' : 'Off-season'} : ${f(dates[0])} → ${f(dates[1])}`;
+          rad.checked = true;
+          syncOffseason();
+        }
+      },
+    });
+  }).catch(() => {
+    // Sans calendrier, l'utilisateur tape ses dates librement et elles sont
+    // reportées sur la valeur envoyée.
+    const input = document.getElementById('daterange') as HTMLInputElement | null;
+    if (input) {
+      input.removeAttribute('readonly');
+      input.placeholder = fr ? 'Ex. : 17 octobre 2026 → 24 octobre 2026' : 'E.g.: 17 October 2026 → 24 October 2026';
+      input.addEventListener('input', () => {
+        const rad = document.getElementById('rad-offseason') as HTMLInputElement | null;
+        if (rad && input.value.trim()) { rad.value = `${fr ? 'Hors saison' : 'Off-season'} : ${input.value.trim()}`; rad.checked = true; }
+      });
+    }
   });
 
   // The page is prerendered: the ?week= preselection must be read in the browser.

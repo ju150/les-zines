@@ -41,6 +41,7 @@ const slides = [
   { src: '/photos/villa/terrasses/01.jpg', fr: 'De grandes terrasses en caillebotis, plein sud', en: 'Large south-facing wood-deck terraces' },
   { src: '/photos/villa/jardin/01.jpg', fr: 'Pins et arbres fruitiers, coins d’ombre et de soleil', en: 'Pines and fruit trees, shade and sun' },
   { src: '/photos/nuit-2.webp', fr: 'La villa illuminée, le soir venu', en: 'The villa lit up at nightfall' },
+  { src: '/photos/plan.webp', fr: 'Le plan : pièce de vie centrale, chambres, dortoir en annexe', en: 'The floor plan: central living space, bedrooms, dorm annexe' },
 ];
 ---
 <JsonLd data={realEstateListingSchema(lang)} />
@@ -83,7 +84,7 @@ const slides = [
     <div class="car relative overflow-hidden rounded-3xl shadow-deep reveal aspect-[4/3] sm:aspect-[16/9] max-h-[620px] w-full" data-carousel>
       {slides.map((s, i) => (
         <figure class:list={['car-slide', i === 0 && 'active']}>
-          <img src={s.src} alt={fr ? s.fr : s.en} loading={i === 0 ? 'eager' : 'lazy'} draggable="false" />
+          <img src={s.src} alt={fr ? s.fr : s.en} loading={i === 0 ? 'eager' : 'lazy'} draggable="false" class:list={[s.src.includes('plan') && 'car-plan']} />
           <figcaption class="car-cap">{fr ? s.fr : s.en}</figcaption>
         </figure>
       ))}
@@ -102,6 +103,9 @@ const slides = [
   .car-slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity .9s ease; pointer-events: none; }
   .car-slide.active { opacity: 1; pointer-events: auto; }
   .car-slide img { width: 100%; height: 100%; object-fit: cover; }
+  /* Le plan ne doit jamais être rogné : affiché entier sur fond blanc, sans zoom */
+  .car-slide img.car-plan { object-fit: contain; background: #fff; }
+  .car-slide.active img.car-plan { animation: none; }
   /* Slow Ken Burns drift on the visible slide */
   .car-slide.active img { animation: kenburns 7s ease-out forwards; }
   @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }

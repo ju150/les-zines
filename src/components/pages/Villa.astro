@@ -134,7 +134,34 @@ const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photo
   </section>
 ))}
 
-<section class="pb-28 pt-6">
+<!-- ===== Le plan ===== -->
+<section id="plan" class="py-16 sm:py-20 bg-paper scroll-mt-16">
+  <div class="wrap">
+    <div class="max-w-2xl mb-8 reveal">
+      <p class="eyebrow mb-3">{fr ? 'S’y projeter' : 'Picture yourself'}</p>
+      <h2 class="h2 mb-4">{fr ? 'Le plan de la villa.' : 'The villa’s floor plan.'}</h2>
+      <p class="lead">
+        {fr
+          ? 'La pièce de vie au centre, les chambres réparties entre la maison, l’étage et l’aile, le dortoir en annexe : un plan pensé pour vivre ensemble sans se marcher dessus. Cliquez pour zoomer.'
+          : 'The living space at the centre, bedrooms spread between the house, the upper floor and the wing, the dorm in the annexe: a layout made for living together with room to breathe. Click to zoom.'}
+      </p>
+    </div>
+    <figure class="card overflow-hidden shadow-soft reveal">
+      <img
+        src="/photos/plan.webp"
+        alt={fr ? 'Plan de la Villa Les Zines : pièce de vie, chambres, dortoir et jardin' : 'Floor plan of Villa Les Zines: living space, bedrooms, dorm and garden'}
+        class="js-lb w-full h-auto cursor-zoom-in bg-white"
+        loading="lazy"
+        width="1960" height="1410"
+      />
+      <figcaption class="px-5 py-3 border-t border-line text-sm text-ink-mute">
+        {fr ? 'Plan d’ensemble — rez-de-chaussée, étage et grenier-dortoir (accès extérieur).' : 'Overview plan — ground floor, upper floor and attic dorm (outdoor access).'}
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="pb-28 pt-16">
   <div class="wrap text-center">
     <a href={localizedPath(lang, 'reservation')} class="btn btn-primary">{fr ? 'Réserver un séjour' : 'Book a stay'}</a>
   </div>
