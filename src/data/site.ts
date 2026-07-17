@@ -15,13 +15,11 @@ export const SITE = {
   garden: 700,
   bathrooms: 4,
   montuzetUrl: 'https://www.montuzet.fr',
-  // Google Maps, pinned on the exact address.
+  // Google Maps, the "Villa Les Zines" place (already shows the address correctly).
   mapsEmbed:
-    'https://www.google.com/maps?q=10+rue+des+Arbousiers+33950+L%C3%A8ge-Cap-Ferret&output=embed',
-  mapsLink: 'https://maps.google.com/?q=10+rue+des+Arbousiers+33950+L%C3%A8ge-Cap-Ferret',
-  // Live Google Sheet (read server-side by /api/rates). New clean sheet 2026:
-  // "Villa Les Zines — Tarifs & disponibilités 2026". Empty = local rates.json fallback.
-  // NB: the sheet must be shared "Anyone with the link: Viewer" for this to load.
+    'https://www.google.com/maps?q=Villa+Les+Zines%2C+Cap+Ferret&output=embed',
+  mapsLink: 'https://maps.google.com/?q=Villa+Les+Zines+Cap+Ferret',
+  // Live Google Sheet the uncle edits (read server-side by /api/rates). Empty = local rates.json fallback.
   ratesSheetCsv:
     'https://docs.google.com/spreadsheets/d/REDACTED_SHEET_ID/gviz/tq?tqx=out:csv',
 } as const;

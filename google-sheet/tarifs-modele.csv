@@ -1,0 +1,14 @@
+Mois,Semaine,Du,Au,Prix,Disponibilité
+Juillet,S27,27 juin,4 juil.,5000,loué
+Juillet,S28,4 juil.,11 juil.,7000,loué
+Juillet,S29,11 juil.,18 juil.,6900,disponible
+Juillet,S30,18 juil.,25 juil.,7900,disponible
+Juillet,S31,25 juil.,1 août,7900,disponible
+Août,S32,1 août,8 août,9500,loué
+Août,S33,8 août,15 août,9500,loué
+Août,S34,15 août,22 août,9500,loué
+Août,S35,22 août,29 août,6900,loué
+Septembre,S36,29 août,5 sept.,5000,disponible
+Septembre,S37,5 sept.,12 sept.,5000,disponible
+Septembre,S38,12 sept.,19 sept.,5000,disponible
+Septembre,S39,19 sept.,26 sept.,5000,disponible
