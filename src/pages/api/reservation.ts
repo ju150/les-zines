@@ -45,11 +45,11 @@ function sanitizeFields(raw: Record<string, unknown>): Fields {
 }
 
 // ——— Adresses ———
-// Expéditeur : reservation@leszines.fr une fois le domaine vérifié chez le fournisseur
-// (variable RESERVATION_FROM) ; les réponses des clients partent vers contact@.
+// Expéditeur : reservation@leszines.fr (variable RESERVATION_FROM, domaine vérifié
+// chez Resend) ; les réponses des clients partent vers contact@.
 const ownerTo = () => env('RESERVATION_TO') || 'contact@leszines.fr';
 const contactEmail = () => env('CONTACT_EMAIL') || 'contact@leszines.fr';
-const fromName = () => env('BREVO_FROM_NAME') || 'Villa Les Zines';
+const fromName = () => 'Villa Les Zines';
 
 type Mail = { to: string; replyTo?: string; replyToName?: string; subject: string; text: string; html?: string };
 
@@ -177,26 +177,7 @@ function buildConfirmation(f: Fields): Mail {
   return { to: f.email, replyTo: contactEmail(), replyToName: fromName(), subject, text, html };
 }
 
-// ——— Fournisseurs ———
-async function sendBrevo(mail: Mail): Promise<boolean> {
-  const key = env('BREVO_API_KEY');
-  if (!key) return false;
-  const fromEmail = env('BREVO_FROM') || env('RESERVATION_FROM') || 'contact@leszines.fr';
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: { 'api-key': key, 'Content-Type': 'application/json', accept: 'application/json' },
-    body: JSON.stringify({
-      sender: { name: fromName(), email: fromEmail.replace(/^.*<|>$/g, '') },
-      to: [{ email: mail.to }],
-      replyTo: mail.replyTo ? { email: mail.replyTo, name: mail.replyToName } : undefined,
-      subject: mail.subject,
-      textContent: mail.text,
-      htmlContent: mail.html,
-    }),
-  });
-  return res.ok;
-}
-
+// ——— Envoi (Resend) ———
 async function sendResend(mail: Mail): Promise<boolean> {
   const key = env('RESEND_API_KEY');
   if (!key) return false;
@@ -219,12 +200,8 @@ async function sendResend(mail: Mail): Promise<boolean> {
   return res.ok;
 }
 
-// Brevo d'abord s'il est configuré, puis Resend en secours : une clé morte ou un
-// quota épuisé chez l'un ne doit jamais bloquer l'envoi si l'autre fonctionne.
 async function send(mail: Mail): Promise<boolean> {
-  if (env('BREVO_API_KEY') && (await sendBrevo(mail).catch(() => false))) return true;
-  if (env('RESEND_API_KEY') && (await sendResend(mail).catch(() => false))) return true;
-  return false;
+  return sendResend(mail).catch(() => false);
 }
 
 async function sendSms(f: Fields): Promise<boolean> {
@@ -271,8 +248,7 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: false, error: 'invalid_email' }, 422);
   }
 
-  const providersConfigured =
-    Boolean(env('BREVO_API_KEY')) || Boolean(env('RESEND_API_KEY')) || Boolean(env('TWILIO_ACCOUNT_SID'));
+  const providersConfigured = Boolean(env('RESEND_API_KEY')) || Boolean(env('TWILIO_ACCOUNT_SID'));
   // No provider configured yet → tell the client to fall back to a mailto link.
   if (!providersConfigured) {
     return json({ ok: false, fallback: true, error: 'no_provider' }, 501);
