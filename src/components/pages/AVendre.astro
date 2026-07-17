@@ -178,12 +178,11 @@ const slides = [
       <p class="font-serif text-3xl sm:text-4xl mb-3">{fr ? 'Prix sur demande' : 'Price on request'}</p>
       <p class="text-white/75 max-w-xl mx-auto mb-8">
         {fr
-          ? 'Pour recevoir le dossier complet ou organiser une visite, écrivez-nous : nous répondons personnellement et en toute confidentialité.'
-          : 'To receive the full file or arrange a visit, write to us: we reply personally and confidentially.'}
+          ? 'Pour en savoir plus ou organiser une visite, écrivez-nous : nous répondons personnellement et en toute confidentialité.'
+          : 'To find out more or arrange a visit, write to us: we reply personally and confidentially.'}
       </p>
       <div class="flex flex-wrap gap-3 justify-center">
         <a href={localizedPath(lang, 'contact')} class="btn btn-primary">{fr ? 'Demander une visite' : 'Request a visit'}</a>
-        <a href={localizedPath(lang, 'contact')} class="btn btn-light">{fr ? 'Recevoir le dossier' : 'Get the file'}</a>
       </div>
     </div>
   </div>

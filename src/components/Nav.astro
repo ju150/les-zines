@@ -49,25 +49,28 @@ const bookHref = localizedPath(lang, 'reservation');
       </button>
     </div>
   </div>
-
-  <!-- Mobile menu (z-40 < brand/burger z-60 so both stay usable to close it) -->
-  <div id="mobile-menu" class="lg:hidden fixed inset-0 z-40 bg-pine text-white translate-x-full flex flex-col" aria-hidden="true">
-    <div class="flex-1 flex flex-col justify-center gap-1 px-8 pt-20 overflow-y-auto">
-      {NAV.map((item) => (
-        <a href={localizedPath(lang, item.slug)} class="font-serif text-3xl py-2 border-b border-white/10">{t(item.key as any)}</a>
-      ))}
-      <a href={localizedPath(lang, 'a-vendre')} class="font-serif text-3xl py-2 border-b border-white/10 text-gold">{t('nav_sale')}</a>
-      <a href={bookHref} class="btn btn-primary mt-6 self-start">{t('nav_book')}</a>
-    </div>
-    <div class="px-8 pb-10 flex items-center justify-between gap-4 text-white/85">
-      <div class="flex rounded-full border border-white/35 overflow-hidden text-sm font-semibold">
-        <a href={toFr} class:list={['px-4 py-2 transition-colors', lang === 'fr' ? 'bg-white text-ink' : 'hover:bg-white/10']}>FR</a>
-        <a href={toEn} class:list={['px-4 py-2 transition-colors', lang === 'en' ? 'bg-white text-ink' : 'hover:bg-white/10']}>EN</a>
-      </div>
-      <a href="tel:+33766423332" class="hover:text-white font-medium">07 66 42 33 32</a>
-    </div>
-  </div>
 </header>
+
+<!-- Mobile menu — OUTSIDE <header> on purpose: the scrolled header has backdrop-filter,
+     which makes it the containing block for position:fixed children and would clip the
+     full-screen overlay to the header's height. As a body-level sibling it always covers
+     the viewport. z-40 < brand/burger z-60 so both stay usable to close it. -->
+<div id="mobile-menu" class="lg:hidden fixed inset-0 z-40 bg-pine text-white translate-x-full flex flex-col" aria-hidden="true">
+  <div class="flex-1 flex flex-col justify-center gap-1 px-8 pt-20 overflow-y-auto">
+    {NAV.map((item) => (
+      <a href={localizedPath(lang, item.slug)} class="font-serif text-3xl py-2 border-b border-white/10">{t(item.key as any)}</a>
+    ))}
+    <a href={localizedPath(lang, 'a-vendre')} class="font-serif text-3xl py-2 border-b border-white/10 text-gold">{t('nav_sale')}</a>
+    <a href={bookHref} class="btn btn-primary mt-6 self-start">{t('nav_book')}</a>
+  </div>
+  <div class="px-8 pb-10 flex items-center justify-between gap-4 text-white/85">
+    <div class="flex rounded-full border border-white/35 overflow-hidden text-sm font-semibold">
+      <a href={toFr} class:list={['px-4 py-2 transition-colors', lang === 'fr' ? 'bg-white text-ink' : 'hover:bg-white/10']}>FR</a>
+      <a href={toEn} class:list={['px-4 py-2 transition-colors', lang === 'en' ? 'bg-white text-ink' : 'hover:bg-white/10']}>EN</a>
+    </div>
+    <a href="tel:+33766423332" class="hover:text-white font-medium">07 66 42 33 32</a>
+  </div>
+</div>
 
 <style>
   /* Solid vs over-hero styling driven by data-scrolled */
