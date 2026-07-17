@@ -15,9 +15,9 @@ export const SITE = {
   garden: 700,
   bathrooms: 4,
   montuzetUrl: 'https://www.montuzet.fr',
-  // Google Maps, the "Villa Les Zines" place (already shows the address correctly).
+  // Google Maps, the "Villa Les Zines" place. t=k = satellite view, z=18 = close aerial.
   mapsEmbed:
-    'https://www.google.com/maps?q=Villa+Les+Zines%2C+Cap+Ferret&output=embed',
+    'https://www.google.com/maps?q=Villa+Les+Zines%2C+Cap+Ferret&t=k&z=18&output=embed',
   mapsLink: 'https://maps.google.com/?q=Villa+Les+Zines+Cap+Ferret',
   // Live Google Sheet the uncle edits (read server-side by /api/rates). Empty = local rates.json fallback.
   ratesSheetCsv:
