@@ -4,6 +4,8 @@ import { useTranslations, localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import rates from '../../data/rates.json';
 import { renderAvailability } from '../../scripts/availability';
+import JsonLd from '../JsonLd.astro';
+import { vacationRentalSchema, breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -17,8 +19,10 @@ const included = fr
 
 const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase });
 ---
+<JsonLd data={vacationRentalSchema(lang)} />
+<JsonLd data={breadcrumbSchema(lang, 'sejours-tarifs', fr ? 'Séjours & Tarifs' : 'Stays & Rates')} />
 <PageHeader
-  image="/photos/terrasse.jpeg"
+  image="/photos/terrasse.webp"
   eyebrow={t('rate_eye')}
   title={t('rate_h')}
   intro={fr

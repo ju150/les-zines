@@ -4,14 +4,18 @@ import { useTranslations } from '../../i18n/ui';
 import { SITE } from '../../data/site';
 import rates from '../../data/rates.json';
 import { renderAvailability } from '../../scripts/availability';
+import JsonLd from '../JsonLd.astro';
+import { breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const fr = lang === 'fr';
-const preWeek = Astro.url.searchParams.get('week') || '';
+// NOTE: this page is prerendered — query params (?week=…) don't exist at build time
+// and are read client-side in the script below.
 const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 ---
+<JsonLd data={breadcrumbSchema(lang, 'reservation', fr ? 'Réservation' : 'Booking')} />
 <section class="pt-28 sm:pt-32 pb-6">
   <div class="wrap max-w-4xl page-in">
     <p class="eyebrow mb-3">{fr ? 'Réservation' : 'Booking'}</p>
@@ -23,10 +27,11 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 </section>
 
 <section class="pb-24">
-  <form id="reservation-form" class="wrap max-w-4xl page-in" data-email={SITE.email} data-preweek={preWeek} data-lang={lang}>
+  <form id="reservation-form" class="wrap max-w-4xl page-in" data-email={SITE.email} data-lang={lang}>
     <!-- Step 1 -->
     <div class="mb-10">
-      <div class="step-h"><span class="step-n">1</span>{fr ? 'Votre semaine' : 'Your week'}</div>
+      <div class="step-h"><span class="step-n">1</span>{fr ? 'Vos semaines' : 'Your weeks'}</div>
+      <p class="text-sm text-ink-mute -mt-3 mb-4">{fr ? 'Vous pouvez cocher plusieurs semaines consécutives.' : 'You can tick several consecutive weeks.'}</p>
       <div id="week-table" class="av-table card overflow-hidden" set:html={tableHtml}></div>
 
       <div class="mt-3 card overflow-hidden off-card">
@@ -35,7 +40,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
           <div class="av-c av-zones"></div>
           <div class="av-c av-price"></div>
           <div class="av-c av-status"></div>
-          <div class="av-c av-action"><input type="radio" name="week" value="offseason" id="rad-offseason" class="sr-only" /><span class="av-radio" aria-hidden="true"></span></div>
+          <div class="av-c av-action"><input type="checkbox" name="week" value="offseason" id="rad-offseason" class="sr-only" /><span class="av-radio" aria-hidden="true"></span></div>
         </label>
         <div id="offseason-dates" class="hidden px-5 py-4 border-t border-line bg-paper">
           <label class="c-label">{fr ? 'Vos dates (arrivée → départ)' : 'Your dates (arrival → departure)'}</label>
@@ -62,6 +67,8 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
         <label class="block"><span class="c-label">{fr ? 'Nombre de personnes' : 'Number of guests'}</span><input name="guests" type="number" min="1" max="16" class="c-input" /></label>
       </div>
       <label class="block mt-4"><span class="c-label">{fr ? 'Message' : 'Message'}</span><textarea name="message" rows="4" class="c-input" placeholder={fr ? 'Une question, une précision…' : 'A question, a detail…'}></textarea></label>
+      <!-- Honeypot: hidden from humans, bots fill it and the server silently drops the request. -->
+      <input type="text" name="website" class="sr-only" tabindex="-1" autocomplete="off" aria-hidden="true" />
     </div>
 
     <div class="flex flex-wrap items-center gap-5">
@@ -121,12 +128,12 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 
   flatpickr('#daterange', {
     mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
-    altInput: true, altFormat: fr ? 'j M' : 'M j',
+    altInput: true, altFormat: fr ? 'j F Y' : 'F j, Y',
     locale: fr ? French : 'default',
     onChange: (dates) => {
       const rad = document.getElementById('rad-offseason') as HTMLInputElement;
       if (dates.length === 2 && rad) {
-        const f = (d: Date) => d.toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
+        const f = (d: Date) => d.toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
         rad.value = `${fr ? 'Hors saison' : 'Off-season'} : ${f(dates[0])} → ${f(dates[1])}`;
         rad.checked = true;
         syncOffseason();
@@ -134,23 +141,43 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
     },
   });
 
-  const preselect = () => {
-    const pre = form.dataset.preweek;
-    if (!pre) return;
-    const m = [...table.querySelectorAll('input[name="week"]')].find((i) => (i as HTMLInputElement).value === pre) as HTMLInputElement | undefined;
-    if (m) m.checked = true;
+  // The page is prerendered: the ?week= preselection must be read in the browser.
+  const preselect = (wanted?: string[]) => {
+    const pre = wanted ?? [new URLSearchParams(location.search).get('week') || ''].filter(Boolean);
+    if (!pre.length) return;
+    [...table.querySelectorAll('input[name="week"]')].forEach((i) => {
+      if (pre.includes((i as HTMLInputElement).value)) (i as HTMLInputElement).checked = true;
+    });
   };
   preselect();
 
-  // Live availability from the sheet
+  // Live availability from the sheet. Keep whatever the user already ticked:
+  // innerHTML wipes the checkboxes, so re-check the saved values after the swap.
   fetch('/api/rates').then((r) => r.json()).then((d) => {
-    if (d?.weeks?.length) { table.innerHTML = renderAvailability(d.weeks, { mode: 'select', lang }); preselect(); }
+    if (d?.weeks?.length) {
+      const picked = [...table.querySelectorAll('input[name="week"]:checked')].map((i) => (i as HTMLInputElement).value);
+      table.innerHTML = renderAvailability(d.weeks, { mode: 'select', lang });
+      preselect(picked.length ? picked : undefined);
+    }
   }).catch(() => {});
 
+  const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
-    if (!data.week) { status.textContent = fr ? 'Merci de choisir une semaine ou vos dates.' : 'Please choose a week or your dates.'; return; }
+    if (submitBtn.disabled) return;
+    const fd = new FormData(form);
+    const weeks = fd.getAll('week').map(String);
+    const data = Object.fromEntries(fd.entries()) as Record<string, string>;
+    if (!weeks.length) { status.textContent = fr ? 'Merci de choisir au moins une semaine ou vos dates.' : 'Please choose at least one week or your dates.'; return; }
+    // "Other dates" ticked but no dates picked yet: the checkbox still holds its
+    // placeholder value — ask for real dates instead of sending "offseason".
+    if (weeks.includes('offseason')) {
+      status.textContent = fr ? 'Merci de choisir vos dates d’arrivée et de départ.' : 'Please pick your arrival and departure dates.';
+      (offBox.querySelector('input:not([type="hidden"])') as HTMLElement | null)?.focus();
+      return;
+    }
+    data.week = weeks.join(' + ');
+    submitBtn.disabled = true;
     status.textContent = fr ? 'Envoi en cours…' : 'Sending…';
     try {
       const res = await fetch('/api/reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -163,6 +190,8 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
       const body = encodeURIComponent(`${fr ? 'Nom' : 'Name'}: ${data.name}\nEmail: ${data.email}\n${fr ? 'Téléphone' : 'Phone'}: ${data.phone || ''}\n${fr ? 'Personnes' : 'Guests'}: ${data.guests || ''}\n${fr ? 'Semaine' : 'Week'}: ${data.week || ''}\n\n${data.message || ''}`);
       window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
       status.textContent = fr ? 'Votre logiciel de messagerie va s’ouvrir…' : 'Your email app will open…';
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 </script>

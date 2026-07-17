@@ -2,13 +2,16 @@
 import type { Lang } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import { SITE } from '../../data/site';
+import JsonLd from '../JsonLd.astro';
+import { breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const fr = lang === 'fr';
 ---
+<JsonLd data={breadcrumbSchema(lang, 'contact', 'Contact')} />
 <PageHeader
-  image="/photos/villa-jardin.jpeg"
+  image="/photos/villa-jardin.webp"
   eyebrow={fr ? 'Contact' : 'Contact'}
   title={fr ? 'Parlons de votre séjour.' : 'Let’s talk about your stay.'}
   intro={fr
@@ -54,6 +57,8 @@ const fr = lang === 'fr';
         </select>
       </label>
       <label class="block"><span class="c-label">{fr ? 'Message' : 'Message'}</span><textarea name="message" rows="5" required class="c-input"></textarea></label>
+      <!-- Honeypot: hidden from humans, bots fill it and the server silently drops the request. -->
+      <input type="text" name="website" class="sr-only" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <button type="submit" class="btn btn-primary">{fr ? 'Envoyer' : 'Send'}</button>
       <p id="form-status" class="text-sm text-ink-mute" role="status" aria-live="polite"></p>
     </form>
@@ -68,9 +73,12 @@ const fr = lang === 'fr';
 <script define:vars={{ fr }}>
   const form = document.getElementById('reservation-form');
   const status = document.getElementById('form-status');
+  const submitBtn = form?.querySelector('button[type="submit"]');
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (submitBtn?.disabled) return;
     const data = Object.fromEntries(new FormData(form).entries());
+    submitBtn.disabled = true;
     status.textContent = fr ? 'Envoi en cours…' : 'Sending…';
     try {
       const res = await fetch('/api/reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -83,6 +91,8 @@ const fr = lang === 'fr';
       const body = encodeURIComponent(`${fr ? 'Nom' : 'Name'}: ${data.name}\nEmail: ${data.email}\n${fr ? 'Téléphone' : 'Phone'}: ${data.phone || ''}\n\n${data.message || ''}`);
       window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
       status.textContent = fr ? 'Votre logiciel de messagerie va s’ouvrir…' : 'Your email app will open…';
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 </script>

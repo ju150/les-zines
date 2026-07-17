@@ -4,18 +4,24 @@ import { useTranslations, localizedPath } from '../../i18n/ui';
 import { SITE } from '../../data/site';
 import rates from '../../data/rates.json';
 import { renderAvailability } from '../../scripts/availability';
+import JsonLd from '../JsonLd.astro';
+import { vacationRentalSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+const fr = lang === 'fr';
 
 const reservationBase = localizedPath(lang, 'reservation');
 const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase, onlyAvailable: true });
 ---
+<JsonLd data={vacationRentalSchema(lang)} />
 <!-- ===== HERO ===== -->
 <section class="relative min-h-[100svh] flex items-end text-white overflow-hidden">
   <div class="absolute inset-0 -z-10">
-    <img src="/photos/villa-jardin.jpeg" alt="La Villa Les Zines et son jardin au Cap Ferret"
+    <img src="/photos/villa-jardin.webp"
+         srcset="/photos/villa-jardin-900.webp 900w, /photos/villa-jardin.webp 1600w" sizes="100vw"
+         alt={fr ? 'La Villa Les Zines et son jardin au Cap Ferret' : 'Villa Les Zines and its garden in Cap Ferret'}
          class="w-full h-full object-cover" fetchpriority="high" />
     <div class="absolute inset-0 bg-gradient-to-b from-pine-deep/55 via-pine-deep/10 to-pine-deep/85"></div>
     <!-- Mobile-only extra veil: the text needs more contrast on small screens -->
@@ -64,7 +70,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
   <div class="wrap grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
     <!-- Mobile: each teaser shows its image right above its own text -->
     <div class="rounded-2xl overflow-hidden shadow-deep reveal">
-      <img src="/photos/villa/vie-cuisine/01.jpg" alt="La pièce de vie ouverte sur le jardin" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+      <img src="/photos/villa/vie-cuisine/01.jpg" alt={fr ? 'La pièce de vie ouverte sur le jardin' : 'The living space opening onto the garden'} class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
     </div>
     <div class="reveal">
       <p class="eyebrow mb-4">{t('t_villa_eye')}</p>
@@ -85,7 +91,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
       <a href={localizedPath(lang, 'le-jardin')} class="btn btn-ghost">{t('discover')} →</a>
     </div>
     <div class="rounded-2xl overflow-hidden shadow-deep reveal">
-      <img src="/photos/jardin-1.jpg" alt="Le jardin arboré de 700 m²" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+      <img src="/photos/jardin-1.webp" srcset="/photos/jardin-1-900.webp 900w, /photos/jardin-1.webp 1600w" sizes="(min-width: 768px) 50vw, 100vw" alt={fr ? 'Le jardin arboré de 700 m²' : 'The 700 m² wooded garden'} class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
     </div>
   </div>
 </section>
@@ -109,7 +115,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 
 <style>
   .night-band {
-    background-image: url('/photos/nuit-1.jpeg');
+    background-image: url('/photos/nuit-1.webp');
     background-size: cover;
     background-position: center;
     /* Normal scroll by default: background-attachment: fixed is broken on most
@@ -123,7 +129,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 <section class="py-24 sm:py-28 bg-paper">
   <div class="wrap grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
     <div class="rounded-2xl overflow-hidden shadow-deep reveal">
-      <img src="/photos/cap-ferret.jpg" alt="Le phare et la plage du Cap Ferret" class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
+      <img src="/photos/cap-ferret.webp" srcset="/photos/cap-ferret-900.webp 900w, /photos/cap-ferret.webp 1600w" sizes="(min-width: 768px) 50vw, 100vw" alt={fr ? 'Le phare et la plage du Cap Ferret' : 'The Cap Ferret lighthouse and beach'} class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
     </div>
     <div class="reveal">
       <p class="eyebrow mb-4">{t('t_loc_eye')}</p>
@@ -170,7 +176,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 <section class="pb-28">
   <div class="wrap">
     <div class="card overflow-hidden grid md:grid-cols-2 shadow-soft reveal">
-      <img src="/photos/montuzet.jpeg" alt="Le Chai de Montuzet" class="w-full h-full object-cover min-h-[280px]" loading="lazy" />
+      <img src="/photos/montuzet.webp" srcset="/photos/montuzet-900.webp 900w, /photos/montuzet.webp 1600w" sizes="(min-width: 768px) 50vw, 100vw" alt="Le Chai de Montuzet" class="w-full h-full object-cover min-h-[280px]" loading="lazy" />
       <div class="p-8 sm:p-12">
         <p class="eyebrow !text-gold mb-4">{t('mont_eye')}</p>
         <h3 class="h3 mb-4">{t('mont_h')}</h3>

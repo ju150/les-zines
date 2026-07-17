@@ -2,6 +2,8 @@
 import type { Lang } from '../../i18n/ui';
 import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
+import JsonLd from '../JsonLd.astro';
+import { realEstateListingSchema, breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -33,16 +35,18 @@ const atouts = fr
     ];
 
 const slides = [
-  { src: '/photos/villa-jardin.jpeg', fr: 'La villa et son jardin clos de 700 m²', en: 'The villa and its walled 700 m² garden' },
+  { src: '/photos/villa-jardin.webp', fr: 'La villa et son jardin clos de 700 m²', en: 'The villa and its walled 700 m² garden' },
   { src: '/photos/villa/vie-cuisine/01.jpg', fr: 'La pièce de vie de 60 m², ouverte sur la terrasse', en: 'The 60 m² living space, opening onto the terrace' },
   { src: '/photos/villa/chambres/01.jpg', fr: 'Six chambres climatisées + un dortoir', en: 'Six air-conditioned bedrooms + a dorm' },
   { src: '/photos/villa/terrasses/01.jpg', fr: 'De grandes terrasses en caillebotis, plein sud', en: 'Large south-facing wood-deck terraces' },
   { src: '/photos/villa/jardin/01.jpg', fr: 'Pins et arbres fruitiers, coins d’ombre et de soleil', en: 'Pines and fruit trees, shade and sun' },
-  { src: '/photos/nuit-2.jpeg', fr: 'La villa illuminée, le soir venu', en: 'The villa lit up at nightfall' },
+  { src: '/photos/nuit-2.webp', fr: 'La villa illuminée, le soir venu', en: 'The villa lit up at nightfall' },
 ];
 ---
+<JsonLd data={realEstateListingSchema(lang)} />
+<JsonLd data={breadcrumbSchema(lang, 'a-vendre', fr ? 'À vendre' : 'For sale')} />
 <PageHeader
-  image="/photos/nuit-1.jpeg"
+  image="/photos/nuit-1.webp"
   eyebrow={fr ? 'À vendre, en toute discrétion' : 'For sale, discreetly'}
   title={fr ? 'Transmettre une maison de famille.' : 'Passing on a family home.'}
   intro={fr

@@ -2,18 +2,18 @@
   "season": "2026",
   "source": "local",
   "weeks": [
-    { "id": "S27", "month": "juillet",   "label": "sam. 27 → sam. 4",  "price": 5000, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S28", "month": "juillet",   "label": "sam. 4 → sam. 11",  "price": 7000, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S29", "month": "juillet",   "label": "sam. 11 → sam. 18", "price": 7900, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S30", "month": "juillet",   "label": "sam. 18 → sam. 25", "price": 7900, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S31", "month": "juillet",   "label": "sam. 25 → sam. 1",  "price": 7900, "status": "available", "zones": ["A", "B", "C"] },
-    { "id": "S32", "month": "août",      "label": "sam. 1 → sam. 8",   "price": 9500, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S33", "month": "août",      "label": "sam. 8 → sam. 15",  "price": 9500, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S34", "month": "août",      "label": "sam. 15 → sam. 22", "price": 9500, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S35", "month": "août",      "label": "sam. 22 → sam. 29", "price": 6900, "status": "booked",    "zones": ["A", "B", "C"] },
-    { "id": "S36", "month": "septembre", "label": "sam. 29 → sam. 5",  "price": 5000, "status": "available", "zones": [] },
-    { "id": "S37", "month": "septembre", "label": "sam. 5 → sam. 12",  "price": 5000, "status": "available", "zones": [] },
-    { "id": "S38", "month": "septembre", "label": "sam. 12 → sam. 19", "price": 5000, "status": "available", "zones": [] },
-    { "id": "S39", "month": "septembre", "label": "sam. 19 → sam. 26", "price": 5000, "status": "available", "zones": [] }
+    { "id": "S27", "month": "juillet",   "label": "sam. 27 → sam. 4",  "price": 5000, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S28", "month": "juillet",   "label": "sam. 4 → sam. 11",  "price": 7000, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S29", "month": "juillet",   "label": "sam. 11 → sam. 18", "price": 7900, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S30", "month": "juillet",   "label": "sam. 18 → sam. 25", "price": 7900, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S31", "month": "juillet",   "label": "sam. 25 → sam. 1",  "price": 9500, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S32", "month": "août",      "label": "sam. 1 → sam. 8",   "price": 9500, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S33", "month": "août",      "label": "sam. 8 → sam. 15",  "price": 9500, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S34", "month": "août",      "label": "sam. 15 → sam. 22", "price": 9500, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S35", "month": "août",      "label": "sam. 22 → sam. 29", "price": 6900, "status": "booked",    "zones": ["A", "B", "C"], "year": 2026 },
+    { "id": "S36", "month": "septembre", "label": "sam. 29 → sam. 5",  "price": 5000, "status": "available", "zones": [],              "year": 2026 },
+    { "id": "S37", "month": "septembre", "label": "sam. 5 → sam. 12",  "price": 5000, "status": "available", "zones": [],              "year": 2026 },
+    { "id": "S38", "month": "septembre", "label": "sam. 12 → sam. 19", "price": 5000, "status": "available", "zones": [],              "year": 2026 },
+    { "id": "S39", "month": "septembre", "label": "sam. 19 → sam. 26", "price": 5000, "status": "available", "zones": [],              "year": 2026 }
   ]
 }

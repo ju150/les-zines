@@ -1,0 +1,6 @@
+---
+// Renders a schema.org JSON-LD block. Valid anywhere in the document.
+interface Props { data: unknown }
+const { data } = Astro.props;
+---
+<script type="application/ld+json" set:html={JSON.stringify(data)} />

@@ -3,6 +3,8 @@ import type { Lang } from '../../i18n/ui';
 import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import { SITE } from '../../data/site';
+import JsonLd from '../JsonLd.astro';
+import { breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -10,22 +12,23 @@ const fr = lang === 'fr';
 
 // Photos libres de droits (Wikimedia Commons) — attributions dans les mentions légales.
 const spots = [
-  { d: '400 m', img: '/photos/cap-ferret/belisaire.jpg', fr: ['Jetée Bélisaire', 'Navettes vers Arcachon, petit train vers l’océan, terrasses et couchers de soleil sur le Bassin.'], en: ['Bélisaire jetty', 'Boats to Arcachon, the little train to the ocean, terraces and sunsets over the Bay.'] },
-  { d: '5 min', img: '/photos/cap-ferret/plage-horizon.jpg', fr: ['Plage de l’Horizon', 'Grande plage océane, dunes et vagues côté Atlantique.'], en: ['Plage de l’Horizon', 'Large ocean beach, dunes and Atlantic waves.'] },
-  { d: '5 min', img: '/photos/cap-ferret/marche-village.jpg', fr: ['Marché & village', 'Le marché couvert, les ruelles, les villas en bois, les commerces et les restos.'], en: ['Market & village', 'The covered market, the lanes, the timber villas, shops and restaurants.'] },
-  { d: '10 min', img: '/photos/cap-ferret/plage-americains.jpg', fr: ['Plage des Américains', 'Plage familiale côté Bassin, calme et surveillée l’été, au rythme des marées.'], en: ['Américains beach', 'Family beach on the Bay side, calm and supervised in summer, ruled by the tides.'] },
-  { d: '10 min', img: '/photos/cap-ferret.jpg', fr: ['Le Phare du Cap Ferret', 'Panorama à 360° sur la presqu’île, la Dune du Pilat et le Banc d’Arguin.'], en: ['Cap Ferret lighthouse', '360° view over the peninsula, the Dune du Pilat and Banc d’Arguin.'] },
-  { d: '10 min à vélo', img: '/photos/cap-ferret/bassin-maree-basse.jpg', fr: ['Les villages ostréicoles', 'L’Herbe, le Canon : cabanes colorées et dégustation d’huîtres les pieds dans l’eau.'], en: ['Oyster villages', 'L’Herbe, le Canon: colourful huts and oyster tasting at the water’s edge.'] },
-  { d: 'sur place', img: '/photos/cap-ferret/presquile.jpg', fr: ['Pistes cyclables', 'Des kilomètres de pistes à vélo entre océan, Bassin et forêt de pins.'], en: ['Cycle paths', 'Miles of bike paths between ocean, Bay and pine forest.'] },
-  { d: 'chaque soir', img: '/photos/cap-ferret/sunset-bassin.jpg', fr: ['Couchers de soleil', 'Le grand spectacle quotidien du Bassin, un verre à la main.'], en: ['Sunsets', 'The Bay’s daily show, drink in hand.'] },
+  { d: '400 m', img: '/photos/cap-ferret/belisaire.webp', fr: ['Jetée Bélisaire', 'Navettes vers Arcachon, petit train vers l’océan, terrasses et couchers de soleil sur le Bassin.'], en: ['Bélisaire jetty', 'Boats to Arcachon, the little train to the ocean, terraces and sunsets over the Bay.'] },
+  { d: '5 min', img: '/photos/cap-ferret/plage-horizon.webp', fr: ['Plage de l’Horizon', 'Grande plage océane, dunes et vagues côté Atlantique.'], en: ['Plage de l’Horizon', 'Large ocean beach, dunes and Atlantic waves.'] },
+  { d: '5 min', img: '/photos/cap-ferret/marche-village.webp', fr: ['Marché & village', 'Le marché couvert, les ruelles, les villas en bois, les commerces et les restos.'], en: ['Market & village', 'The covered market, the lanes, the timber villas, shops and restaurants.'] },
+  { d: '10 min', img: '/photos/cap-ferret/plage-americains.webp', fr: ['Plage des Américains', 'Plage familiale côté Bassin, calme et surveillée l’été, au rythme des marées.'], en: ['Américains beach', 'Family beach on the Bay side, calm and supervised in summer, ruled by the tides.'] },
+  { d: '10 min', img: '/photos/cap-ferret.webp', fr: ['Le Phare du Cap Ferret', 'Panorama à 360° sur la presqu’île, la Dune du Pilat et le Banc d’Arguin.'], en: ['Cap Ferret lighthouse', '360° view over the peninsula, the Dune du Pilat and Banc d’Arguin.'] },
+  { d: '10 min à vélo', img: '/photos/cap-ferret/bassin-maree-basse.webp', fr: ['Les villages ostréicoles', 'L’Herbe, le Canon : cabanes colorées et dégustation d’huîtres les pieds dans l’eau.'], en: ['Oyster villages', 'L’Herbe, le Canon: colourful huts and oyster tasting at the water’s edge.'] },
+  { d: 'sur place', img: '/photos/cap-ferret/presquile.webp', fr: ['Pistes cyclables', 'Des kilomètres de pistes à vélo entre océan, Bassin et forêt de pins.'], en: ['Cycle paths', 'Miles of bike paths between ocean, Bay and pine forest.'] },
+  { d: 'chaque soir', img: '/photos/cap-ferret/sunset-bassin.webp', fr: ['Couchers de soleil', 'Le grand spectacle quotidien du Bassin, un verre à la main.'], en: ['Sunsets', 'The Bay’s daily show, drink in hand.'] },
 ];
 
 const activities = fr
   ? ['Déguster des huîtres dans les cabanes ostréicoles', 'Faire le tour de la presqu’île à vélo', 'Prendre le bateau pour Arcachon ou le Cap', 'Grimper au phare pour la vue', 'Surf et baignade côté océan', 'Apéro face au coucher de soleil sur le Bassin']
   : ['Taste oysters in the oyster huts', 'Cycle around the peninsula', 'Take the boat to Arcachon or the Cap', 'Climb the lighthouse for the view', 'Surf and swim on the ocean side', 'Sunset drinks over the Bay'];
 ---
+<JsonLd data={breadcrumbSchema(lang, 'le-cap-ferret', fr ? 'Le Cap Ferret' : 'Cap Ferret')} />
 <PageHeader
-  image="/photos/cap-ferret/belisaire.jpg"
+  image="/photos/cap-ferret/belisaire.webp"
   eyebrow={fr ? 'Le Cap Ferret' : 'Cap Ferret'}
   title={fr ? 'Le meilleur du Cap, à pied ou à vélo.' : 'The best of the Cap, on foot or by bike.'}
   intro={fr
@@ -55,6 +58,8 @@ const activities = fr
         {spots.map((s, i) => (
           <img
             src={s.img}
+            srcset={`${s.img.replace(/\.webp$/, '-900.webp')} 900w, ${s.img} 1600w`}
+            sizes="(min-width: 1024px) 50vw, 100vw"
             alt={fr ? s.fr[0] : s.en[0]}
             class:list={['spot-img', i === 0 && 'active']}
             loading={i === 0 ? 'eager' : 'lazy'}
@@ -86,8 +91,8 @@ const activities = fr
 <section class="pb-20">
   <div class="wrap grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
     <div class="grid grid-cols-2 gap-3 order-1 lg:order-none reveal">
-      <img src="/photos/cap-ferret.jpg" alt={fr ? 'Le phare du Cap Ferret' : 'Cap Ferret lighthouse'} class="w-full h-full object-cover aspect-[3/4] rounded-2xl shadow-soft" loading="lazy" />
-      <img src="/photos/cap-ferret/sunset-bassin.jpg" alt={fr ? 'Coucher de soleil sur le Bassin' : 'Sunset over the Bay'} class="w-full h-full object-cover aspect-[3/4] rounded-2xl shadow-soft mt-10" loading="lazy" />
+      <img src="/photos/cap-ferret.webp" alt={fr ? 'Le phare du Cap Ferret' : 'Cap Ferret lighthouse'} class="w-full h-full object-cover aspect-[3/4] rounded-2xl shadow-soft" loading="lazy" />
+      <img src="/photos/cap-ferret/sunset-bassin.webp" alt={fr ? 'Coucher de soleil sur le Bassin' : 'Sunset over the Bay'} class="w-full h-full object-cover aspect-[3/4] rounded-2xl shadow-soft mt-10" loading="lazy" />
     </div>
     <div class="reveal">
       <p class="eyebrow mb-4">{fr ? 'À vivre' : 'To experience'}</p>

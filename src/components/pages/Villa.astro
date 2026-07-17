@@ -4,6 +4,8 @@ import type { Lang } from '../../i18n/ui';
 import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import Lightbox from '../Lightbox.astro';
+import JsonLd from '../JsonLd.astro';
+import { breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -37,8 +39,9 @@ const themes = themeDefs
   })
   .filter((t) => t.photos.length);
 
-const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photos/terrasse.jpeg';
+const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photos/terrasse.webp';
 ---
+<JsonLd data={breadcrumbSchema(lang, 'la-villa', fr ? 'La Villa' : 'The Villa')} />
 <PageHeader
   image={cover}
   eyebrow={fr ? 'La Villa' : 'The Villa'}
@@ -135,7 +138,7 @@ const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photo
   </div>
 </section>
 
-<Lightbox />
+<Lightbox lang={lang} />
 
 <style>
   .ch-pill { @apply inline-block rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-ink-soft transition-all duration-300; }

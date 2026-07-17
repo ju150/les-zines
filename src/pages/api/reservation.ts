@@ -8,6 +8,26 @@ const env = (k: string): string | undefined =>
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 
+// Sanitize a form value: only strings pass, newlines/tabs stripped (they end up in
+// the email subject), length capped so a bot can't relay megabytes through us.
+const clean = (v: unknown, max: number): string =>
+  typeof v === 'string' ? v.replace(/[\r\n\t]+/g, ' ').slice(0, max).trim() : '';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function sanitizeFields(raw: Record<string, unknown>): Record<string, string> {
+  return {
+    name: clean(raw.name, 100),
+    email: clean(raw.email, 200),
+    phone: clean(raw.phone, 40),
+    guests: clean(raw.guests, 10),
+    // Peut contenir plusieurs semaines jointes (« S36 · 29/08/2026 → 05/09/2026 + S37 … »)
+    week: clean(raw.week, 500),
+    // The message is the only field allowed to keep its newlines (email body only).
+    message: typeof raw.message === 'string' ? raw.message.slice(0, 4000).trim() : '',
+  };
+}
+
 function buildEmail(fields: Record<string, string>) {
   const subject = `Demande de réservation, ${fields.week || 'sans semaine'}, ${fields.name || ''}`.trim();
   const text = [
@@ -89,15 +109,27 @@ async function sendSms(fields: Record<string, string>): Promise<boolean> {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  let fields: Record<string, string>;
+  let raw: Record<string, unknown>;
   try {
-    fields = await request.json();
+    raw = await request.json();
+    if (typeof raw !== 'object' || raw === null) throw new Error('not an object');
   } catch {
     return json({ ok: false, error: 'invalid_json' }, 400);
   }
 
-  if (!fields?.name || !fields?.email) {
+  // Honeypot: the visible forms ship a hidden "website" field that humans never fill.
+  // A bot that fills it gets a fake success and nothing is sent.
+  if (typeof raw.website === 'string' && raw.website.trim() !== '') {
+    return json({ ok: true, email: true, sms: false });
+  }
+
+  const fields = sanitizeFields(raw);
+
+  if (!fields.name || !fields.email) {
     return json({ ok: false, error: 'missing_fields' }, 422);
+  }
+  if (!EMAIL_RE.test(fields.email)) {
+    return json({ ok: false, error: 'invalid_email' }, 422);
   }
 
   const providersConfigured =

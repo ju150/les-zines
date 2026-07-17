@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Manrope:wght@300;400;500;600;700&display=swap');
+/* Polices auto-hébergées (public/fonts/) — pas de requête vers Google (RGPD). */
+@import './fonts.css';
 
 @tailwind base;
 @tailwind components;
@@ -19,7 +20,8 @@
 
 @layer components {
   .wrap { @apply max-w-content mx-auto px-6 sm:px-8; }
-  .eyebrow { @apply text-[0.74rem] font-semibold uppercase tracking-eyebrow text-terra; }
+  /* terra-2 plutôt que terra : ≥ 4.5:1 sur sand/paper (AA petits caractères) */
+  .eyebrow { @apply text-[0.74rem] font-semibold uppercase tracking-eyebrow text-terra-2; }
   .eyebrow-muted { @apply text-ink-mute; }
   .lead { @apply text-lg sm:text-xl text-ink-soft font-normal; max-width: 62ch; }
   .h2 { @apply text-[clamp(2rem,4.4vw,3.4rem)]; }
@@ -35,24 +37,14 @@
   .btn-light   { @apply bg-white/10 text-white border-white/50 backdrop-blur hover:bg-white/20; }
   .btn-pine    { @apply bg-pine text-white hover:bg-pine-2; }
 
-  .brand { @apply font-script text-white leading-none; }
+  /* Wordmark : Playfair Display italique (choix famille via la page typographies, retirée depuis) */
+  .brand { @apply font-script italic font-semibold text-white leading-none tracking-[-0.01em]; }
 
   .card { @apply bg-paper border border-line rounded-2xl; }
 
   .badge { @apply text-[0.74rem] font-semibold px-3 py-1 rounded-full whitespace-nowrap; }
   .badge-free   { @apply text-[#2E6B4F] bg-[rgba(46,107,79,0.14)]; }
-  .badge-booked { @apply text-[#9a6a2a] bg-[rgba(176,134,59,0.16)]; }
-
-  /* Reservation week cards (used in template AND injected via JS, so kept global) */
-  .wk-card { @apply relative flex flex-col gap-1 cursor-pointer rounded-xl border border-line-strong bg-white pl-5 pr-11 py-4 transition-all; }
-  .wk-card:hover { @apply border-pine-2 shadow-soft; }
-  .wk-card:has(input:checked) { @apply border-terra bg-[rgba(191,88,54,0.06)] ring-1 ring-terra; }
-  .wk-card-alt { @apply border-dashed bg-paper; }
-  .wk-dates { @apply font-serif text-xl text-ink leading-tight; }
-  .wk-price { @apply text-sm text-ink-soft; }
-  .wk-check { @apply absolute top-4 right-4 w-5 h-5 rounded-full border border-line-strong transition-colors; }
-  .wk-card:has(input:checked) .wk-check { @apply bg-terra border-terra; }
-  .wk-card:has(input:checked) .wk-check::after { content: ''; @apply absolute left-[6px] top-[2px] w-[7px] h-[11px] border-r-2 border-b-2 border-white rotate-45; }
+  .badge-booked { @apply text-[#7A5320] bg-[rgba(176,134,59,0.16)]; }
 
   /* ——— Availability table (shared: tarifs = links, reservation = select) ——— */
   /* Fixed column template shared by header + rows so columns line up (each row is
@@ -80,6 +72,8 @@
   .zone-c { @apply bg-[#c9683f]; }
   .av-pick { @apply cursor-pointer transition-colors; }
   .av-pick:hover { @apply bg-[rgba(46,107,79,0.1)]; }
+  /* Visible keyboard focus on the sr-only week radios */
+  .av-pick:has(input:focus-visible) { @apply ring-2 ring-inset ring-terra; }
   .av-radio { @apply inline-block w-5 h-5 rounded-full border-2 border-line-strong transition-all; }
   .av-pick:has(input:checked) { @apply bg-[rgba(191,88,54,0.08)] ring-1 ring-inset ring-terra; }
   .av-pick:has(input:checked) .av-radio { @apply border-terra bg-terra; box-shadow: inset 0 0 0 3px #fff; }

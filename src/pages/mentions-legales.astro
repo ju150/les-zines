@@ -3,6 +3,10 @@ import Base from '../layouts/Base.astro';
 import MentionsLegales from '../components/pages/MentionsLegales.astro';
 const lang = 'fr' as const;
 ---
-<Base lang={lang} title="Mentions légales | Villa Les Zines">
+<Base
+  lang={lang}
+  title="Mentions légales | Villa Les Zines"
+  description="Mentions légales du site leszines.fr : éditeur, hébergement, propriété intellectuelle et données personnelles."
+>
   <MentionsLegales lang={lang} />
 </Base>

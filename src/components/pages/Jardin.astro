@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import type { Lang } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import Lightbox from '../Lightbox.astro';
+import JsonLd from '../JsonLd.astro';
+import { breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -10,23 +12,29 @@ const fr = lang === 'fr';
 
 // Family photos of the garden (01.jpg = the featured « avant » shot), plus the
 // original pro shots. New drops in public/photos/villa/jardin/ appear automatically.
-const dir = 'public/photos/villa/jardin';
-const jardinPhotos = fs.existsSync(dir)
-  ? fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort().map((f) => `/photos/villa/jardin/${f}`)
-  : [];
+const scan = (dir: string, base: string) =>
+  fs.existsSync(dir)
+    ? fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort().map((f) => `${base}/${f}`)
+    : [];
+const jardinPhotos = scan('public/photos/villa/jardin', '/photos/villa/jardin');
+// Les terrasses font partie des extérieurs : leurs photos ont leur place ici aussi
+// (comme le jardin apparaît dans le chapitre Terrasses de la page Villa).
+const terrassesPhotos = scan('public/photos/villa/terrasses', '/photos/villa/terrasses');
 const gallery = [
   ...(jardinPhotos.length ? [jardinPhotos[0]] : []),
-  '/photos/jardin-1.jpg',
-  '/photos/jardin-2.jpg',
-  '/photos/jardin-3.jpg',
-  '/photos/jardin-5.jpg',
-  '/photos/terrasse.jpeg',
-  '/photos/villa-jardin.jpeg',
+  '/photos/jardin-1.webp',
+  '/photos/jardin-2.webp',
+  '/photos/jardin-3.webp',
+  '/photos/jardin-5.webp',
+  '/photos/terrasse.webp',
+  '/photos/villa-jardin.webp',
   ...jardinPhotos.slice(1),
+  ...terrassesPhotos,
 ];
 ---
+<JsonLd data={breadcrumbSchema(lang, 'le-jardin', fr ? 'Le Jardin' : 'The Garden')} />
 <PageHeader
-  image="/photos/jardin-1.jpg"
+  image="/photos/jardin-1.webp"
   eyebrow={fr ? 'Le Jardin & les extérieurs' : 'The Garden & outdoors'}
   title={fr ? '700 m² de pins, d’ombre et de soleil.' : '700 m² of pines, shade and sun.'}
   intro={fr
@@ -48,11 +56,11 @@ const gallery = [
   <div class="wrap grid grid-cols-2 lg:grid-cols-3 gap-4">
     {gallery.map((g, i) => (
       <figure class:list={['overflow-hidden rounded-2xl reveal', i === 0 && 'col-span-2 lg:col-span-2 lg:row-span-2']}>
-        <img src={g} alt="Le jardin et les terrasses de la villa"
+        <img src={g} alt={fr ? 'Le jardin et les terrasses de la villa' : 'The villa’s garden and terraces'}
              class="js-lb w-full h-full object-cover aspect-[4/3] cursor-pointer hover:scale-[1.05] transition-transform duration-700 ease-smooth" loading="lazy" />
       </figure>
     ))}
   </div>
 </section>
 
-<Lightbox />
+<Lightbox lang={lang} />

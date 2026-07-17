@@ -6,15 +6,14 @@ export default {
       colors: {
         sand:   { DEFAULT: '#F5F0E6', 2: '#EFE7D8' },
         paper:  '#FBF8F2',
-        ink:    { DEFAULT: '#20302C', soft: '#465651', mute: '#7C8A85' },
+        ink:    { DEFAULT: '#20302C', soft: '#465651', mute: '#5F6D68' },
         line:   { DEFAULT: '#E4DBCB', strong: '#D6CBB6' },
         pine:   { DEFAULT: '#123F39', 2: '#2E6B63', deep: '#0E322D' },
-        ocean:  '#35726E',
         terra:  { DEFAULT: '#BF5836', 2: '#A5482B' },
         gold:   '#B0863B',
       },
       fontFamily: {
-        script: ['"Great Vibes"', 'cursive'],
+        script: ['"Playfair Display"', 'Georgia', 'serif'],
         serif:  ['"Cormorant Garamond"', 'Georgia', 'serif'],
         sans:   ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
       },

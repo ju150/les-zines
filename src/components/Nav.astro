@@ -25,9 +25,9 @@ const bookHref = localizedPath(lang, 'reservation');
 >
   <div class="wrap flex items-center justify-between gap-4">
     <!-- z-[60]: stays clickable ABOVE the mobile menu overlay (closes it / goes home) -->
-    <a href={home} class="brand text-[1.7rem] sm:text-[1.9rem] leading-none relative z-[60]">Villa&nbsp;Les&nbsp;Zines</a>
+    <a href={home} class="brand text-[1.35rem] sm:text-[1.5rem] leading-none relative z-[60]">Villa&nbsp;Les&nbsp;Zines</a>
 
-    <nav class="hidden lg:flex items-center gap-7" aria-label="Principal">
+    <nav class="hidden lg:flex items-center gap-7" aria-label={lang === 'fr' ? 'Navigation principale' : 'Main navigation'}>
       {NAV.map((item) => (
         <a href={localizedPath(lang, item.slug)} class="nav-link text-sm font-medium transition-colors">{t(item.key as any)}</a>
       ))}
@@ -129,12 +129,16 @@ const bookHref = localizedPath(lang, 'reservation');
   const menu = document.getElementById('mobile-menu')!;
 
   const setMenu = (open: boolean) => {
+    const wasOpen = menu.classList.contains('is-open');
     burger.classList.toggle('is-open', open);
     menu.classList.toggle('is-open', open);
     nav.classList.toggle('menu-open', open);
     burger.setAttribute('aria-expanded', String(open));
     menu.setAttribute('aria-hidden', String(!open));
     document.body.style.overflow = open ? 'hidden' : '';
+    // Keyboard: focus follows the menu — first link on open, back to the burger on close.
+    if (open) (menu.querySelector('a') as HTMLElement | null)?.focus();
+    else if (wasOpen) burger.focus();
   };
 
   burger.addEventListener('click', () => setMenu(!menu.classList.contains('is-open')));
@@ -143,6 +147,17 @@ const bookHref = localizedPath(lang, 'reservation');
   // The brand link also closes it (and goes home).
   document.querySelector('#site-nav .brand')?.addEventListener('click', () => setMenu(false));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  // Focus trap while the overlay is open: Tab cycles through the menu links + burger.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || !menu.classList.contains('is-open')) return;
+    const focusables = [...menu.querySelectorAll<HTMLElement>('a, button'), burger];
+    const cur = focusables.indexOf(document.activeElement as HTMLElement);
+    e.preventDefault();
+    const next = e.shiftKey
+      ? (cur <= 0 ? focusables.length - 1 : cur - 1)
+      : (cur === focusables.length - 1 || cur === -1 ? 0 : cur + 1);
+    focusables[next].focus();
+  });
   // Back/forward cache restore: never come back with a stuck open menu / frozen scroll.
   window.addEventListener('pageshow', () => setMenu(false));
 </script>

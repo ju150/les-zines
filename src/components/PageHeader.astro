@@ -7,10 +7,14 @@ interface Props {
   imageAlt?: string;
 }
 const { eyebrow, title, intro, image, imageAlt = '' } = Astro.props;
+// Every optimized hero (.webp hors galeries villa/) a une variante mobile -900.webp.
+const srcset = image.endsWith('.webp') && !image.includes('/villa/')
+  ? `${image.replace(/\.webp$/, '-900.webp')} 900w, ${image} 1600w`
+  : undefined;
 ---
 <header class="relative min-h-[62svh] flex items-end text-white overflow-hidden">
   <div class="absolute inset-0 -z-10">
-    <img src={image} alt={imageAlt} class="w-full h-full object-cover" fetchpriority="high" />
+    <img src={image} srcset={srcset} sizes={srcset && '100vw'} alt={imageAlt} class="w-full h-full object-cover" fetchpriority="high" />
     <div class="absolute inset-0 bg-gradient-to-b from-pine-deep/55 via-pine-deep/20 to-pine-deep/85"></div>
   </div>
   <div class="wrap w-full pb-14 sm:pb-20 pt-32">

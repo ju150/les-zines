@@ -38,19 +38,34 @@ en CSV, on colle l'URL dans `src/data/site.ts` (`ratesSheetCsv`). Sans URL, le s
 ## Réservation (e-mail + SMS)
 
 Le formulaire poste sur `/api/reservation`. Configurer les clés dans un fichier `.env`
-(voir `.env.example`) : **Resend** pour l'e-mail, **Twilio** pour le SMS (optionnel).
-Sans clés, le formulaire ouvre automatiquement un e-mail pré-rempli — jamais de panne.
+(voir `.env.example`) : **Brevo** (prioritaire) ou **Resend** pour l'e-mail, **Twilio** pour
+le SMS (optionnel). Sans clés, le formulaire ouvre automatiquement un e-mail pré-rempli —
+jamais de panne. Le champ caché `website` est un honeypot anti-spam : s'il est rempli, la
+demande est silencieusement ignorée.
 
 ## Déploiement
 
-Actuellement adaptateur **Node** (`@astrojs/node`, mode standalone) pour faire tourner l'endpoint.
-Pour Netlify ou Vercel, remplacer l'adaptateur dans `astro.config.mjs` par `@astrojs/netlify`
-ou `@astrojs/vercel`, puis renseigner les variables d'environnement (Resend/Twilio) dans le tableau
-de bord de l'hébergeur. Pointer le domaine **leszines.fr** vers l'hébergeur (sortie de Wix).
+Adaptateur **Netlify** (`@astrojs/netlify`, mode hybrid) : pages statiques + fonctions pour
+`/api/rates` et `/api/reservation`. Renseigner les variables d'environnement (Brevo/Resend/
+Twilio) dans le tableau de bord Netlify. Dans Netlify → Domain management, définir
+**www.leszines.fr** comme domaine principal (redirection 301 automatique depuis l'apex).
+Les en-têtes de sécurité sont dans `netlify.toml` (la CSP est en Report-Only : à passer en
+`Content-Security-Policy` après vérification console sur le site déployé).
+
+## SEO
+
+- `Base.astro` génère canonical, hreflang fr/en/x-default, Open Graph (image `public/photos/og.jpg`)
+  et Twitter Cards ; JSON-LD (VacationRental, RealEstateListing, BreadcrumbList) via `src/data/schema.ts`.
+- Sitemap : `@astrojs/sitemap` (`/sitemap-index.xml`), déclaré dans `public/robots.txt`.
+- Crawlers IA : autorisés dans `robots.txt` + fiche d'infos `public/llms.txt`.
+- Après un changement de tarifs dans la Google Sheet, penser à resynchroniser
+  `src/data/rates.json` (fallback affiché en SSR) et à redéployer.
+
+## Outils
+
+- `node scripts-tools/optimize-images.mjs` : OG card, apple-touch-icon, conversion WebP des photos.
+- `node scripts-tools/selfhost-fonts.mjs` : re-télécharge les polices auto-hébergées (public/fonts/).
 
 ## À compléter
 
-- Photos d'intérieur (chambres, cuisine, salles d'eau) — à déposer dans `public/photos/`.
-- URL de la Google Sheet publiée (oncle).
-- Clés Resend / Twilio pour l'envoi réel.
-- Épingle Google Maps exacte de la villa (dans `site.ts`, `mapsEmbed`).
+- Clés Brevo / Twilio pour l'envoi réel (variables d'environnement Netlify).

@@ -1,14 +1,14 @@
-Mois,Semaine,Du,Au,Prix,Disponibilité
-Juillet,S27,27 juin,4 juil.,5000,loué
-Juillet,S28,4 juil.,11 juil.,7000,loué
-Juillet,S29,11 juil.,18 juil.,6900,disponible
-Juillet,S30,18 juil.,25 juil.,7900,disponible
-Juillet,S31,25 juil.,1 août,7900,disponible
-Août,S32,1 août,8 août,9500,loué
-Août,S33,8 août,15 août,9500,loué
-Août,S34,15 août,22 août,9500,loué
-Août,S35,22 août,29 août,6900,loué
-Septembre,S36,29 août,5 sept.,5000,disponible
-Septembre,S37,5 sept.,12 sept.,5000,disponible
-Septembre,S38,12 sept.,19 sept.,5000,disponible
-Septembre,S39,19 sept.,26 sept.,5000,disponible
+Mois,Semaine,Dates,Prix,Disponibilité,Zone 1,Zone 2,Zone 3
+MOIS JUILLET 2026,S 27,du samedi 27 au samedi 4,5 000 €,déjà loué !,A,B,C
+,S 28,du samedi 4 au samedi 11,7 000 €,déjà loué !,A,B,C
+,S 29,du samedi 11 au samedi 18,7 900 €,déjà loué !,A,B,C
+,S 30,du samedi 18 au samedi 25,7 900 €,déjà loué !,A,B,C
+,S 31,du samedi 25 au samedi 1,9 500 €,déjà loué !,A,B,C
+AOÛT 2026,S 32,du samedi 1 au samedi 8,9 500 €,déjà loué !,A,B,C
+,S 33,du samedi 8 au samedi 15,9 500 €,déjà loué !,A,B,C
+,S 34,du samedi 15 au samedi 22,9 500 €,déjà loué !,A,B,C
+,S 35,du samedi 22 au samedi 29,6 900 €,déjà loué !,A,B,C
+SEPTEMBRE 2026,S 36,du samedi 29 au samedi 5,5 000 €,disponible,,,
+,S 37,du samedi 5 au samedi 12,5 000 €,disponible,,,
+,S 38,du samedi 12 au samedi 19,5 000 €,disponible,,,
+,S 39,du samedi 19 au samedi 26,5 000 €,disponible,,,

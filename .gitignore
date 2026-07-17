@@ -12,3 +12,5 @@ npm-debug.log*
 # macOS / editor
 .DS_Store
 *.local
+# photos sources (non utilisées par le build — servies depuis public/photos)
+assets/
