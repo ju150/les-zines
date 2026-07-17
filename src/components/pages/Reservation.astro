@@ -177,12 +177,21 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
       return;
     }
     data.week = weeks.join(' + ');
+    data.form = 'reservation';
+    data.lang = lang;
     submitBtn.disabled = true;
     status.textContent = fr ? 'Envoi en cours…' : 'Sending…';
     try {
       const res = await fetch('/api/reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       if (!res.ok) throw new Error('no endpoint');
-      status.textContent = fr ? 'Merci, votre demande a bien été envoyée. Nous revenons vers vous très vite.' : 'Thank you, your request has been sent. We’ll get back to you very soon.';
+      const out = await res.json().catch(() => ({}));
+      status.textContent = out.confirmation
+        ? (fr
+            ? 'Merci, votre demande a bien été envoyée. Un e-mail de confirmation vient de vous être adressé (pensez à vérifier vos indésirables).'
+            : 'Thank you, your request has been sent. A confirmation email is on its way (check your spam folder just in case).')
+        : (fr
+            ? 'Merci, votre demande a bien été envoyée. Nous revenons vers vous très vite.'
+            : 'Thank you, your request has been sent. We’ll get back to you very soon.');
       form.reset(); offBox.classList.add('hidden');
     } catch {
       const to = form.dataset.email;

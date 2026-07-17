@@ -74,6 +74,9 @@
   .av-pick:hover { @apply bg-[rgba(46,107,79,0.1)]; }
   /* Visible keyboard focus on the sr-only week radios */
   .av-pick:has(input:focus-visible) { @apply ring-2 ring-inset ring-terra; }
+  /* Dernière ligne du tableau : mêmes coins arrondis que la carte, sinon le ring
+     inset de la sélection est rogné par l'overflow-hidden (cf. .off-card). */
+  .av-table .av-row:last-child { @apply rounded-b-2xl; }
   .av-radio { @apply inline-block w-5 h-5 rounded-full border-2 border-line-strong transition-all; }
   .av-pick:has(input:checked) { @apply bg-[rgba(191,88,54,0.08)] ring-1 ring-inset ring-terra; }
   .av-pick:has(input:checked) .av-radio { @apply border-terra bg-terra; box-shadow: inset 0 0 0 3px #fff; }

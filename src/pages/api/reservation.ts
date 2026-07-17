@@ -15,7 +15,21 @@ const clean = (v: unknown, max: number): string =>
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-function sanitizeFields(raw: Record<string, unknown>): Record<string, string> {
+const escHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+
+type Fields = {
+  name: string;
+  email: string;
+  phone: string;
+  guests: string;
+  week: string;
+  message: string;
+  lang: 'fr' | 'en';
+  form: 'reservation' | 'contact';
+};
+
+function sanitizeFields(raw: Record<string, unknown>): Fields {
   return {
     name: clean(raw.name, 100),
     email: clean(raw.email, 200),
@@ -25,77 +39,201 @@ function sanitizeFields(raw: Record<string, unknown>): Record<string, string> {
     week: clean(raw.week, 500),
     // The message is the only field allowed to keep its newlines (email body only).
     message: typeof raw.message === 'string' ? raw.message.slice(0, 4000).trim() : '',
+    lang: raw.lang === 'en' ? 'en' : 'fr',
+    form: raw.form === 'contact' ? 'contact' : 'reservation',
   };
 }
 
-function buildEmail(fields: Record<string, string>) {
-  const subject = `Demande de réservation, ${fields.week || 'sans semaine'}, ${fields.name || ''}`.trim();
+// ——— Adresses ———
+// Expéditeur : reservation@leszines.fr une fois le domaine vérifié chez le fournisseur
+// (variable RESERVATION_FROM) ; les réponses des clients partent vers contact@.
+const ownerTo = () => env('RESERVATION_TO') || 'contact@leszines.fr';
+const contactEmail = () => env('CONTACT_EMAIL') || 'contact@leszines.fr';
+const fromName = () => env('BREVO_FROM_NAME') || 'Villa Les Zines';
+
+type Mail = { to: string; replyTo?: string; replyToName?: string; subject: string; text: string; html?: string };
+
+// ——— E-mail au propriétaire ———
+function buildOwnerEmail(f: Fields): Mail {
+  const kind = f.form === 'contact' ? 'Message via leszines.fr' : 'Demande de réservation';
+  const subject = `${kind}, ${f.week || 'sans objet'}, ${f.name}`.trim();
   const text = [
-    `Nom : ${fields.name || ''}`,
-    `Email : ${fields.email || ''}`,
-    `Téléphone : ${fields.phone || ''}`,
-    `Personnes : ${fields.guests || ''}`,
-    `Semaine / objet : ${fields.week || ''}`,
+    `Nom : ${f.name}`,
+    `Email : ${f.email}`,
+    `Téléphone : ${f.phone || ''}`,
+    `Personnes : ${f.guests || ''}`,
+    `Semaine / objet : ${f.week || ''}`,
+    `Langue du visiteur : ${f.lang.toUpperCase()}`,
     '',
-    fields.message || '',
+    f.message || '',
   ].join('\n');
-  return { subject, text };
+  return { to: ownerTo(), replyTo: f.email, replyToName: f.name || undefined, subject, text };
 }
 
-// Brevo (ex-Sendinblue) transactional email — used if BREVO_API_KEY is set.
-async function sendEmailBrevo(fields: Record<string, string>): Promise<boolean> {
+// ——— Confirmation au client (signée Jean-Louis et Jean-Christophe Bernard) ———
+function buildConfirmation(f: Fields): Mail {
+  const fr = f.lang === 'fr';
+  const resa = f.form === 'reservation';
+  const subject = fr
+    ? resa
+      ? 'Votre demande de réservation est bien reçue — Villa Les Zines'
+      : 'Votre message est bien reçu — Villa Les Zines'
+    : resa
+      ? 'Your booking request has been received — Villa Les Zines'
+      : 'Your message has been received — Villa Les Zines';
+
+  const recap = resa && f.week ? (fr ? `Votre demande : ${f.week}` : `Your request: ${f.week}`) : '';
+  const guests = resa && f.guests ? (fr ? `Nombre de personnes : ${f.guests}` : `Guests: ${f.guests}`) : '';
+
+  const text = fr
+    ? [
+        `Bonjour ${f.name},`,
+        '',
+        resa
+          ? 'Merci pour votre demande de réservation à la Villa Les Zines : elle nous est bien parvenue.'
+          : 'Merci pour votre message : il nous est bien parvenu.',
+        recap, guests,
+        '',
+        'Nous vous répondons personnellement très vite, en général sous 24 heures' +
+          (resa ? ', pour confirmer la disponibilité et organiser la suite.' : '.'),
+        '',
+        'D’ici là, si vous souhaitez ajouter une précision, répondez simplement à ce message ou appelez-nous au 07 66 42 33 32.',
+        '',
+        'Au plaisir de vous accueillir au Cap Ferret,',
+        '',
+        'Jean-Louis et Jean-Christophe Bernard',
+        'Villa Les Zines · Cap Ferret',
+        'www.leszines.fr · contact@leszines.fr · 07 66 42 33 32',
+      ].filter((l) => l !== null).join('\n').replace(/\n{3,}/g, '\n\n')
+    : [
+        `Hello ${f.name},`,
+        '',
+        resa
+          ? 'Thank you for your booking request at Villa Les Zines: it has reached us safely.'
+          : 'Thank you for your message: it has reached us safely.',
+        recap, guests,
+        '',
+        'We reply personally and quickly, usually within 24 hours' +
+          (resa ? ', to confirm availability and arrange the next steps.' : '.'),
+        '',
+        'In the meantime, if you would like to add anything, simply reply to this email or call us on +33 7 66 42 33 32.',
+        '',
+        'Looking forward to welcoming you in Cap Ferret,',
+        '',
+        'Jean-Louis and Jean-Christophe Bernard',
+        'Villa Les Zines · Cap Ferret',
+        'www.leszines.fr · contact@leszines.fr · +33 7 66 42 33 32',
+      ].join('\n').replace(/\n{3,}/g, '\n\n');
+
+  const p = (s: string) => `<p style="margin:0 0 16px;">${s}</p>`;
+  const html = `
+<div style="background:#F5F0E6;padding:32px 16px;font-family:Georgia,'Times New Roman',serif;color:#20302C;">
+  <div style="max-width:560px;margin:0 auto;background:#FBF8F2;border:1px solid #E4DBCB;border-radius:16px;overflow:hidden;">
+    <div style="background:#123F39;padding:20px 28px;">
+      <span style="font-style:italic;font-weight:600;font-size:24px;color:#FBF8F2;">Villa Les Zines</span>
+    </div>
+    <div style="padding:28px;line-height:1.65;font-size:16px;">
+      ${p(fr ? `Bonjour ${escHtml(f.name)},` : `Hello ${escHtml(f.name)},`)}
+      ${p(
+        fr
+          ? resa
+            ? 'Merci pour votre demande de réservation à la Villa Les Zines&nbsp;: elle nous est bien parvenue.'
+            : 'Merci pour votre message&nbsp;: il nous est bien parvenu.'
+          : resa
+            ? 'Thank you for your booking request at Villa Les Zines: it has reached us safely.'
+            : 'Thank you for your message: it has reached us safely.',
+      )}
+      ${
+        recap
+          ? `<p style="margin:0 0 16px;background:#F5F0E6;border-radius:10px;padding:14px 18px;">
+               <strong>${fr ? 'Votre demande' : 'Your request'}&nbsp;:</strong> ${escHtml(f.week)}${
+                 guests ? `<br>${fr ? 'Nombre de personnes' : 'Guests'}&nbsp;: ${escHtml(f.guests)}` : ''
+               }</p>`
+          : ''
+      }
+      ${p(
+        fr
+          ? 'Nous vous répondons personnellement très vite, en général <strong>sous 24&nbsp;heures</strong>' +
+              (resa ? ', pour confirmer la disponibilité et organiser la suite.' : '.')
+          : 'We reply personally and quickly, usually <strong>within 24 hours</strong>' +
+              (resa ? ', to confirm availability and arrange the next steps.' : '.'),
+      )}
+      ${p(
+        fr
+          ? 'D’ici là, si vous souhaitez ajouter une précision, répondez simplement à ce message ou appelez-nous au <a href="tel:+33766423332" style="color:#A5482B;text-decoration:none;font-weight:bold;">07&nbsp;66&nbsp;42&nbsp;33&nbsp;32</a>.'
+          : 'In the meantime, if you would like to add anything, simply reply to this email or call us on <a href="tel:+33766423332" style="color:#A5482B;text-decoration:none;font-weight:bold;">+33&nbsp;7&nbsp;66&nbsp;42&nbsp;33&nbsp;32</a>.',
+      )}
+      <p style="margin:26px 0 0;">${fr ? 'Au plaisir de vous accueillir au Cap Ferret,' : 'Looking forward to welcoming you in Cap Ferret,'}<br>
+      <strong>Jean-Louis et Jean-Christophe Bernard</strong></p>
+    </div>
+    <div style="padding:16px 28px;border-top:1px solid #E4DBCB;font-size:13px;color:#5F6D68;line-height:1.6;">
+      Villa Les Zines · 10 rue des Arbousiers, 33950 Lège-Cap-Ferret<br>
+      <a href="https://www.leszines.fr" style="color:#5F6D68;">www.leszines.fr</a> · contact@leszines.fr · 07 66 42 33 32
+    </div>
+  </div>
+</div>`;
+
+  // Les réponses du client arrivent sur contact@ (reservation@ n'est qu'un expéditeur).
+  return { to: f.email, replyTo: contactEmail(), replyToName: fromName(), subject, text, html };
+}
+
+// ——— Fournisseurs ———
+async function sendBrevo(mail: Mail): Promise<boolean> {
   const key = env('BREVO_API_KEY');
   if (!key) return false;
-  const toEmail = env('RESERVATION_TO') || 'contact@leszines.fr';
   const fromEmail = env('BREVO_FROM') || env('RESERVATION_FROM') || 'contact@leszines.fr';
-  const fromName = env('BREVO_FROM_NAME') || 'Villa Les Zines';
-  const { subject, text } = buildEmail(fields);
-
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'api-key': key, 'Content-Type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
-      sender: { name: fromName, email: fromEmail },
-      to: [{ email: toEmail }],
-      replyTo: fields.email ? { email: fields.email, name: fields.name || undefined } : undefined,
-      subject,
-      textContent: text,
+      sender: { name: fromName(), email: fromEmail.replace(/^.*<|>$/g, '') },
+      to: [{ email: mail.to }],
+      replyTo: mail.replyTo ? { email: mail.replyTo, name: mail.replyToName } : undefined,
+      subject: mail.subject,
+      textContent: mail.text,
+      htmlContent: mail.html,
     }),
   });
   return res.ok;
 }
 
-// Resend — used if RESEND_API_KEY is set (and Brevo is not).
-async function sendEmailResend(fields: Record<string, string>): Promise<boolean> {
+async function sendResend(mail: Mail): Promise<boolean> {
   const key = env('RESEND_API_KEY');
   if (!key) return false;
-  const to = env('RESERVATION_TO') || 'contact@leszines.fr';
+  // Avant vérification du domaine leszines.fr chez Resend, seul onboarding@resend.dev
+  // peut envoyer (et uniquement vers l'adresse du compte). Une fois vérifié :
+  // RESERVATION_FROM = "Villa Les Zines <reservation@leszines.fr>".
   const from = env('RESERVATION_FROM') || 'Villa Les Zines <onboarding@resend.dev>';
-  const { subject, text } = buildEmail(fields);
-
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: [to], reply_to: fields.email, subject, text }),
+    body: JSON.stringify({
+      from,
+      to: [mail.to],
+      reply_to: mail.replyTo,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+    }),
   });
   return res.ok;
 }
 
 // Prefer Brevo (the account the owner already uses); fall back to Resend.
-async function sendEmail(fields: Record<string, string>): Promise<boolean> {
-  if (env('BREVO_API_KEY')) return sendEmailBrevo(fields);
-  if (env('RESEND_API_KEY')) return sendEmailResend(fields);
+async function send(mail: Mail): Promise<boolean> {
+  if (env('BREVO_API_KEY')) return sendBrevo(mail);
+  if (env('RESEND_API_KEY')) return sendResend(mail);
   return false;
 }
 
-async function sendSms(fields: Record<string, string>): Promise<boolean> {
+async function sendSms(f: Fields): Promise<boolean> {
   const sid = env('TWILIO_ACCOUNT_SID');
   const token = env('TWILIO_AUTH_TOKEN');
   const from = env('TWILIO_FROM');
   const to = env('TWILIO_TO');
   if (!sid || !token || !from || !to) return false;
 
-  const body = `Villa Les Zines, nouvelle demande : ${fields.name || '?'} pour ${fields.week || '?'}. Tel: ${fields.phone || ', '} / ${fields.email || ', '}`;
+  const body = `Villa Les Zines, nouvelle demande : ${f.name || '?'} pour ${f.week || '?'}. Tel: ${f.phone || ', '} / ${f.email || ', '}`;
   const params = new URLSearchParams({ To: to, From: from, Body: body.slice(0, 320) });
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
     method: 'POST',
@@ -140,12 +278,17 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const [emailOk, smsOk] = await Promise.all([
-    sendEmail(fields).catch(() => false),
+    send(buildOwnerEmail(fields)).catch(() => false),
     sendSms(fields).catch(() => false),
   ]);
 
   if (!emailOk && !smsOk) {
     return json({ ok: false, error: 'send_failed' }, 502);
   }
-  return json({ ok: true, email: emailOk, sms: smsOk });
+
+  // Accusé de réception au client — best effort : son échec (domaine non vérifié,
+  // quota…) ne doit jamais faire échouer la demande elle-même.
+  const confirmationOk = emailOk ? await send(buildConfirmation(fields)).catch(() => false) : false;
+
+  return json({ ok: true, email: emailOk, sms: smsOk, confirmation: confirmationOk });
 };
