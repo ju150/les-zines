@@ -12,10 +12,10 @@ export type Week = {
   end: string;
   price: number;
   status: string; // 'available' | 'booked'
-  /** Zones scolaires (A/B/C). Absent → déduites automatiquement (été = toutes zones). */
+  /** Zones scolaires (A/B/C). Absent → déduites automatiquement des vacances françaises. */
   zones?: string[];
-  /** Identifiant d'affichage optionnel (ex. « S30 »). Non requis. */
-  id?: string;
+  /** false = masquée manuellement (case « afficher » décochée dans la feuille). */
+  show?: boolean;
 };
 
 export interface AvailabilityOpts {
@@ -50,13 +50,33 @@ function weekDates(w: Week): { start: Date; end: Date } | null {
 const ddmmyyyy = (d: Date) =>
   `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
-// Zones scolaires déduites : les grandes vacances (juillet-août) concernent toutes les
-// zones (A, B et C). Une semaine qui les chevauche affiche donc A/B/C ; hors été, aucune.
+// Numéro de semaine ISO (norme française), calculé sur la date de DÉPART pour coller à la
+// numérotation habituelle de la villa (semaine du 18/07 → départ 25/07 → S30).
+function isoWeek(d: Date): number {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = (t.getUTCDay() + 6) % 7; // lundi = 0
+  t.setUTCDate(t.getUTCDate() - day + 3); // jeudi de la semaine
+  const firstThu = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  const fDay = (firstThu.getUTCDay() + 6) % 7;
+  firstThu.setUTCDate(firstThu.getUTCDate() - fDay + 3);
+  return 1 + Math.round((t.getTime() - firstThu.getTime()) / (7 * 86400000));
+}
+
+// Zones scolaires déduites des vacances françaises « toutes zones » (été, Toussaint, Noël)
+// — les seules stables d'une année sur l'autre. Une semaine qui les chevauche affiche A/B/C.
+// (Les vacances d'hiver/printemps, propres à chaque zone, peuvent être forcées via w.zones.)
 function autoZones(start: Date, end: Date): string[] {
-  const y = start.getFullYear();
-  const summerStart = new Date(y, 6, 1); // 1er juillet
-  const summerEnd = new Date(y, 8, 1); // 1er septembre
-  return start < summerEnd && end > summerStart ? ['A', 'B', 'C'] : [];
+  const overlaps = (ws: Date, we: Date) => start < we && end > ws;
+  // On regarde l'année de début, l'année de fin et l'année précédente (Noël déborde sur janvier).
+  for (const y of new Set([start.getFullYear() - 1, start.getFullYear(), end.getFullYear()])) {
+    if (
+      overlaps(new Date(y, 6, 1), new Date(y, 8, 1)) || // été (juillet-août)
+      overlaps(new Date(y, 9, 15), new Date(y, 10, 5)) || // Toussaint
+      overlaps(new Date(y, 11, 18), new Date(y + 1, 0, 6)) // Noël (→ début janvier)
+    )
+      return ['A', 'B', 'C'];
+  }
+  return [];
 }
 
 // Une semaine est « passée » dès que sa date de départ est atteinte : elle ne peut plus
@@ -109,10 +129,10 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const head =
     `<div class="av-head"><div>${t.h_week}</div><div>${t.h_zone}</div><div class="av-head-price">${t.h_price}</div><div>${t.h_status}</div><div></div></div>`;
 
-  // Filtre les semaines passées (départ atteint), à la date du visiteur.
+  // Filtre : masquées manuellement (show=false) OU passées (départ atteint, date du visiteur).
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const current = weeks.filter((w) => weekDates(w) && !isPastWeek(w, today));
+  const current = weeks.filter((w) => w.show !== false && weekDates(w) && !isPastWeek(w, today));
   const list = opts.onlyAvailable ? current.filter((w) => w.status === 'available') : current;
 
   // Regroupement par mois d'arrivée (dans l'ordre chronologique des semaines).
@@ -140,7 +160,8 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const inner = (w: Week) => {
     const d = weekDates(w)!;
     const nights = Math.round((d.end.getTime() - d.start.getTime()) / 86400000);
-    const sub = `${weekday(d.start)} → ${weekday(d.end)} · ${nights} ${fr ? (nights > 1 ? 'nuits' : 'nuit') : nights > 1 ? 'nights' : 'night'}`;
+    const wk = `${fr ? 'S' : 'W'}${isoWeek(d.end)}`;
+    const sub = `${wk} · ${weekday(d.start)} → ${weekday(d.end)} · ${nights} ${fr ? (nights > 1 ? 'nuits' : 'nuit') : nights > 1 ? 'nights' : 'night'}`;
     return `
     <div class="av-c av-dates"><span class="av-label">${esc(humanRange(d.start, d.end))}</span><span class="av-sub">${esc(sub)}</span></div>
     <div class="av-c av-zones" title="${fr ? 'Zones scolaires' : 'French school holiday areas'}">${zonesCell(w)}</div>

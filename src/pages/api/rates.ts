@@ -50,11 +50,13 @@ function parseCellDate(raw: string): string | null {
 const iso = (y: number, m0: number, d: number) =>
   `${y}-${String(m0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-type ParsedWeek = { start: string; end: string; price: number; status: string };
+type ParsedWeek = { start: string; end: string; price: number; status: string; show: boolean };
 
 // Format attendu de la feuille (une ligne par semaine, en-tête libre ignoré) :
-//   Arrivée | Départ | Prix | Disponibilité      (+ colonnes libres ignorées)
+//   Arrivée | Départ | Prix | Disponibilité | [Afficher ?]      (+ colonnes libres ignorées)
 // Une ligne est retenue dès que ses deux premières cellules sont des dates lisibles.
+// La colonne « Afficher » (case à cocher) est optionnelle : une case décochée (FALSE)
+// masque la semaine du site même si sa date n'est pas passée.
 function parseSheet(text: string): ParsedWeek[] {
   const rows = parseCsv(text);
   const weeks: ParsedWeek[] = [];
@@ -67,7 +69,9 @@ function parseSheet(text: string): ParsedWeek[] {
     // « loué / réservé / complet » → booked ; sinon disponible (une ligne listée est
     // une semaine proposée, sauf mention contraire).
     const status = /lou|réserv|reserv|complet|indispo|booked|taken/.test(disp) ? 'booked' : 'available';
-    weeks.push({ start, end, price, status });
+    // Case « afficher » décochée (FALSE / non / masqué) dans une colonne au-delà de la dispo.
+    const show = !r.slice(4).some((c) => /^\s*(false|faux|non|off|décoch|decoch|masqu|cach|hidden)/i.test(c || ''));
+    weeks.push({ start, end, price, status, show });
   }
   return weeks;
 }
@@ -86,8 +90,11 @@ export const GET: APIRoute = async () => {
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) throw new Error('fetch failed');
-    const weeks = parseSheet(await res.text());
-    if (weeks.length < 1) throw new Error('parse empty');
+    // On retient toutes les lignes valides pour la garde « feuille vide », mais on
+    // n'expose pas les semaines masquées manuellement (case décochée).
+    const parsed = parseSheet(await res.text());
+    if (parsed.length < 1) throw new Error('parse empty');
+    const weeks = parsed.filter((w) => w.show);
     // Si une cellule Prix est vide, on récupère le prix connu de rates.json pour la même
     // date d'arrivée (par sécurité).
     const byStart = new Map(fallback.weeks.map((f) => [f.start, f.price]));
