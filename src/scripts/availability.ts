@@ -54,6 +54,15 @@ function weekDates(w: Week): { start: Date; end: Date } | null {
 const ddmmyyyy = (d: Date) =>
   `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
+// Une semaine est « passée » dès que son samedi de départ est atteint : elle ne peut
+// plus être louée, donc on ne l'affiche plus. Rendu côté client à chaque chargement →
+// le filtrage suit la vraie date du visiteur (le SSR, figé au build, est corrigé par le
+// fetch de /api/rates). Sans date calculable → jamais masquée (prudence).
+function isPastWeek(w: Week, today: Date): boolean {
+  const d = weekDates(w);
+  return d ? d.end.getTime() <= today.getTime() : false;
+}
+
 export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): string {
   const fr = (opts.lang ?? 'fr') === 'fr';
   const euro = (n: number) => Number(n).toLocaleString(fr ? 'fr-FR' : 'en-GB');
@@ -86,7 +95,11 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   // Column header row (desktop only; mobile uses the card layout + the legend below the table).
   const head =
     `<div class="av-head"><div>${t.h_week}</div><div>${t.h_zone}</div><div class="av-head-price">${t.h_price}</div><div>${t.h_status}</div><div></div></div>`;
-  const list = opts.onlyAvailable ? weeks.filter((w) => w.status === 'available') : weeks;
+  // Masque les semaines dont le départ est atteint (minuit, date du visiteur).
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const current = weeks.filter((w) => !isPastWeek(w, today));
+  const list = opts.onlyAvailable ? current.filter((w) => w.status === 'available') : current;
   const months = [...new Set(list.map((w) => w.month))];
 
   const priceCell = (w: Week) =>
