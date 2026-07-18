@@ -53,21 +53,91 @@ const fromName = () => 'Villa Les Zines';
 
 type Mail = { to: string; replyTo?: string; replyToName?: string; subject: string; text: string; html?: string };
 
-// ——— E-mail au propriétaire ———
+// ——— E-mail au propriétaire (mise en page soignée, aux couleurs du site) ———
 function buildOwnerEmail(f: Fields): Mail {
-  const kind = f.form === 'contact' ? 'Message via leszines.fr' : 'Demande de réservation';
+  const resa = f.form !== 'contact';
+  const kind = resa ? 'Demande de réservation' : 'Message via le site';
   const subject = `${kind}, ${f.week || 'sans objet'}, ${f.name}`.trim();
+
   const text = [
+    `${kind} — www.leszines.fr`,
+    '',
     `Nom : ${f.name}`,
     `Email : ${f.email}`,
-    `Téléphone : ${f.phone || ''}`,
-    `Personnes : ${f.guests || ''}`,
-    `Semaine / objet : ${f.week || ''}`,
+    `Téléphone : ${f.phone || '—'}`,
+    resa ? `Personnes : ${f.guests || '—'}` : null,
+    resa ? `Semaine(s) : ${f.week || '—'}` : `Objet : ${f.week || '—'}`,
     `Langue du visiteur : ${f.lang.toUpperCase()}`,
     '',
-    f.message || '',
-  ].join('\n');
-  return { to: ownerTo(), replyTo: f.email, replyToName: f.name || undefined, subject, text };
+    'Message :',
+    f.message || '(aucun)',
+    '',
+    `Répondre : ${f.email}`,
+  ].filter((l) => l !== null).join('\n');
+
+  // Lignes du récapitulatif (label + valeur), échappées.
+  const row = (label: string, value: string, isLink?: 'mail' | 'tel') => {
+    const v = isLink === 'mail'
+      ? `<a href="mailto:${escHtml(value)}" style="color:#A5482B;text-decoration:none;">${escHtml(value)}</a>`
+      : isLink === 'tel'
+        ? `<a href="tel:${escHtml(value.replace(/\s+/g, ''))}" style="color:#A5482B;text-decoration:none;">${escHtml(value)}</a>`
+        : escHtml(value);
+    return `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid #EDE6D8;color:#5F6D68;font-size:13px;vertical-align:top;width:40%;">${label}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #EDE6D8;color:#20302C;font-size:15px;font-weight:600;">${v}</td>
+    </tr>`;
+  };
+
+  const weeksHtml = resa && f.week
+    ? f.week.split(' + ').map((w) => `<div>${escHtml(w)}</div>`).join('')
+    : escHtml(f.week || '—');
+
+  const rows = [
+    row('Nom', f.name),
+    row('Email', f.email, 'mail'),
+    f.phone ? row('Téléphone', f.phone, 'tel') : '',
+    resa && f.guests ? row('Personnes', f.guests) : '',
+    `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid #EDE6D8;color:#5F6D68;font-size:13px;vertical-align:top;">${resa ? 'Semaine(s)' : 'Objet'}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #EDE6D8;color:#123F39;font-size:15px;font-weight:700;">${weeksHtml}</td>
+    </tr>`,
+    row('Langue', f.lang.toUpperCase()),
+  ].join('');
+
+  const messageBlock = f.message
+    ? `<div style="margin:22px 0 4px;color:#5F6D68;font-size:13px;">Message</div>
+       <div style="background:#F5F0E6;border-radius:12px;padding:16px 18px;color:#20302C;font-size:15px;line-height:1.6;white-space:pre-wrap;">${escHtml(f.message)}</div>`
+    : '';
+
+  const html = `
+<div style="background:#F5F0E6;padding:32px 16px;font-family:Georgia,'Times New Roman',serif;color:#20302C;">
+  <div style="max-width:580px;margin:0 auto;background:#FBF8F2;border:1px solid #E4DBCB;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(14,50,45,.08);">
+    <div style="background:#123F39;padding:24px 30px;">
+      <div style="font-style:italic;font-weight:600;font-size:22px;color:#FBF8F2;letter-spacing:.3px;">Villa Les Zines</div>
+      <div style="color:#C9A24B;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:6px;">${resa ? 'Nouvelle demande de réservation' : 'Nouveau message'}</div>
+    </div>
+    <div style="padding:30px;">
+      <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#465651;">
+        ${resa
+          ? 'Une nouvelle demande de réservation vient d’arriver via le site.'
+          : 'Un nouveau message vient d’arriver via le site.'}
+      </p>
+      <table style="width:100%;border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;">${rows}</table>
+      ${messageBlock}
+      <div style="margin-top:28px;text-align:center;">
+        <a href="mailto:${escHtml(f.email)}?subject=${encodeURIComponent('Votre demande — Villa Les Zines')}"
+           style="display:inline-block;background:#BF5836;color:#fff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;padding:13px 28px;border-radius:999px;">
+          Répondre à ${escHtml(f.name)}
+        </a>
+      </div>
+    </div>
+    <div style="padding:16px 30px;border-top:1px solid #E4DBCB;font-size:12px;color:#5F6D68;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">
+      Reçu via <a href="https://www.leszines.fr" style="color:#5F6D68;">www.leszines.fr</a> — répondez directement à cet e-mail pour joindre ${escHtml(f.name)}.
+    </div>
+  </div>
+</div>`;
+
+  return { to: ownerTo(), replyTo: f.email, replyToName: f.name || undefined, subject, text, html };
 }
 
 // ——— Confirmation au client (signée Jean-Louis et Jean-Christophe Bernard) ———
