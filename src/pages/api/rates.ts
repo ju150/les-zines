@@ -23,51 +23,52 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
-const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const MONTHS_FR: Record<string, number> = {
+  janvier: 0, janv: 0, février: 1, fevrier: 1, févr: 1, fevr: 1, mars: 2, avril: 3, avr: 3,
+  mai: 4, juin: 5, juillet: 6, juil: 6, août: 7, aout: 7, septembre: 8, sept: 8,
+  octobre: 9, oct: 9, novembre: 10, nov: 10, décembre: 11, decembre: 11, déc: 11, dec: 11,
+};
 
-function detectMonth(s: string): string | null {
-  const u = (s || '').toLowerCase();
-  if (/juillet/.test(u)) return 'juillet';
-  if (/ao[uû]t/.test(u)) return 'août';
-  if (/septembre/.test(u)) return 'septembre';
-  if (/octobre/.test(u)) return 'octobre';
-  if (/juin/.test(u)) return 'juin';
-  for (const m of MONTHS) if (u.includes(m)) return m;
+// Lit une date de cellule, quel que soit le format renvoyé par Google Sheets :
+//   - « Date(2026,6,4) »  (cellule typée date via gviz ; mois indexé à 0)
+//   - « 2026-07-04 » / « 04/07/2026 » / « 4-7-26 »
+//   - « 4 juillet 2026 »
+// Renvoie une date ISO 'YYYY-MM-DD' (minuit local) ou null.
+function parseCellDate(raw: string): string | null {
+  const s = (raw || '').trim();
+  if (!s) return null;
+  let m = /Date\((\d+),(\d+),(\d+)\)/.exec(s);
+  if (m) return iso(Number(m[1]), Number(m[2]), Number(m[3]));
+  m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+  if (m) return iso(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  m = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/.exec(s);
+  if (m) { const y = Number(m[3]); return iso(y < 100 ? y + 2000 : y, Number(m[2]) - 1, Number(m[1])); }
+  m = /(\d{1,2})\s+([a-zà-ÿ]+)\.?\s+(\d{4})/i.exec(s);
+  if (m) { const mi = MONTHS_FR[m[2].toLowerCase()]; if (mi !== undefined) return iso(Number(m[3]), mi, Number(m[1])); }
   return null;
 }
+const iso = (y: number, m0: number, d: number) =>
+  `${y}-${String(m0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-function parseSheet(text: string) {
+type ParsedWeek = { start: string; end: string; price: number; status: string };
+
+// Format attendu de la feuille (une ligne par semaine, en-tête libre ignoré) :
+//   Arrivée | Départ | Prix | Disponibilité      (+ colonnes libres ignorées)
+// Une ligne est retenue dès que ses deux premières cellules sont des dates lisibles.
+function parseSheet(text: string): ParsedWeek[] {
   const rows = parseCsv(text);
-  const weeks: { id: string; month: string; label: string; price: number; status: string; zones: string[]; year?: number }[] = [];
-  let month = '';
-  let year: number | undefined;
-  // Guard against a restructured sheet (columns moved): count rows whose price or
-  // availability cell doesn't look right, and give up (→ local fallback) past a threshold.
-  let suspicious = 0;
+  const weeks: ParsedWeek[] = [];
   for (const r of rows) {
-    const detected = detectMonth(r[0] || '');
-    if (detected) month = detected;
-    // Les en-têtes de mois portent l'année de la saison (« MOIS JUILLET   2026 »).
-    const ym = (r[0] || '').match(/\b(20\d{2})\b/);
-    if (ym) year = Number(ym[1]);
-    const idm = (r[1] || '').match(/\bS\s?(\d{1,2})/i);
-    if (!idm) continue;
-    const id = 'S' + idm[1];
-    const dm = (r[2] || '').match(/du samedi\s*(\d{1,2}).*?au samedi\s*(\d{1,2})/i);
-    const label = dm ? `sam. ${dm[1]} → sam. ${dm[2]}` : (r[2] || '').trim();
-    let price = parseInt((r[3] || '').replace(/[^\d]/g, ''), 10) || 0;
-    if (price > 0 && price < 100) { price = 0; suspicious++; } // "18" parsed out of a date ≠ a weekly rate
-    const disp = (r[4] || '').toLowerCase();
-    // Check "loué" first: the header word "disponibilité" contains "dispo" and would false-positive.
-    const known = /lou[eé]/.test(disp) || /disponible/.test(disp);
-    if (!known) suspicious++;
-    const status = /lou[eé]/.test(disp) ? 'booked' : /disponible/.test(disp) ? 'available' : 'booked';
-    const zones = [r[5], r[6], r[7]]
-      .map((z) => (z || '').trim().toUpperCase())
-      .filter((z) => z === 'A' || z === 'B' || z === 'C');
-    weeks.push({ id, month, label, price, status, zones, year });
+    const start = parseCellDate(r[0] || '');
+    const end = parseCellDate(r[1] || '');
+    if (!start || !end) continue; // en-tête, ligne vide ou note → ignorée
+    const price = parseInt((r[2] || '').replace(/[^\d]/g, ''), 10) || 0;
+    const disp = (r[3] || '').toLowerCase();
+    // « loué / réservé / complet » → booked ; sinon disponible (une ligne listée est
+    // une semaine proposée, sauf mention contraire).
+    const status = /lou|réserv|reserv|complet|indispo|booked|taken/.test(disp) ? 'booked' : 'available';
+    weeks.push({ start, end, price, status });
   }
-  if (weeks.length && suspicious > weeks.length / 2) throw new Error('sheet layout changed');
   return weeks;
 }
 
@@ -86,10 +87,11 @@ export const GET: APIRoute = async () => {
     });
     if (!res.ok) throw new Error('fetch failed');
     const weeks = parseSheet(await res.text());
-    if (weeks.length < 3) throw new Error('parse empty');
-    // If the sheet leaves a price cell empty, keep the known price from rates.json for that week.
-    const byId = new Map(fallback.weeks.map((f) => [f.id, f.price]));
-    for (const w of weeks) if (!w.price) { const p = byId.get(w.id); if (p) w.price = p; }
+    if (weeks.length < 1) throw new Error('parse empty');
+    // Si une cellule Prix est vide, on récupère le prix connu de rates.json pour la même
+    // date d'arrivée (par sécurité).
+    const byStart = new Map(fallback.weeks.map((f) => [f.start, f.price]));
+    for (const w of weeks) if (!w.price) { const p = byStart.get(w.start); if (p) w.price = p; }
     return new Response(JSON.stringify({ weeks, source: 'sheet' }), { headers });
   } catch {
     return new Response(JSON.stringify({ weeks: fallback.weeks, source: 'local' }), { headers });
