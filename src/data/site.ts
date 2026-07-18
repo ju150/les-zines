@@ -19,7 +19,9 @@ export const SITE = {
   mapsEmbed:
     'https://www.google.com/maps?q=Villa+Les+Zines%2C+Cap+Ferret&t=k&z=18&output=embed',
   mapsLink: 'https://maps.google.com/?q=Villa+Les+Zines+Cap+Ferret',
-  // Live Google Sheet the uncle edits (read server-side by /api/rates). Empty = local rates.json fallback.
+  // Feuille Google « Tarifs & disponibilités — Villa Les Zines » (format 4 colonnes :
+  // Arrivée, Départ, Prix, Disponibilité), lue côté serveur par /api/rates.
+  // Doit être partagée « Tout le monde avec le lien : Lecteur ». Sinon → repli rates.json.
   ratesSheetCsv:
     'https://docs.google.com/spreadsheets/d/REDACTED_SHEET_ID/gviz/tq?tqx=out:csv',
 } as const;
