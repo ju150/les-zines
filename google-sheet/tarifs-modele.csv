@@ -1,11 +1,7 @@
-Arrivée,Départ,Prix,Disponibilité
-04/07/2026,11/07/2026,7000,loué
-11/07/2026,18/07/2026,7900,loué
-18/07/2026,25/07/2026,7900,disponible
-25/07/2026,01/08/2026,9500,disponible
-01/08/2026,08/08/2026,9500,loué
-08/08/2026,15/08/2026,9500,loué
-15/08/2026,22/08/2026,9500,disponible
-22/08/2026,29/08/2026,6900,disponible
-29/08/2026,05/09/2026,5000,disponible
-05/09/2026,12/09/2026,5000,disponible
+Arrivée,Départ,Prix,Disponibilité,Zones (A/B/C — vide = auto),Afficher
+18/07/2026,25/07/2026,7900,disponible,A B C,TRUE
+25/07/2026,01/08/2026,9500,loué,A B C,TRUE
+17/10/2026,24/10/2026,,disponible,A B C,TRUE
+19/12/2026,26/12/2026,9500,disponible,A B C,TRUE
+13/02/2027,20/02/2027,,disponible,A C,FALSE
+20/02/2027,27/02/2027,,disponible,A B,FALSE

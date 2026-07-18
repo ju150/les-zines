@@ -1,40 +1,41 @@
 # 📊 Gérer les disponibilités & les tarifs — Guide simple
 
 Le site lit votre **feuille Google** et se met à jour tout seul (en ~2 minutes).
-Le format est désormais **le plus simple possible** : **4 colonnes**.
 
-## La feuille : 4 colonnes, une ligne par semaine
+## La feuille : 6 colonnes, une ligne par semaine
 
-| A — Arrivée | B — Départ | C — Prix | D — Disponibilité |
-|-------------|------------|----------|-------------------|
-| 04/07/2026  | 11/07/2026 | 7000     | loué              |
-| 11/07/2026  | 18/07/2026 | 7900     | disponible        |
-| 18/07/2026  | 25/07/2026 | 7900     | disponible        |
+| A — Arrivée | B — Départ | C — Prix | D — Disponibilité | E — Zones | F — Afficher |
+|-------------|------------|----------|-------------------|-----------|--------------|
+| 18/07/2026  | 25/07/2026 | 7900     | disponible        | A B C     | ✅ (TRUE)     |
+| 13/02/2027  | 20/02/2027 |          | disponible        | A C       | ⬜ (FALSE)    |
 
-C'est tout. **Vous ne saisissez que les dates, le prix et la disponibilité.**
 Le site s'occupe du reste automatiquement :
-- il calcule le mois, l'année et le nombre de nuits à partir des dates ;
+- il calcule le **mois, l'année, le nombre de nuits et le numéro de semaine** (S30…) à partir des dates ;
 - il affiche « samedi → samedi » selon les vraies dates ;
-- il ajoute les **zones de vacances scolaires** (A/B/C) tout seul pour les semaines d'été ;
 - une semaine **disparaît automatiquement** du site le jour de son départ (plus besoin de la retirer).
 
 ## Règles (très courtes)
 
-- **Colonnes A et B** : les dates d'arrivée et de départ, au format `JJ/MM/AAAA`
-  (ex. `25/07/2026`). Vous pouvez aussi utiliser le format date de Google Sheets — les deux marchent.
-- **Colonne C — Prix** : juste le nombre (`7900` ou `7 900 €`, peu importe).
-- **Colonne D — Disponibilité** : écrire `disponible` (ou `libre`), ou `loué` (ou `réservé`).
-- La **première ligne** peut rester les titres (Arrivée / Départ / Prix / Disponibilité) : elle est ignorée.
+- **Colonnes A et B** : dates d'arrivée et de départ, format `JJ/MM/AAAA` (ex. `25/07/2026`).
+- **Colonne C — Prix** : juste le nombre (`7900`). Laissée **vide** → le site affiche « Sur demande ».
+- **Colonne D — Disponibilité** : `disponible` (ou `libre`), ou `loué` (ou `réservé`).
+- **Colonne E — Zones** : les zones scolaires concernées (`A`, `B`, `C`, ou plusieurs `A C`).
+  - **Laissez vide pour l'été, la Toussaint et Noël** : le site met « toutes zones » tout seul.
+  - **Remplissez-la pour février et le printemps** (les vacances y sont décalées par zone).
+  - Rappel : le Cap Ferret est en **zone A**.
+- **Colonne F — Afficher** : une **case à cocher** (menu *Insertion → Case à cocher*).
+  - **Cochée** = la semaine s'affiche sur le site. **Décochée** = elle reste cachée (même si sa date n'est pas passée).
+  - Pratique pour **préparer la saison suivante** : saisissez les semaines à l'avance, décochées,
+    puis cochez-les quand vous êtes prêt à les ouvrir à la location.
 
 ## Au quotidien
 
 - **Une semaine est louée ?** Colonne D → `loué`. **C'est tout.**
 - **Une semaine se libère ?** Colonne D → `disponible`.
-- **Changer un prix ?** Modifiez la colonne C.
-- **Ajouter une semaine (ou préparer l'année suivante) ?** Ajoutez une ligne avec les
-  deux dates, le prix et `disponible`. Rien d'autre à faire — même pour une **nouvelle année**,
-  il suffit de mettre les dates de 2027, 2028… le site suit automatiquement.
-- **Retirer une semaine ?** Supprimez sa ligne.
+- **Changer un prix ?** Colonne C.
+- **Ouvrir une semaine préparée à l'avance ?** Cochez sa case en colonne F (et mettez un prix).
+- **Ajouter une semaine ?** Nouvelle ligne : les 2 dates, le prix, `disponible`, les zones si besoin, cochez Afficher.
+- **Retirer une semaine ?** Supprimez sa ligne (ou décochez Afficher).
 
 ## Publier la feuille (une seule fois)
 

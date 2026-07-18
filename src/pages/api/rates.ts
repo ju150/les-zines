@@ -50,13 +50,26 @@ function parseCellDate(raw: string): string | null {
 const iso = (y: number, m0: number, d: number) =>
   `${y}-${String(m0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-type ParsedWeek = { start: string; end: string; price: number; status: string; show: boolean };
+type ParsedWeek = { start: string; end: string; price: number; status: string; zones?: string[]; show: boolean };
+
+// Zones scolaires saisies à la main : lettres A/B/C (ou « toutes »/« all ») dans une
+// colonne au-delà de la disponibilité. Absent → déduites automatiquement côté affichage.
+// Note : le mot « FALSE » de la case Afficher n'est pas confondu (le A n'y est pas isolé).
+function parseZones(cells: string[]): string[] | undefined {
+  for (const c of cells) {
+    const s = (c || '').trim();
+    if (!s) continue;
+    if (/toutes|all/i.test(s)) return ['A', 'B', 'C'];
+    const found = s.toUpperCase().match(/\b[ABC]\b/g);
+    if (found && found.length) return [...new Set(found)];
+  }
+  return undefined;
+}
 
 // Format attendu de la feuille (une ligne par semaine, en-tête libre ignoré) :
-//   Arrivée | Départ | Prix | Disponibilité | [Afficher ?]      (+ colonnes libres ignorées)
+//   Arrivée | Départ | Prix | Disponibilité | Zones | Afficher      (colonnes en trop ignorées)
 // Une ligne est retenue dès que ses deux premières cellules sont des dates lisibles.
-// La colonne « Afficher » (case à cocher) est optionnelle : une case décochée (FALSE)
-// masque la semaine du site même si sa date n'est pas passée.
+// Zones + Afficher sont détectées par leur CONTENU (ordre des colonnes indifférent).
 function parseSheet(text: string): ParsedWeek[] {
   const rows = parseCsv(text);
   const weeks: ParsedWeek[] = [];
@@ -69,9 +82,11 @@ function parseSheet(text: string): ParsedWeek[] {
     // « loué / réservé / complet » → booked ; sinon disponible (une ligne listée est
     // une semaine proposée, sauf mention contraire).
     const status = /lou|réserv|reserv|complet|indispo|booked|taken/.test(disp) ? 'booked' : 'available';
+    const extra = r.slice(4);
+    const zones = parseZones(extra);
     // Case « afficher » décochée (FALSE / non / masqué) dans une colonne au-delà de la dispo.
-    const show = !r.slice(4).some((c) => /^\s*(false|faux|non|off|décoch|decoch|masqu|cach|hidden)/i.test(c || ''));
-    weeks.push({ start, end, price, status, show });
+    const show = !extra.some((c) => /^\s*(false|faux|non|off|décoch|decoch|masqu|cach|hidden)/i.test(c || ''));
+    weeks.push({ start, end, price, status, zones, show });
   }
   return weeks;
 }
