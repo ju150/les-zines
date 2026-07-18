@@ -108,6 +108,9 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 </style>
 
 <script>
+  import flatpickr from 'flatpickr';
+  import { French } from 'flatpickr/dist/l10n/fr.js';
+  import 'flatpickr/dist/flatpickr.min.css';
   import { renderAvailability } from '../../scripts/availability';
   import { showConfirmation } from '../../scripts/confirmPopup';
 
@@ -125,13 +128,9 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
   };
   form.addEventListener('change', syncOffseason);
 
-  // flatpickr est chargé dynamiquement : si son chargement échoue (cache Vite,
-  // réseau…), le calendrier manque mais le FORMULAIRE reste 100 % fonctionnel.
-  Promise.all([
-    import('flatpickr'),
-    import('flatpickr/dist/l10n/fr.js'),
-    import('flatpickr/dist/flatpickr.min.css'),
-  ]).then(([{ default: flatpickr }, { French }]) => {
+  // Calendrier de sélection des dates (comme sur les sites d'agences). Le try/catch
+  // garantit que même si le calendrier échouait, le reste du formulaire reste actif.
+  try {
     flatpickr('#daterange', {
       mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
       altInput: true, altFormat: fr ? 'j F Y' : 'F j, Y',
@@ -146,9 +145,8 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
         }
       },
     });
-  }).catch(() => {
-    // Sans calendrier, l'utilisateur tape ses dates librement et elles sont
-    // reportées sur la valeur envoyée.
+  } catch {
+    // Repli extrême : champ texte libre, dates reportées sur la valeur envoyée.
     const input = document.getElementById('daterange') as HTMLInputElement | null;
     if (input) {
       input.removeAttribute('readonly');
@@ -158,7 +156,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
         if (rad && input.value.trim()) { rad.value = `${fr ? 'Hors saison' : 'Off-season'} : ${input.value.trim()}`; rad.checked = true; }
       });
     }
-  });
+  }
 
   // The page is prerendered: the ?week= preselection must be read in the browser.
   const preselect = (wanted?: string[]) => {
