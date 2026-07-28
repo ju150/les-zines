@@ -28,6 +28,16 @@ export interface AvailabilityOpts {
 const esc = (s: string) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
+/**
+ * Base du lien « Réserver », slash final garanti : « /reservation/?week=… ».
+ * Sans le slash, Netlify 301 vers la forme avec slash — un aller-retour inutile
+ * pour le visiteur et pour Googlebot.
+ */
+const resBase = (opts: AvailabilityOpts) => {
+  const base = opts.reservationBase || '/reservation';
+  return base.endsWith('/') ? base : base + '/';
+};
+
 const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -178,7 +188,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     }
     return `<div class="av-row ${w.status === 'available' ? 'av-free' : 'av-booked'}">${inner(w)}<div class="av-c av-action">${
       w.status === 'available'
-        ? `<a href="${opts.reservationBase || '/reservation'}?week=${encodeURIComponent(weekValue(w))}" class="btn btn-primary av-btn">${t.book}</a>`
+        ? `<a href="${resBase(opts)}?week=${encodeURIComponent(weekValue(w))}" class="btn btn-primary av-btn">${t.book}</a>`
         : ''
     }</div></div>`;
   };

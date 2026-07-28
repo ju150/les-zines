@@ -6,6 +6,33 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# ——— Doublons « /index.html » → URL canonique (dossier avec slash) ———
+# Sans ces règles, https://www.leszines.fr/la-villa/index.html répond 200 : un duplicata
+# exact de /la-villa/ (Search Console : « Autre page avec balise canonique correcte »).
+# `force = true` est indispensable ici : sans lui le fichier réel gagnerait sur la règle.
+# Pas de boucle possible — Netlify sert « / » depuis le fichier, il ne re-demande pas
+# « /index.html ». Ces règles sont placées AVANT celles de l'ex-site Wix (premier match gagne).
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/en/index.html"
+  to = "/en/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/en/:page/index.html"
+  to = "/en/:page/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/:page/index.html"
+  to = "/:page/"
+  status = 301
+  force = true
+
 # ——— Redirections des anciennes URL (ex-site Wix) vers les nouvelles pages ———
 # 301 permanent : préserve le référencement acquis et évite les 404 sur les liens
 # ou favoris pointant vers l'ancien site. `force` n'est pas activé, donc une vraie

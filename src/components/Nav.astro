@@ -9,9 +9,11 @@ const t = useTranslations(lang);
 
 const path = Astro.url.pathname;
 // Strip any existing /en prefix first, so clicking EN twice doesn't produce /en/en/… (404).
-const bare = path.replace(/^\/en(?=\/|$)/, '') || '/';
+// Slash final systématique (cf. localizedPath) : sans lui, Netlify renvoie un 301.
+const stripped = path.replace(/^\/en(?=\/|$)/, '') || '/';
+const bare = stripped.endsWith('/') ? stripped : stripped + '/';
 const toFr = bare;
-const toEn = bare === '/' ? '/en' : '/en' + bare;
+const toEn = '/en' + bare;
 const home = localizedPath(lang);
 const bookHref = localizedPath(lang, 'reservation');
 ---

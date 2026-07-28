@@ -10,7 +10,11 @@ export default defineConfig({
   adapter: netlify(),
   integrations: [
     sitemap({
-      i18n: { defaultLocale: 'fr', locales: { fr: 'fr-FR', en: 'en-GB' } },
+      // hreflang sans région : « fr » (pas « fr-FR ») pour ne pas réserver la page
+      // française à la France, ni l'anglaise au Royaume-Uni. Valeurs identiques à
+      // celles déclarées dans <head> par Base.astro — sitemap et pages doivent
+      // envoyer le même signal à Google.
+      i18n: { defaultLocale: 'fr', locales: { fr: 'fr', en: 'en' } },
       filter: (page) => !page.includes('/404'),
     }),
   ],
