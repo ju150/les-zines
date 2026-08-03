@@ -159,11 +159,17 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
 
   // Semaine louée : le prix reste affiché, barré. Il donne au visiteur une idée du tarif
   // pratiqué sur cette période sans laisser croire que la semaine est encore réservable.
+  //
+  // Le « / sem. » reste volontairement HORS du <s> : il est composé dans une autre police
+  // et deux tailles en dessous, or chaque boîte inline trace la barre à la hauteur de SA
+  // propre police. Barré avec le montant, le trait décrochait de 5 px sur le suffixe — on
+  // lisait deux traits au lieu d'un. On barre donc le montant seul, comme un prix soldé.
   const priceCell = (w: Week) => {
     const free = w.status === 'available';
     if (!(w.price > 0)) return free ? `<span class="av-req">${t.onrequest}</span>` : '<span class="av-nozone">—</span>';
-    const amount = `${euro(w.price)} €<small> / ${t.perweek}</small>`;
-    return free ? amount : `<s class="av-was" title="${t.booked}">${amount}</s>`;
+    const amount = `${euro(w.price)} €`;
+    const unit = `<small> / ${t.perweek}</small>`;
+    return (free ? amount : `<s class="av-was" title="${t.booked}">${amount}</s>`) + unit;
   };
   const zonesCell = (w: Week) => {
     const d = weekDates(w)!;
