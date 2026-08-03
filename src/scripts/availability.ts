@@ -157,8 +157,14 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const orderedKeys: string[] = [];
   for (const w of list) { const k = monthKey(w); if (!orderedKeys.includes(k)) orderedKeys.push(k); }
 
-  const priceCell = (w: Week) =>
-    w.price > 0 ? `${euro(w.price)} €<small> / ${t.perweek}</small>` : `<span class="av-req">${t.onrequest}</span>`;
+  // Semaine louée : le prix reste affiché, barré. Il donne au visiteur une idée du tarif
+  // pratiqué sur cette période sans laisser croire que la semaine est encore réservable.
+  const priceCell = (w: Week) => {
+    const free = w.status === 'available';
+    if (!(w.price > 0)) return free ? `<span class="av-req">${t.onrequest}</span>` : '<span class="av-nozone">—</span>';
+    const amount = `${euro(w.price)} €<small> / ${t.perweek}</small>`;
+    return free ? amount : `<s class="av-was" title="${t.booked}">${amount}</s>`;
+  };
   const zonesCell = (w: Week) => {
     const d = weekDates(w)!;
     const zones = w.zones && w.zones.length ? w.zones : autoZones(d.start, d.end);
@@ -175,7 +181,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     return `
     <div class="av-c av-dates"><span class="av-label">${esc(humanRange(d.start, d.end))}</span><span class="av-sub">${esc(sub)}</span></div>
     <div class="av-c av-zones" title="${fr ? 'Zones scolaires' : 'French school holiday areas'}">${zonesCell(w)}</div>
-    <div class="av-c av-price">${w.status === 'available' ? priceCell(w) : '<span class="av-nozone">—</span>'}</div>
+    <div class="av-c av-price">${priceCell(w)}</div>
     <div class="av-c av-status"><span class="badge ${w.status === 'available' ? 'badge-free' : 'badge-booked'}">${w.status === 'available' ? t.available : t.booked}</span></div>`;
   };
 

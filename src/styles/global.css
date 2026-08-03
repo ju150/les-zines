@@ -63,6 +63,8 @@
   .av-zones { @apply flex gap-1; }
   .av-price { @apply font-serif text-xl text-pine text-right whitespace-nowrap; }
   .av-price small { @apply font-sans text-xs text-ink-mute; }
+  /* Prix d'une semaine louée : barré, discret, mais lisible (repère de tarif). */
+  .av-was { @apply line-through decoration-1 decoration-ink-mute/70; }
   .av-req { @apply text-base; }
   .av-nozone { @apply text-ink-mute/40; }
   .av-btn { @apply !px-4 !py-2 !text-[0.8rem]; }
