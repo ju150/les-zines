@@ -159,9 +159,15 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
     }
   }
 
-  // The page is prerendered: the ?week= preselection must be read in the browser.
+  // The page is prerendered: the #week= preselection must be read in the browser.
+  // Le fragment est la forme actuelle (invisible pour Googlebot, cf. availability.ts) ;
+  // la query reste lue pour les liens ?week= déjà partagés ou mis en favori.
+  const weekFromUrl = () =>
+    new URLSearchParams(location.hash.slice(1)).get('week') ||
+    new URLSearchParams(location.search).get('week') ||
+    '';
   const preselect = (wanted?: string[]) => {
-    const pre = wanted ?? [new URLSearchParams(location.search).get('week') || ''].filter(Boolean);
+    const pre = wanted ?? [weekFromUrl()].filter(Boolean);
     if (!pre.length) return;
     [...table.querySelectorAll('input[name="week"]')].forEach((i) => {
       if (pre.includes((i as HTMLInputElement).value)) (i as HTMLInputElement).checked = true;

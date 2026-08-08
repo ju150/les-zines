@@ -49,9 +49,15 @@ const esc = (s: string) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
 /**
- * Base du lien « Réserver », slash final garanti : « /reservation/?week=… ».
+ * Base du lien « Réserver », slash final garanti : « /reservation/#week=… ».
  * Sans le slash, Netlify 301 vers la forme avec slash — un aller-retour inutile
  * pour le visiteur et pour Googlebot.
+ *
+ * La semaine voyage dans le FRAGMENT (#), pas dans la query (?). Une query crée une URL
+ * distincte que Googlebot explore puis range en « Autre page avec balise canonique
+ * correcte » — une par semaine disponible, dans les deux langues, signalée à chaque fois
+ * dans la Search Console. Un fragment n'est jamais envoyé au serveur : Google ne voit
+ * qu'une seule /reservation/. Côté navigateur, la lecture est identique.
  */
 const resBase = (opts: AvailabilityOpts) => {
   const base = opts.reservationBase || '/reservation';
@@ -149,7 +155,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     return `${day(s)} ${months[s.getMonth()]} ${s.getFullYear()} → ${day(e)} ${months[e.getMonth()]} ${e.getFullYear()}`;
   };
 
-  // Valeur transmise (e-mail au propriétaire + lien ?week=) : dates explicites, sans ambiguïté.
+  // Valeur transmise (e-mail au propriétaire + lien #week=) : dates explicites, sans ambiguïté.
   const weekValue = (w: Week) => {
     const d = weekDates(w);
     if (!d) return fr ? 'Semaine (dates à préciser)' : 'Week (dates to confirm)';
@@ -239,7 +245,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     }
     return `<div class="av-row ${cls}">${inner(w)}<div class="av-c av-action">${
       w.status === 'available'
-        ? `<a href="${resBase(opts)}?week=${encodeURIComponent(weekValue(w))}" class="btn btn-primary av-btn">${t.book}</a>`
+        ? `<a href="${resBase(opts)}#week=${encodeURIComponent(weekValue(w))}" class="btn btn-primary av-btn">${t.book}</a>`
         : ''
     }</div></div>`;
   };
