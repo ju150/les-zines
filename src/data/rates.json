@@ -1,8 +1,13 @@
 {
   "season": "2026-2027",
   "source": "local",
-  "_note": "Valeurs de secours : servies si la feuille Google est injoignable, et rendues au build avant que le navigateur n'appelle /api/rates. À resynchroniser sur la feuille de temps en temps.",
+  "_note": "Valeurs de secours : servies si la feuille Google est injoignable, et rendues au build avant que le navigateur n'appelle /api/rates. Les semaines passées y restent : elles alimentent l'archive de la saison. À resynchroniser sur la feuille de temps en temps.",
   "weeks": [
+    { "start": "2026-07-04", "end": "2026-07-11", "price": 7000, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-07-11", "end": "2026-07-18", "price": 7900, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-07-18", "end": "2026-07-25", "price": 7900, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-07-25", "end": "2026-08-01", "price": 9500, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-08-01", "end": "2026-08-08", "price": 9500, "status": "booked", "zones": ["A", "B", "C"] },
     { "start": "2026-08-08", "end": "2026-08-15", "price": 9500, "status": "booked", "zones": ["A", "B", "C"] },
     { "start": "2026-08-15", "end": "2026-08-22", "price": 9500, "status": "booked", "zones": ["A", "B", "C"] },
     { "start": "2026-08-22", "end": "2026-08-29", "price": 6900, "status": "booked", "zones": ["A", "B", "C"] },

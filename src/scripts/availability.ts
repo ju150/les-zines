@@ -38,11 +38,21 @@ const KIND_CLASS: Record<WeekKind, { row: string; badge: string }> = {
   unavail: { row: 'av-unavail', badge: 'badge-unavail' },
 };
 
+/**
+ * Quelles semaines le tableau montre.
+ * - 'current' : celles encore réservables (défaut) ;
+ * - 'past'    : celles dont le départ est atteint — l'archive de la saison, montrée à part
+ *               pour qu'un visiteur (un acheteur, typiquement) voie ce qui a été loué.
+ *               Jamais réservables, jamais cochables, quoi que dise la feuille.
+ */
+export type Scope = 'current' | 'past';
+
 export interface AvailabilityOpts {
   mode: 'links' | 'select';
   lang?: string;
   reservationBase?: string;
   onlyAvailable?: boolean;
+  scope?: Scope;
 }
 
 const esc = (s: string) =>
@@ -129,12 +139,26 @@ function autoZones(start: Date, end: Date): string[] {
 }
 
 // Une semaine est « passée » dès que sa date de départ est atteinte : elle ne peut plus
-// être louée, donc on ne l'affiche plus. Rendu côté client à chaque chargement → le
-// filtrage suit la vraie date du visiteur (le SSR figé au build est corrigé par le fetch
-// de /api/rates). Sans dates lisibles → jamais masquée (prudence).
+// être louée. Rendu côté client à chaque chargement → le tri suit la vraie date du visiteur
+// (le SSR figé au build est corrigé par le fetch de /api/rates). Sans dates lisibles →
+// jamais considérée comme passée (prudence).
 function isPastWeek(w: Week, today: Date): boolean {
   const d = weekDates(w);
   return d ? d.end.getTime() <= today.getTime() : false;
+}
+
+/**
+ * Les semaines à montrer pour un `scope` donné, une fois écartées celles décochées dans la
+ * feuille et celles sans dates lisibles. Exporté pour que l'appelant puisse les compter
+ * (« Voir les 5 semaines déjà passées ») sans refaire le tri.
+ */
+export function scopedWeeks(weeks: Week[], scope: Scope = 'current'): Week[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return weeks.filter((w) => {
+    if (w.show === false || !weekDates(w)) return false;
+    return isPastWeek(w, today) === (scope === 'past');
+  });
 }
 
 export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): string {
@@ -168,6 +192,10 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     available: fr ? 'Disponible' : 'Available',
     booked: fr ? 'Déjà loué' : 'Booked',
     unavail: fr ? 'Indisponible' : 'Unavailable',
+    // Semaine écoulée restée « disponible » dans la feuille : on constate qu'elle est
+    // passée, on n'affirme pas qu'elle n'a pas été louée (la feuille n'est pas toujours
+    // tenue à jour rétroactivement).
+    past: fr ? 'Passée' : 'Past',
     book: fr ? 'Réserver' : 'Book',
     perweek: fr ? 'sem.' : 'wk',
     onrequest: fr ? 'Sur demande' : 'On request',
@@ -179,11 +207,9 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const head =
     `<div class="av-head"><div>${t.h_week}</div><div>${t.h_zone}</div><div class="av-head-price">${t.h_price}</div><div>${t.h_status}</div><div></div></div>`;
 
-  // Filtre : masquées manuellement (show=false) OU passées (départ atteint, date du visiteur).
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const current = weeks.filter((w) => w.show !== false && weekDates(w) && !isPastWeek(w, today));
-  const list = opts.onlyAvailable ? current.filter((w) => w.status === 'available') : current;
+  const scope = opts.scope ?? 'current';
+  const scoped = scopedWeeks(weeks, scope);
+  const list = opts.onlyAvailable ? scoped.filter((w) => w.status === 'available') : scoped;
 
   // Regroupement par mois d'arrivée (dans l'ordre chronologique des semaines).
   const monthKey = (w: Week) => {
@@ -197,21 +223,31 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const orderedKeys: string[] = [];
   for (const w of list) { const k = monthKey(w); if (!orderedKeys.includes(k)) orderedKeys.push(k); }
 
-  const statusLabel = (w: Week) => ({ free: t.available, booked: t.booked, unavail: t.unavail }[weekKind(w)]);
+  // Dans l'archive, aucune semaine n'est « disponible » : le départ est passé. Une ligne
+  // restée « disponible » dans la feuille devient « Passée », en gris — ni promesse de
+  // réservation, ni affirmation qu'elle n'a pas été louée.
+  const isFree = (w: Week) => w.status === 'available' && scope !== 'past';
+  const badgeOf = (w: Week) => {
+    if (scope === 'past' && w.status === 'available') return { cls: KIND_CLASS.unavail.badge, label: t.past };
+    const k = weekKind(w);
+    return { cls: KIND_CLASS[k].badge, label: { free: t.available, booked: t.booked, unavail: t.unavail }[k] };
+  };
+  const rowClass = (w: Week) =>
+    scope === 'past' && w.status === 'available' ? KIND_CLASS.unavail.row : KIND_CLASS[weekKind(w)].row;
 
-  // Semaine louée ou indisponible : le prix reste affiché, barré. Il donne au visiteur une idée
-  // du tarif pratiqué sur cette période sans laisser croire que la semaine est réservable.
+  // Semaine louée, indisponible ou passée : le prix reste affiché, barré. Il donne au visiteur
+  // une idée du tarif pratiqué sur cette période sans laisser croire qu'elle est réservable.
   //
   // Le « / sem. » reste volontairement HORS du <s> : il est composé dans une autre police
   // et deux tailles en dessous, or chaque boîte inline trace la barre à la hauteur de SA
   // propre police. Barré avec le montant, le trait décrochait de 5 px sur le suffixe — on
   // lisait deux traits au lieu d'un. On barre donc le montant seul, comme un prix soldé.
   const priceCell = (w: Week) => {
-    const free = w.status === 'available';
+    const free = isFree(w);
     if (!(w.price > 0)) return free ? `<span class="av-req">${t.onrequest}</span>` : '<span class="av-nozone">—</span>';
     const amount = `${euro(w.price)} €`;
     const unit = `<small> / ${t.perweek}</small>`;
-    return (free ? amount : `<s class="av-was" title="${statusLabel(w)}">${amount}</s>`) + unit;
+    return (free ? amount : `<s class="av-was" title="${badgeOf(w).label}">${amount}</s>`) + unit;
   };
   // zones absent → déduction automatique ; zones = [] → « aucune » demandé dans la feuille.
   const zonesCell = (w: Week) => {
@@ -231,11 +267,13 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     <div class="av-c av-dates"><span class="av-label">${esc(humanRange(d.start, d.end))}</span><span class="av-sub">${esc(sub)}</span></div>
     <div class="av-c av-zones" title="${fr ? 'Zones scolaires' : 'French school holiday areas'}">${zonesCell(w)}</div>
     <div class="av-c av-price">${priceCell(w)}</div>
-    <div class="av-c av-status"><span class="badge ${KIND_CLASS[weekKind(w)].badge}">${statusLabel(w)}</span></div>`;
+    <div class="av-c av-status"><span class="badge ${badgeOf(w).cls}">${badgeOf(w).label}</span></div>`;
   };
 
   const row = (w: Week) => {
-    const cls = KIND_CLASS[weekKind(w)].row;
+    const cls = rowClass(w);
+    // Archive : jamais de bouton ni de case, quel que soit le statut de la feuille.
+    if (scope === 'past') return `<div class="av-row ${cls}">${inner(w)}<div class="av-c av-action"></div></div>`;
     if (opts.mode === 'select') {
       // Cases à cocher : les clients demandent souvent plusieurs semaines consécutives.
       // Seules les semaines disponibles sont cochables (louées ET indisponibles exclues).
@@ -250,6 +288,8 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     }</div></div>`;
   };
 
+  // Archive vide : rien à dire, l'appelant n'affichera pas le bloc.
+  if (!list.length && scope === 'past') return '';
   if (!list.length) {
     return `<div class="av-empty px-5 py-6 text-center">${
       fr

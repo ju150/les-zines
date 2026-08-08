@@ -80,6 +80,15 @@
   .zone-a { @apply bg-[#3f9b6b]; }
   .zone-b { @apply bg-[#d9a441]; }
   .zone-c { @apply bg-[#c9683f]; }
+  /* Dépliant « semaines déjà passées » : discret par défaut, l'archive ne doit pas
+     concurrencer les semaines encore réservables. */
+  .av-more { @apply mt-4; }
+  .av-more > summary { @apply inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-pine hover:text-terra transition-colors; list-style: none; }
+  .av-more > summary::-webkit-details-marker { display: none; }
+  .av-more > summary::before { content: '▸'; @apply text-[0.7rem]; }
+  .av-more[open] > summary::before { content: '▾'; }
+  .av-more[open] > summary { @apply mb-1; }
+
   .av-pick { @apply cursor-pointer transition-colors; }
   .av-pick:hover { @apply bg-[rgba(46,107,79,0.1)]; }
   /* Visible keyboard focus on the sr-only week radios */

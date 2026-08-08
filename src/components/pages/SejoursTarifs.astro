@@ -3,7 +3,7 @@ import type { Lang } from '../../i18n/ui';
 import { useTranslations, localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import rates from '../../data/rates.json';
-import { renderAvailability } from '../../scripts/availability';
+import { renderAvailability, scopedWeeks } from '../../scripts/availability';
 import JsonLd from '../JsonLd.astro';
 import { vacationRentalSchema, breadcrumbSchema } from '../../data/schema';
 
@@ -18,6 +18,16 @@ const included = fr
   : ['Fibre wifi', 'Washing machine', 'Water, gas and electricity package (normal use)', 'Tourist tax', 'End-of-stay cleaning', 'Household linen: sheets, towels, cloths'];
 
 const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase });
+
+// Archive de la saison : les semaines déjà passées restent consultables, repliées, pour
+// qui veut voir ce qui a été loué (demande du propriétaire — argument pour une vente).
+// Elles ne doivent pas s'intercaler dans le tableau : le parcours de réservation passe avant.
+const pastWeeks = scopedWeeks(rates.weeks, 'past');
+const pastHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase, scope: 'past' });
+const pastLabel = (n: number) =>
+  fr
+    ? `Voir ${n > 1 ? `les ${n} semaines déjà passées` : 'la semaine déjà passée'}`
+    : `Show ${n > 1 ? `the ${n} past weeks` : 'the past week'}`;
 ---
 <JsonLd data={vacationRentalSchema(lang)} />
 <JsonLd data={breadcrumbSchema(lang, 'sejours-tarifs', fr ? 'Séjours & Tarifs' : 'Stays & Rates')} />
@@ -35,6 +45,11 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
     <h2 class="h2 mb-8 reveal">{fr ? 'Tarifs & disponibilités' : 'Rates & availability'}</h2>
 
     <div id="rates-table" class="av-table card overflow-hidden reveal" data-lang={lang} data-resbase={reservationBase} set:html={tableHtml}></div>
+
+    <details id="past-weeks" class="av-more reveal" hidden={!pastWeeks.length}>
+      <summary id="past-summary">{pastLabel(pastWeeks.length)}</summary>
+      <div id="past-table" class="av-table card overflow-hidden mt-3" set:html={pastHtml}></div>
+    </details>
 
     <div class="flex flex-wrap items-center gap-4 mt-4 text-xs text-ink-mute reveal">
       <span class="font-semibold uppercase tracking-wide">{fr ? 'Zones scolaires' : 'School zones'} :</span>
@@ -65,15 +80,31 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 </section>
 
 <script>
-  import { renderAvailability } from '../../scripts/availability';
+  import { renderAvailability, scopedWeeks } from '../../scripts/availability';
   const table = document.getElementById('rates-table');
   if (table) {
     const lang = table.dataset.lang || 'fr';
+    const fr = lang === 'fr';
     const resBase = table.dataset.resbase || '/reservation';
+    const details = document.getElementById('past-weeks') as HTMLDetailsElement | null;
+    const summary = document.getElementById('past-summary');
+    const pastTable = document.getElementById('past-table');
+    // Le SSR est figé à la date du build : c'est ce rendu client, à la vraie date du
+    // visiteur, qui décide au final ce qui est encore réservable et ce qui est archivé.
     fetch('/api/rates')
       .then((r) => r.json())
       .then((d) => {
-        if (d?.weeks?.length) table.innerHTML = renderAvailability(d.weeks, { mode: 'links', lang, reservationBase: resBase });
+        if (!d?.weeks?.length) return;
+        const opts = { mode: 'links' as const, lang, reservationBase: resBase };
+        table.innerHTML = renderAvailability(d.weeks, opts);
+        if (!details || !summary || !pastTable) return;
+        const n = scopedWeeks(d.weeks, 'past').length;
+        details.hidden = n === 0;
+        if (!n) return;
+        summary.textContent = fr
+          ? `Voir ${n > 1 ? `les ${n} semaines déjà passées` : 'la semaine déjà passée'}`
+          : `Show ${n > 1 ? `the ${n} past weeks` : 'the past week'}`;
+        pastTable.innerHTML = renderAvailability(d.weeks, { ...opts, scope: 'past' });
       })
       .catch(() => {});
   }
