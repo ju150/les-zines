@@ -11,11 +11,31 @@ export type Week = {
   /** Date de départ, ISO 'YYYY-MM-DD'. */
   end: string;
   price: number;
-  status: string; // 'available' | 'booked'
-  /** Zones scolaires (A/B/C). Absent → déduites automatiquement des vacances françaises. */
+  /** 'available' (disponible) | 'booked' (loué) | 'unavailable' (indisponible). */
+  status: string;
+  /**
+   * Zones scolaires (A/B/C).
+   * - absent (undefined) → déduites automatiquement des vacances françaises ;
+   * - tableau vide ([])  → « aucune zone », choix explicite de la feuille, pas de déduction.
+   */
   zones?: string[];
   /** false = masquée manuellement (case « afficher » décochée dans la feuille). */
   show?: boolean;
+};
+
+/** Les trois valeurs de `status`, ramenées à ce qui change à l'écran. */
+export type WeekKind = 'free' | 'booked' | 'unavail';
+export const weekKind = (w: Week): WeekKind =>
+  w.status === 'available' ? 'free' : w.status === 'unavailable' ? 'unavail' : 'booked';
+
+// Noms de classes écrits EN TOUTES LETTRES, jamais assemblés (`av-${kind}`) : Tailwind
+// scanne les fichiers sources et supprime de la feuille de style toute classe @layer
+// components qu'il n'y trouve pas telle quelle. Une classe construite à la volée existe
+// dans le HTML mais plus dans le CSS — la ligne s'affiche alors sans aucun style.
+const KIND_CLASS: Record<WeekKind, { row: string; badge: string }> = {
+  free: { row: 'av-free', badge: 'badge-free' },
+  booked: { row: 'av-booked', badge: 'badge-booked' },
+  unavail: { row: 'av-unavail', badge: 'badge-unavail' },
 };
 
 export interface AvailabilityOpts {
@@ -74,17 +94,30 @@ function isoWeek(d: Date): number {
 
 // Zones scolaires déduites des vacances françaises « toutes zones » (été, Toussaint, Noël)
 // — les seules stables d'une année sur l'autre. Une semaine qui les chevauche affiche A/B/C.
-// (Les vacances d'hiver/printemps, propres à chaque zone, peuvent être forcées via w.zones.)
+// (Les vacances d'hiver/printemps, propres à chaque zone, sont à saisir dans la feuille ;
+//  une semaine hors vacances s'y note « - » et arrive ici avec zones = [].)
+//
+// Il faut au moins 3 nuits DANS les vacances : une semaine qui ne mord que d'un jour ou deux
+// (26 juin → 3 juillet) n'est pas une semaine de vacances scolaires et ne doit pas afficher A B C.
+// (Plafonné à la durée du séjour, pour qu'un court séjour de 2 nuits en plein août compte aussi.)
+const MIN_HOLIDAY_NIGHTS = 3;
+
 function autoZones(start: Date, end: Date): string[] {
-  const overlaps = (ws: Date, we: Date) => start < we && end > ws;
+  const stay = Math.round((end.getTime() - start.getTime()) / 86400000);
+  const needed = Math.max(1, Math.min(MIN_HOLIDAY_NIGHTS, stay));
+  const nightsInside = (ws: Date, we: Date) => {
+    const from = Math.max(start.getTime(), ws.getTime());
+    const to = Math.min(end.getTime(), we.getTime());
+    return to > from ? Math.round((to - from) / 86400000) : 0;
+  };
   // On regarde l'année de début, l'année de fin et l'année précédente (Noël déborde sur janvier).
   for (const y of new Set([start.getFullYear() - 1, start.getFullYear(), end.getFullYear()])) {
-    if (
-      overlaps(new Date(y, 6, 1), new Date(y, 8, 1)) || // été (juillet-août)
-      overlaps(new Date(y, 9, 15), new Date(y, 10, 5)) || // Toussaint
-      overlaps(new Date(y, 11, 18), new Date(y + 1, 0, 6)) // Noël (→ début janvier)
-    )
-      return ['A', 'B', 'C'];
+    const nights = Math.max(
+      nightsInside(new Date(y, 6, 1), new Date(y, 8, 1)), // été (juillet-août)
+      nightsInside(new Date(y, 9, 15), new Date(y, 10, 5)), // Toussaint
+      nightsInside(new Date(y, 11, 18), new Date(y + 1, 0, 6)), // Noël (→ début janvier)
+    );
+    if (nights >= needed) return ['A', 'B', 'C'];
   }
   return [];
 }
@@ -128,6 +161,7 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const t = {
     available: fr ? 'Disponible' : 'Available',
     booked: fr ? 'Déjà loué' : 'Booked',
+    unavail: fr ? 'Indisponible' : 'Unavailable',
     book: fr ? 'Réserver' : 'Book',
     perweek: fr ? 'sem.' : 'wk',
     onrequest: fr ? 'Sur demande' : 'On request',
@@ -157,8 +191,10 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
   const orderedKeys: string[] = [];
   for (const w of list) { const k = monthKey(w); if (!orderedKeys.includes(k)) orderedKeys.push(k); }
 
-  // Semaine louée : le prix reste affiché, barré. Il donne au visiteur une idée du tarif
-  // pratiqué sur cette période sans laisser croire que la semaine est encore réservable.
+  const statusLabel = (w: Week) => ({ free: t.available, booked: t.booked, unavail: t.unavail }[weekKind(w)]);
+
+  // Semaine louée ou indisponible : le prix reste affiché, barré. Il donne au visiteur une idée
+  // du tarif pratiqué sur cette période sans laisser croire que la semaine est réservable.
   //
   // Le « / sem. » reste volontairement HORS du <s> : il est composé dans une autre police
   // et deux tailles en dessous, or chaque boîte inline trace la barre à la hauteur de SA
@@ -169,11 +205,12 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     if (!(w.price > 0)) return free ? `<span class="av-req">${t.onrequest}</span>` : '<span class="av-nozone">—</span>';
     const amount = `${euro(w.price)} €`;
     const unit = `<small> / ${t.perweek}</small>`;
-    return (free ? amount : `<s class="av-was" title="${t.booked}">${amount}</s>`) + unit;
+    return (free ? amount : `<s class="av-was" title="${statusLabel(w)}">${amount}</s>`) + unit;
   };
+  // zones absent → déduction automatique ; zones = [] → « aucune » demandé dans la feuille.
   const zonesCell = (w: Week) => {
     const d = weekDates(w)!;
-    const zones = w.zones && w.zones.length ? w.zones : autoZones(d.start, d.end);
+    const zones = w.zones ?? autoZones(d.start, d.end);
     return zones.length
       ? zones.map((z) => `<span class="zone zone-${esc(z.toLowerCase())}">${esc(z)}</span>`).join('')
       : '<span class="av-nozone">—</span>';
@@ -188,17 +225,19 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     <div class="av-c av-dates"><span class="av-label">${esc(humanRange(d.start, d.end))}</span><span class="av-sub">${esc(sub)}</span></div>
     <div class="av-c av-zones" title="${fr ? 'Zones scolaires' : 'French school holiday areas'}">${zonesCell(w)}</div>
     <div class="av-c av-price">${priceCell(w)}</div>
-    <div class="av-c av-status"><span class="badge ${w.status === 'available' ? 'badge-free' : 'badge-booked'}">${w.status === 'available' ? t.available : t.booked}</span></div>`;
+    <div class="av-c av-status"><span class="badge ${KIND_CLASS[weekKind(w)].badge}">${statusLabel(w)}</span></div>`;
   };
 
   const row = (w: Week) => {
+    const cls = KIND_CLASS[weekKind(w)].row;
     if (opts.mode === 'select') {
       // Cases à cocher : les clients demandent souvent plusieurs semaines consécutives.
+      // Seules les semaines disponibles sont cochables (louées ET indisponibles exclues).
       return w.status === 'available'
         ? `<label class="av-row av-free av-pick">${inner(w)}<div class="av-c av-action"><input type="checkbox" name="week" value="${esc(weekValue(w))}" class="sr-only" /><span class="av-radio" aria-hidden="true"></span></div></label>`
-        : `<div class="av-row av-booked">${inner(w)}<div class="av-c av-action"></div></div>`;
+        : `<div class="av-row ${cls}">${inner(w)}<div class="av-c av-action"></div></div>`;
     }
-    return `<div class="av-row ${w.status === 'available' ? 'av-free' : 'av-booked'}">${inner(w)}<div class="av-c av-action">${
+    return `<div class="av-row ${cls}">${inner(w)}<div class="av-c av-action">${
       w.status === 'available'
         ? `<a href="${resBase(opts)}?week=${encodeURIComponent(weekValue(w))}" class="btn btn-primary av-btn">${t.book}</a>`
         : ''
@@ -213,10 +252,21 @@ export function renderAvailability(weeks: Week[], opts: AvailabilityOpts): strin
     }</div>`;
   }
 
-  return head + orderedKeys
-    .map((k) => {
-      const weeksOfMonth = list.filter((w) => monthKey(w) === k);
-      return `<div class="av-month">${esc(monthLabel(weeksOfMonth[0]))}</div>${weeksOfMonth.map(row).join('')}`;
-    })
-    .join('');
+  // Le tableau couvre maintenant deux saisons (2026 ET 2027) : sans repère, « juillet » de
+  // l'une et « juillet » de l'autre se ressemblent trop. Dès que plusieurs années sont
+  // listées, on intercale un bandeau d'année et on rappelle l'année à droite de chaque mois.
+  const yearOf = (w: Week) => weekDates(w)!.start.getFullYear();
+  const multiYear = new Set(list.map(yearOf)).size > 1;
+
+  let shownYear: number | null = null;
+  const blocks = orderedKeys.map((k) => {
+    const weeksOfMonth = list.filter((w) => monthKey(w) === k);
+    const y = yearOf(weeksOfMonth[0]);
+    const band = multiYear && y !== shownYear ? `<div class="av-year">${y}</div>` : '';
+    shownYear = y;
+    const yearTag = multiYear ? `<span class="av-month-year">${y}</span>` : '';
+    return `${band}<div class="av-month"><span>${esc(monthLabel(weeksOfMonth[0]))}</span>${yearTag}</div>${weeksOfMonth.map(row).join('')}`;
+  });
+
+  return head + blocks.join('');
 }

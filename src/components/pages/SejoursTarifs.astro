@@ -39,6 +39,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
     <div class="flex flex-wrap items-center gap-4 mt-4 text-xs text-ink-mute reveal">
       <span class="font-semibold uppercase tracking-wide">{fr ? 'Zones scolaires' : 'School zones'} :</span>
       <span class="flex items-center gap-1.5"><span class="zone zone-a">A</span><span class="zone zone-b">B</span><span class="zone zone-c">C</span></span>
+      <span class="flex items-center gap-1.5"><span class="av-nozone">—</span>{fr ? 'hors vacances scolaires' : 'outside school holidays'}</span>
     </div>
 
     <div class="grid sm:grid-cols-2 gap-8 mt-12">

@@ -45,6 +45,8 @@
   .badge { @apply text-[0.74rem] font-semibold px-3 py-1 rounded-full whitespace-nowrap; }
   .badge-free   { @apply text-[#2E6B4F] bg-[rgba(46,107,79,0.14)]; }
   .badge-booked { @apply text-[#7A5320] bg-[rgba(176,134,59,0.16)]; }
+  /* Indisponible : ni libre (vert) ni loué (ambre) — un gris neutre, volontairement effacé. */
+  .badge-unavail { @apply text-ink-mute bg-[rgba(32,48,44,0.08)]; }
 
   /* ——— Availability table (shared: tarifs = links, reservation = select) ——— */
   /* Fixed column template shared by header + rows so columns line up (each row is
@@ -52,11 +54,17 @@
   .av-grid { grid-template-columns: minmax(0,1.5fr) 148px minmax(96px,0.9fr) 128px minmax(96px,auto); }
   .av-head { @apply hidden sm:grid av-grid items-center gap-x-4 px-5 py-2.5 bg-white border-t border-line text-[0.68rem] font-semibold uppercase tracking-wide text-ink-mute; }
   .av-head-price { @apply text-right; }
-  .av-month { @apply px-5 py-2.5 bg-sand-2 text-sm font-semibold uppercase tracking-wide text-pine capitalize; }
+  /* Bandeau d'année : n'apparaît que si le tableau couvre plusieurs saisons (2026 ET 2027).
+     Volontairement contrasté — c'est LE repère qui évite de confondre deux mois de juillet. */
+  .av-year { @apply px-5 py-2 bg-pine text-white font-serif text-lg leading-none tracking-[0.12em] border-t border-line; }
+  .av-month { @apply flex items-baseline justify-between gap-4 px-5 py-2.5 bg-sand-2 text-sm font-semibold uppercase tracking-wide text-pine capitalize; }
+  .av-month-year { @apply text-xs font-normal tracking-wider text-ink-mute; }
   .av-row { @apply grid av-grid items-center gap-x-4 gap-y-2 px-5 py-3.5 border-t border-line; }
   .av-free { @apply bg-[rgba(46,107,79,0.05)]; }
-  .av-booked .av-label { @apply line-through text-ink-mute; }
-  .av-booked .av-price { @apply text-ink-mute; }
+  /* Louée ou indisponible : même traitement « on ne peut pas la réserver » (dates barrées,
+     prix atténué) ; c'est la pastille de droite qui dit laquelle des deux. */
+  .av-booked .av-label, .av-unavail .av-label { @apply line-through text-ink-mute; }
+  .av-booked .av-price, .av-unavail .av-price { @apply text-ink-mute; }
   .av-c { @apply min-w-0; }
   .av-label { @apply block font-semibold; }
   .av-sub { @apply block text-xs text-ink-mute; }

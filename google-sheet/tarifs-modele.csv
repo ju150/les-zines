@@ -1,7 +1,8 @@
-Arrivée,Départ,Prix,Disponibilité,Zones (A/B/C — vide = auto),Afficher
+Arrivée,Départ,Prix,Disponibilité,Zones (A/B/C — vide = auto — « - » = aucune),Afficher
 18/07/2026,25/07/2026,7900,disponible,A B C,TRUE
 25/07/2026,01/08/2026,9500,loué,A B C,TRUE
-17/10/2026,24/10/2026,,disponible,A B C,TRUE
-19/12/2026,26/12/2026,9500,disponible,A B C,TRUE
+29/08/2026,05/09/2026,5000,indisponible,A B C,TRUE
+17/10/2026,24/10/2026,,disponible,,TRUE
+26/06/2027,03/07/2027,5000,disponible,-,TRUE
 13/02/2027,20/02/2027,,disponible,A C,FALSE
 20/02/2027,27/02/2027,,disponible,A B,FALSE

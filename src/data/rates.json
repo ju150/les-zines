@@ -1,19 +1,23 @@
 {
-  "season": "2026",
+  "season": "2026-2027",
   "source": "local",
+  "_note": "Valeurs de secours : servies si la feuille Google est injoignable, et rendues au build avant que le navigateur n'appelle /api/rates. À resynchroniser sur la feuille de temps en temps.",
   "weeks": [
-    { "start": "2026-06-27", "end": "2026-07-04", "price": 5000, "status": "booked" },
-    { "start": "2026-07-04", "end": "2026-07-11", "price": 7000, "status": "booked" },
-    { "start": "2026-07-11", "end": "2026-07-18", "price": 7900, "status": "booked" },
-    { "start": "2026-07-18", "end": "2026-07-25", "price": 7900, "status": "booked" },
-    { "start": "2026-07-25", "end": "2026-08-01", "price": 9500, "status": "booked" },
-    { "start": "2026-08-01", "end": "2026-08-08", "price": 9500, "status": "booked" },
-    { "start": "2026-08-08", "end": "2026-08-15", "price": 9500, "status": "booked" },
-    { "start": "2026-08-15", "end": "2026-08-22", "price": 9500, "status": "booked" },
-    { "start": "2026-08-22", "end": "2026-08-29", "price": 6900, "status": "booked" },
-    { "start": "2026-08-29", "end": "2026-09-05", "price": 5000, "status": "available" },
+    { "start": "2026-08-08", "end": "2026-08-15", "price": 9500, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-08-15", "end": "2026-08-22", "price": 9500, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-08-22", "end": "2026-08-29", "price": 6900, "status": "booked", "zones": ["A", "B", "C"] },
+    { "start": "2026-08-29", "end": "2026-09-05", "price": 5000, "status": "booked" },
     { "start": "2026-09-05", "end": "2026-09-12", "price": 5000, "status": "available" },
     { "start": "2026-09-12", "end": "2026-09-19", "price": 5000, "status": "available" },
-    { "start": "2026-09-19", "end": "2026-09-26", "price": 5000, "status": "available" }
+    { "start": "2027-06-26", "end": "2027-07-03", "price": 5000, "status": "available" },
+    { "start": "2027-07-03", "end": "2027-07-10", "price": 7900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-07-10", "end": "2027-07-17", "price": 9900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-07-17", "end": "2027-07-24", "price": 9900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-07-24", "end": "2027-07-31", "price": 9900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-07-31", "end": "2027-08-07", "price": 9900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-08-07", "end": "2027-08-14", "price": 9900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-08-14", "end": "2027-08-21", "price": 9900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-08-21", "end": "2027-08-28", "price": 7900, "status": "available", "zones": ["A", "B", "C"] },
+    { "start": "2027-08-28", "end": "2027-09-04", "price": 5000, "status": "available", "zones": ["A", "B", "C"] }
   ]
 }
