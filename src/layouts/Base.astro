@@ -37,6 +37,20 @@ const ogLocale = lang === 'fr' ? 'fr_FR' : 'en_GB';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {/*
+      Polices visibles dès le premier écran, préchargées pour qu'elles arrivent avec le
+      HTML au lieu d'attendre l'analyse de la CSS. Sans ça, la page s'affichait d'abord
+      en Georgia / system-ui puis basculait au bout d'une seconde : le grand h1 du hero
+      (Cormorant Garamond 600) et la marque de la barre de navigation (Playfair italic
+      600) changeaient de largeur, et toute la mise en page sautait.
+      Seul le sous-ensemble « latin » est préchargé : « latin-ext » ne sert qu'à des
+      caractères rares, absents des textes du site. `crossorigin` est obligatoire sur
+      un préchargement de police, même en même origine — sans lui le fichier est
+      téléchargé deux fois.
+    */}
+    <link rel="preload" href="/fonts/cormorant-garamond-600-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/manrope-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/playfair-display-italic-600-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex, nofollow" />}

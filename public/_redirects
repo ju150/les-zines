@@ -1,16 +1,15 @@
-# Cloudflare Pages — portage des règles de `netlify.toml`.
-# Format : <source> <destination> <code>. La PREMIÈRE règle qui correspond gagne,
-# donc l'ordre ci-dessous est repris tel quel de netlify.toml.
+# Cloudflare Pages/Workers — portage des règles de `netlify.toml`.
+# Format : <source> <destination> <code>. La PREMIÈRE règle qui correspond gagne.
 #
-# Note : Cloudflare Pages redirige déjà nativement « /foo/index.html » vers « /foo/ ».
-# Les quatre règles ci-dessous sont conservées par sécurité (même cible, pas de boucle)
-# pour que le comportement ne dépende pas d'un détail d'implémentation de l'hébergeur.
+# Ordre : toutes les règles littérales d'abord, celles à paramètre (`:page`) et à
+# joker (`*`) ensuite. Cloudflare ne sait optimiser que les règles littérales placées
+# avant la première règle dynamique — l'inverse lui coûte un passage linéaire.
+# Aucun risque de collision : les littérales ci-dessous ne se terminent jamais par
+# « /index.html » et aucune ne commence par « /fr/ ».
 
 # ——— Doublons « /index.html » → URL canonique (dossier avec slash) ———
 /index.html            /            301
 /en/index.html         /en/         301
-/en/:page/index.html   /en/:page/   301
-/:page/index.html      /:page/      301
 
 # ——— Redirections des anciennes URL (ex-site Wix) vers les nouvelles pages ———
 # 301 permanent : préserve le référencement acquis et évite les 404 sur les liens
@@ -64,6 +63,10 @@
 # Mentions légales
 /mentions              /mentions-legales/ 301
 
-# Ancien préfixe de langue Wix (si l'ancien site utilisait /fr/…) → sans préfixe
-/fr/*                  /:splat      301
+# Ancien préfixe de langue Wix, forme courte
 /fr                    /            301
+
+# ——— Règles dynamiques (obligatoirement après les littérales) ———
+/en/:page/index.html   /en/:page/   301
+/:page/index.html      /:page/      301
+/fr/*                  /:splat      301
