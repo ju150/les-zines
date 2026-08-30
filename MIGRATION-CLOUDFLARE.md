@@ -104,19 +104,43 @@ Un **domaine personnalisé sur un Worker exige que la zone soit hébergée chez 
 (contrairement à Cloudflare Pages, qui acceptait un simple CNAME depuis un DNS externe).
 Il faut donc déplacer les serveurs de noms de `leszines.fr` d'OVH vers Cloudflare.
 
-État actuel à préserver :
+Zone OVH relevée le 30 août 2026 (à reproduire à l'identique chez Cloudflare, sauf les
+deux lignes marquées « remplacer ») :
 
-| Type | Nom | Valeur |
-| --- | --- | --- |
-| NS | `leszines.fr` | `ns20.ovh.net`, `dns20.ovh.net` |
-| A | `leszines.fr` | `75.2.60.5` (Netlify — à remplacer) |
-| CNAME | `www` | `grand-pasca-ebc693.netlify.app.` (à remplacer) |
-| **MX** | `leszines.fr` | `mx1.mail.ovh.net` (1), `mx2.mail.ovh.net` (5), `mx3.mail.ovh.net` (100) |
-| TXT | `leszines.fr` | 2 enregistrements (SPF, et vraisemblablement la vérification Resend) |
+| Sous-domaine | Type | Cible | Sort |
+| --- | --- | --- | --- |
+| `@` | NS | `ns20.ovh.net.`, `dns20.ovh.net.` | remplacés par ceux de Cloudflare |
+| `@` | A | `75.2.60.5` | **supprimer** (Netlify) |
+| `www` | CNAME | `grand-pasca-ebc693.netlify.app.` | **remplacer** par le domaine du Worker |
+| `@` | **MX** | `1 mx1.mail.ovh.net.` · `5 mx2.mail.ovh.net.` · `100 mx3.mail.ovh.net.` | à préserver |
+| `@` | SPF | `v=spf1 include:mx.ovh.com -all` | à recréer **en TXT** |
+| `dpmail._domainkey` | TXT | `v=DKIM1;t=s;p=MIGfMA0GCSqGSIb3…` | à préserver |
+| `_dmarc` | TXT | `v=DMARC1; p=none;` | à préserver |
+| `@` | TXT | `google-site-verification=hjqVfiOIW2lLo…` | à préserver |
+| `resend._domainkey` | TXT | `p=MIGfMA0GCSqGSIb3DQ…` | **à préserver — critique** |
+| `send` | MX | `10 feedback-smtp.eu-west-1.amazonses.com.` | **à préserver — critique** |
+| `send` | TXT | `v=spf1 include:amazonses.com ~all` | **à préserver — critique** |
 
-⚠️ **Le risque, c'est la messagerie.** `contact@leszines.fr` et `reservation@leszines.fr`
-tournent sur les MX d'OVH. Une zone mal recopiée coupe les e-mails du client — c'est-à-dire
-exactement le canal par lequel arrivent les demandes de réservation.
+⚠️ **Deux messageries distinctes dépendent de cette zone, pas une.**
+
+1. **La boîte du propriétaire** (`contact@leszines.fr`) tourne sur les MX d'OVH.
+2. **L'envoi Resend** (`reservation@leszines.fr`, l'expéditeur des demandes de réservation)
+   repose sur `resend._domainkey` et sur le sous-domaine `send`. Perdre ces trois lignes
+   ne coupe pas la réception : ça coupe l'**émission** — le formulaire du site cesse
+   d'envoyer. Le symptôme serait un `502 send_failed`, difficile à relier au DNS.
+
+Deux pièges concrets :
+
+- OVH expose un pseudo-type **SPF** qui n'existe pas chez Cloudflare : le recréer en
+  **TXT**, avec la même valeur.
+- Les valeurs DKIM sont longues. Vérifier qu'elles ont été importées **en entier**, sans
+  troncature ni guillemets en trop.
+- Tout ce qui touche au courrier reste en **« DNS only » (nuage gris)**, jamais en proxy.
+
+Point rassurant sur le calendrier : la zone Cloudflare se construit **avant** le changement
+de serveurs de noms. Tant que les deux zones portent les mêmes MX, aucun message ne se perd
+pendant la propagation — un expéditeur qui interroge encore OVH et un autre qui interroge
+déjà Cloudflare obtiennent la même réponse.
 
 Procédure sûre :
 
