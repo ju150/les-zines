@@ -1,0 +1,14 @@
+{
+  // Cloudflare Workers (Static Assets) — @astrojs/cloudflare v14 déploie un Worker,
+  // pas un projet Pages. L'adaptateur complète cette configuration au build :
+  // `main` (dist/server/entry.mjs) et `assets` (dist/client) sont générés dans
+  // dist/server/wrangler.json — ne pas les redéclarer ici.
+  //
+  // `nodejs_compat` fournit les API Node au runtime et alimente `process.env` à partir
+  // des variables du tableau de bord ; l'endpoint de réservation lit de toute façon
+  // `locals.runtime.env` en priorité.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "les-zines",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"]
+}

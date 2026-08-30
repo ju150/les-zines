@@ -2,6 +2,7 @@
 dist/
 .astro/
 .netlify/
+.wrangler/
 # dependencies
 node_modules/
 # logs

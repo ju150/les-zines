@@ -1,5 +1,8 @@
 ---
-import fs from 'node:fs';
+// Liste des photos générée au build par scripts-tools/photo-manifest.mjs. Surtout pas
+// un `fs.readdirSync` ici : le pré-rendu de l'adaptateur Cloudflare tourne dans le
+// runtime Workers, sans accès disque — le scan y renvoyait une galerie vide.
+import photoManifest from '../../data/photos.json';
 import type { Lang } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import Lightbox from '../Lightbox.astro';
@@ -12,14 +15,11 @@ const fr = lang === 'fr';
 
 // Family photos of the garden (01.jpg = the featured « avant » shot), plus the
 // original pro shots. New drops in public/photos/villa/jardin/ appear automatically.
-const scan = (dir: string, base: string) =>
-  fs.existsSync(dir)
-    ? fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort().map((f) => `${base}/${f}`)
-    : [];
-const jardinPhotos = scan('public/photos/villa/jardin', '/photos/villa/jardin');
+const manifest = photoManifest as Record<string, string[]>;
+const jardinPhotos = manifest.jardin ?? [];
 // Les terrasses font partie des extérieurs : leurs photos ont leur place ici aussi
 // (comme le jardin apparaît dans le chapitre Terrasses de la page Villa).
-const terrassesPhotos = scan('public/photos/villa/terrasses', '/photos/villa/terrasses');
+const terrassesPhotos = manifest.terrasses ?? [];
 const gallery = [
   ...(jardinPhotos.length ? [jardinPhotos[0]] : []),
   '/photos/jardin-1.webp',

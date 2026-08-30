@@ -9,8 +9,11 @@ export const GET: APIRoute = async () => {
   const headers = {
     'Content-Type': 'application/json',
     'Cache-Control': 'public, max-age=120',
-    // Durable shared cache on Netlify's CDN: absorbs bursts instead of hammering Google.
-    'Netlify-CDN-Cache-Control': 'public, max-age=120, stale-while-revalidate=600, durable',
+    // Cache partagé côté CDN : absorbe les rafales au lieu de matraquer Google.
+    // En-tête standard, compris par Cloudflare (et par Netlify si on y revenait).
+    // Côté Cloudflare, mettre en cache une route /api/ à l'edge demande en plus une
+    // Cache Rule dans le tableau de bord ; sans elle, seul le cache navigateur joue.
+    'CDN-Cache-Control': 'public, max-age=120, stale-while-revalidate=600',
   };
   try {
     if (!SITE.ratesSheetCsv) return new Response(JSON.stringify({ weeks: fallback.weeks, source: 'local' }), { headers });

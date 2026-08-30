@@ -2,8 +2,17 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+// Sur Cloudflare Workers les variables du tableau de bord n'arrivent pas par
+// `process.env` mais par `locals.runtime.env`. On mémorise cette référence au début
+// de chaque requête : elle est identique pour toutes les requêtes d'un même isolate,
+// donc rien ne peut fuiter d'une demande à l'autre. Les deux autres sources restent
+// pour le dev local (fichier .env) et pour un éventuel retour à un runtime Node.
+let runtimeEnv: Record<string, string | undefined> = {};
+
 const env = (k: string): string | undefined =>
-  (typeof process !== 'undefined' ? process.env[k] : undefined) ?? (import.meta.env as any)[k];
+  runtimeEnv[k] ??
+  (typeof process !== 'undefined' ? process.env[k] : undefined) ??
+  (import.meta.env as any)[k];
 
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
@@ -286,7 +295,9 @@ async function sendSms(f: Fields): Promise<boolean> {
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
     method: 'POST',
     headers: {
-      Authorization: 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
+      // `btoa` est natif partout (Workers comme Node ≥ 16), contrairement à `Buffer`
+      // qui dépendrait du drapeau de compatibilité Node côté Cloudflare.
+      Authorization: 'Basic ' + btoa(`${sid}:${token}`),
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: params,
@@ -294,7 +305,11 @@ async function sendSms(f: Fields): Promise<boolean> {
   return res.ok;
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
+  // Cloudflare range les variables du tableau de bord ici ; en local, l'objet est absent
+  // et `env()` retombe sur le fichier .env.
+  runtimeEnv = ((locals as any)?.runtime?.env as Record<string, string | undefined>) ?? {};
+
   let raw: Record<string, unknown>;
   try {
     raw = await request.json();

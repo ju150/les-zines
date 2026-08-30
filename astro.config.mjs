@@ -1,13 +1,18 @@
 import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
+import cloudflare from '@astrojs/cloudflare';
 import sitemap from '@astrojs/sitemap';
 
 // https://astro.build
 export default defineConfig({
   site: 'https://www.leszines.fr',
   // Static by default; the /api endpoints opt out via `export const prerender = false`
-  // and run as Netlify functions. (Tailwind est branché via postcss.config.mjs.)
-  adapter: netlify(),
+  // and run as Cloudflare Pages Functions. (Tailwind est branché via postcss.config.mjs.)
+  // Redirections et en-têtes : public/_redirects et public/_headers (ex-netlify.toml).
+  adapter: cloudflare({
+    // Expose les variables d'environnement (fichier .env) au runtime Workers
+    // pendant `astro dev`, comme le faisait `netlify dev`.
+    platformProxy: { enabled: true },
+  }),
   integrations: [
     sitemap({
       // hreflang sans région : « fr » (pas « fr-FR ») pour ne pas réserver la page

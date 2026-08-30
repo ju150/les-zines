@@ -1,5 +1,8 @@
 ---
-import fs from 'node:fs';
+// Liste des photos générée au build par scripts-tools/photo-manifest.mjs. Surtout pas
+// un `fs.readdirSync` ici : le pré-rendu de l'adaptateur Cloudflare tourne dans le
+// runtime Workers, sans accès disque — le scan y renvoyait une galerie vide.
+import photoManifest from '../../data/photos.json';
 import type { Lang } from '../../i18n/ui';
 import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
@@ -32,13 +35,7 @@ const themeDefs = [
   { slug: 'jardin', fr: 'Le Jardin', en: 'The Garden' },
 ];
 const themes = themeDefs
-  .map((d) => {
-    const dir = `public/photos/villa/${d.slug}`;
-    const photos = fs.existsSync(dir)
-      ? fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort().map((f) => `/photos/villa/${d.slug}/${f}`)
-      : [];
-    return { ...d, photos };
-  })
+  .map((d) => ({ ...d, photos: (photoManifest as Record<string, string[]>)[d.slug] ?? [] }))
   .filter((t) => t.photos.length);
 
 const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photos/terrasse.webp';

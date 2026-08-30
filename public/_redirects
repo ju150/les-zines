@@ -1,0 +1,69 @@
+# Cloudflare Pages — portage des règles de `netlify.toml`.
+# Format : <source> <destination> <code>. La PREMIÈRE règle qui correspond gagne,
+# donc l'ordre ci-dessous est repris tel quel de netlify.toml.
+#
+# Note : Cloudflare Pages redirige déjà nativement « /foo/index.html » vers « /foo/ ».
+# Les quatre règles ci-dessous sont conservées par sécurité (même cible, pas de boucle)
+# pour que le comportement ne dépende pas d'un détail d'implémentation de l'hébergeur.
+
+# ——— Doublons « /index.html » → URL canonique (dossier avec slash) ———
+/index.html            /            301
+/en/index.html         /en/         301
+/en/:page/index.html   /en/:page/   301
+/:page/index.html      /:page/      301
+
+# ——— Redirections des anciennes URL (ex-site Wix) vers les nouvelles pages ———
+# 301 permanent : préserve le référencement acquis et évite les 404 sur les liens
+# ou favoris pointant vers l'ancien site.
+
+# Accueil
+/accueil               /            301
+/home                  /            301
+
+# La Villa
+/villa                 /la-villa/   301
+/maison                /la-villa/   301
+/la-villa-les-zines    /la-villa/   301
+/galerie               /la-villa/   301
+/photos                /la-villa/   301
+
+# Le Jardin
+/jardin                /le-jardin/  301
+/exterieurs            /le-jardin/  301
+
+# Le Cap Ferret
+/cap-ferret            /le-cap-ferret/ 301
+/environnement         /le-cap-ferret/ 301
+/le-cap                /le-cap-ferret/ 301
+
+# Séjours & Tarifs / disponibilités
+/tarifs                /sejours-tarifs/ 301
+/prix                  /sejours-tarifs/ 301
+/location              /sejours-tarifs/ 301
+/disponibilites        /sejours-tarifs/ 301
+/disponibilite         /sejours-tarifs/ 301
+/calendrier            /sejours-tarifs/ 301
+/sejours               /sejours-tarifs/ 301
+
+# Réservation
+/reserver              /reservation/ 301
+/reservations          /reservation/ 301
+/booking               /reservation/ 301
+/book                  /reservation/ 301
+
+# À vendre
+/vente                 /a-vendre/   301
+/vendre                /a-vendre/   301
+/achat                 /a-vendre/   301
+/a-vendre-cap-ferret   /a-vendre/   301
+
+# Contact
+/nous-contacter        /contact/    301
+/coordonnees           /contact/    301
+
+# Mentions légales
+/mentions              /mentions-legales/ 301
+
+# Ancien préfixe de langue Wix (si l'ancien site utilisait /fr/…) → sans préfixe
+/fr/*                  /:splat      301
+/fr                    /            301

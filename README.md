@@ -45,12 +45,19 @@ demande est silencieusement ignorée.
 
 ## Déploiement
 
-Adaptateur **Netlify** (`@astrojs/netlify`, mode hybrid) : pages statiques + fonctions pour
-`/api/rates` et `/api/reservation`. Renseigner les variables d'environnement (Brevo/Resend/
-Twilio) dans le tableau de bord Netlify. Dans Netlify → Domain management, définir
-**www.leszines.fr** comme domaine principal (redirection 301 automatique depuis l'apex).
-Les en-têtes de sécurité sont dans `netlify.toml` (la CSP est en Report-Only : à passer en
-`Content-Security-Policy` après vérification console sur le site déployé).
+Adaptateur **Cloudflare Pages** (`@astrojs/cloudflare`) : pages statiques + Pages Functions
+pour `/api/rates` et `/api/reservation`. Renseigner les variables d'environnement
+(Resend/Twilio) dans Cloudflare → Workers & Pages → le projet → Settings → Variables and
+Secrets, puis relancer un déploiement. Le DNS reste chez **OVH** : `www` est un CNAME vers
+`<projet>.pages.dev`, l'apex `leszines.fr` redirige en 301 vers `www` — les enregistrements
+MX d'OVH (messagerie du domaine) ne bougent pas.
+
+Redirections et en-têtes : `public/_redirects` et `public/_headers` (la CSP est en
+Report-Only : à passer en `Content-Security-Policy` après vérification console sur le site
+déployé). `wrangler.jsonc` porte la date et les drapeaux de compatibilité du runtime.
+
+> Historique : le site était hébergé chez Netlify (`netlify.toml`, conservé pour mémoire)
+> jusqu'à la suspension de l'équipe pour dépassement de crédits, le 30 août 2026.
 
 ## SEO
 
