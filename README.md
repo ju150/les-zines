@@ -64,7 +64,10 @@ déployé). `wrangler.jsonc` porte la date et les drapeaux de compatibilité du 
 - `Base.astro` génère canonical, hreflang fr/en/x-default, Open Graph (image `public/photos/og.jpg`)
   et Twitter Cards ; JSON-LD (VacationRental, RealEstateListing, BreadcrumbList) via `src/data/schema.ts`.
 - Sitemap : `@astrojs/sitemap` (`/sitemap-index.xml`), déclaré dans `public/robots.txt`.
-- Crawlers IA : autorisés dans `robots.txt` + fiche d'infos `public/llms.txt`.
+- Crawlers IA : recherche et agents autorisés, robots d'entraînement refusés. Le blocage
+  réel vient du réglage Cloudflare (AI Crawl Control), `public/robots.txt` déclare la même
+  politique en repli — les deux doivent rester cohérents, sinon le fichier gagne et annule
+  le réglage. Fiche d'infos pour les IA : `public/llms.txt`.
 - Après un changement de tarifs dans la Google Sheet, penser à resynchroniser
   `src/data/rates.json` (fallback affiché en SSR) et à redéployer.
 

@@ -1,30 +1,74 @@
-# www.leszines.fr — tous les robots sont les bienvenus, y compris les crawlers IA.
+# www.leszines.fr
+#
+# ⚠️ Cloudflare ajoute automatiquement un bloc « Cloudflare Managed content » EN TÊTE
+# de ce fichier (réglage AI Crawl Control : search=yes, ai-train=no). Ce qui suit doit
+# rester COHÉRENT avec lui : quand deux directives se contredisent pour un même robot,
+# la RFC 9309 fait gagner le `Allow`, et ce fichier annulerait le réglage Cloudflare.
+# C'était le cas jusqu'au 30 août 2026 — GPTBot, ClaudeBot, Google-Extended et
+# Applebot-Extended étaient bloqués par Cloudflare, puis ré-autorisés ici.
+#
+# La politique : les robots qui APPORTENT des visiteurs sont bienvenus (moteurs de
+# recherche, et robots déclenchés par la question d'un utilisateur). Ceux qui aspirent
+# le site pour entraîner des modèles sont refusés : ils ne rapportent rien et coûtent
+# de la bande passante — c'est un pic de ce trafic qui a mis le site hors ligne le
+# 30 août 2026, en épuisant les crédits de l'hébergeur précédent.
+#
+# Rappel : robots.txt est une demande, pas une barrière. Ce qui bloque réellement,
+# c'est le réglage Cloudflare. Ce fichier déclare l'intention et sert de repli si ce
+# réglage venait à être désactivé.
+
 User-agent: *
+Disallow: /api/
+
+# ——— Robots d'entraînement : refusés (mêmes valeurs que le bloc Cloudflare) ———
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+# ——— Recherche et agents : autorisés, ils amènent des visiteurs ———
+# Ceux-là indexent le site, ou vont le chercher parce qu'un utilisateur a posé une
+# question. Pour une location saisonnière, c'est de la visibilité gratuite. Aucun
+# n'est bloqué par le bloc Cloudflare : pas de contradiction possible.
+# Un robot qui trouve son propre groupe ignore celui de `*`, d'où le `Disallow: /api/`
+# répété à chaque fois.
+User-agent: OAI-SearchBot
 Allow: /
 Disallow: /api/
 
-User-agent: GPTBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
 User-agent: ChatGPT-User
 Allow: /
-
-User-agent: ClaudeBot
-Allow: /
+Disallow: /api/
 
 User-agent: Claude-User
 Allow: /
+Disallow: /api/
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /api/
 
-User-agent: Google-Extended
+User-agent: Perplexity-User
 Allow: /
-
-User-agent: Applebot-Extended
-Allow: /
+Disallow: /api/
 
 Sitemap: https://www.leszines.fr/sitemap-index.xml
