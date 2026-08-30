@@ -2,15 +2,15 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-// Sur Cloudflare Workers les variables du tableau de bord n'arrivent pas par
-// `process.env` mais par `locals.runtime.env`. On mémorise cette référence au début
-// de chaque requête : elle est identique pour toutes les requêtes d'un même isolate,
-// donc rien ne peut fuiter d'une demande à l'autre. Les deux autres sources restent
-// pour le dev local (fichier .env) et pour un éventuel retour à un runtime Node.
-let runtimeEnv: Record<string, string | undefined> = {};
+// Variables du tableau de bord Cloudflare. Surtout pas `Astro.locals.runtime.env` :
+// depuis Astro 6 ce getter ne renvoie plus rien, il *lève* une exception — ce qui
+// transformait chaque POST en 500. `cloudflare:workers` est l'API qui l'a remplacé.
+// Les deux sources suivantes couvrent le dev local (fichier .env) et un éventuel
+// retour à un runtime Node.
+import { env as cfEnv } from 'cloudflare:workers';
 
 const env = (k: string): string | undefined =>
-  runtimeEnv[k] ??
+  (cfEnv as Record<string, string | undefined>)?.[k] ??
   (typeof process !== 'undefined' ? process.env[k] : undefined) ??
   (import.meta.env as any)[k];
 
@@ -305,11 +305,7 @@ async function sendSms(f: Fields): Promise<boolean> {
   return res.ok;
 }
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  // Cloudflare range les variables du tableau de bord ici ; en local, l'objet est absent
-  // et `env()` retombe sur le fichier .env.
-  runtimeEnv = ((locals as any)?.runtime?.env as Record<string, string | undefined>) ?? {};
-
+export const POST: APIRoute = async ({ request }) => {
   let raw: Record<string, unknown>;
   try {
     raw = await request.json();
