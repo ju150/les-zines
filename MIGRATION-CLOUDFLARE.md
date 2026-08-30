@@ -114,7 +114,7 @@ deux lignes marquées « remplacer ») :
 | `www` | CNAME | `grand-pasca-ebc693.netlify.app.` | **remplacer** par le domaine du Worker |
 | `@` | **MX** | `1 mx1.mail.ovh.net.` · `5 mx2.mail.ovh.net.` · `100 mx3.mail.ovh.net.` | à préserver |
 | `@` | SPF | `v=spf1 include:mx.ovh.com -all` | à recréer **en TXT** |
-| `dpmail._domainkey` | TXT | `v=DKIM1;t=s;p=MIGfMA0GCSqGSIb3…` | à préserver |
+| `dpmail._domainkey` | TXT | `v=DKIM1;t=s;p=MIGfMA0GCSqGSIb3…` | ⚠️ **tronqué — à régénérer chez OVH** |
 | `_dmarc` | TXT | `v=DMARC1; p=none;` | à préserver |
 | `@` | TXT | `google-site-verification=hjqVfiOIW2lLo…` | à préserver |
 | `resend._domainkey` | TXT | `p=MIGfMA0GCSqGSIb3DQ…` | **à préserver — critique** |
@@ -129,7 +129,33 @@ deux lignes marquées « remplacer ») :
    ne coupe pas la réception : ça coupe l'**émission** — le formulaire du site cesse
    d'envoyer. Le symptôme serait un `502 send_failed`, difficile à relier au DNS.
 
-Deux pièges concrets :
+### La clé DKIM d'OVH est tronquée (défaut préexistant)
+
+Relevé le 30 août 2026 en interrogeant directement le DNS public, pas seulement l'interface
+OVH — le défaut est donc bien publié, ce n'est pas un artefact d'affichage :
+
+| Enregistrement | Longueur de la clé | Verdict |
+| --- | --- | --- |
+| `resend._domainkey` | **216 caractères**, finit par `QIDAQAB` | ✅ clé RSA 1024 bits complète |
+| `dpmail._domainkey` | **64 caractères**, ne finit pas par `QIDAQAB` | ❌ coupée en plein milieu |
+
+Le préfixe `MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQ` annonce une clé de 1024 bits, qui doit
+faire 216 caractères en base64. La ligne complète s'arrête à 78 caractères — une longueur
+qui sent le retour à la ligne automatique d'un éditeur. Le coupable le plus probable est
+une édition passée de la zone en « mode textuel » chez OVH.
+
+Conséquence : tout message envoyé depuis `contact@leszines.fr` via OVH échoue à la
+vérification DKIM chez le destinataire. Rien n'est rejeté aujourd'hui — le DMARC est en
+`p=none` et le SPF passe, ce qui suffit à l'alignement — mais c'est un signal négatif
+permanent pour la réputation d'expédition, donc du courrier qui part en indésirables sans
+raison apparente. **Sans rapport avec Cloudflare : c'était déjà cassé chez Netlify.**
+
+À corriger **avant** de déplacer les serveurs de noms, tant qu'OVH est encore autoritaire
+sur la zone : espace client OVH → le service de messagerie (MX Plan) → DKIM → régénérer ou
+réactiver. OVH republie alors la clé entière, et c'est cette version-là qu'on importe chez
+Cloudflare. Fait après la bascule, il faudrait recopier la valeur à la main.
+
+### Deux autres pièges
 
 - OVH expose un pseudo-type **SPF** qui n'existe pas chez Cloudflare : le recréer en
   **TXT**, avec la même valeur.
