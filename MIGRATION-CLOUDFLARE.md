@@ -1,5 +1,37 @@
 # Migration Netlify → Cloudflare Workers
 
+> ## ✅ Migration terminée le 30 août 2026
+>
+> `www.leszines.fr` est servi par le Worker `les-zines` sur Cloudflare. Vérifié de bout en
+> bout : 18 pages FR/EN en 200, galeries complètes (76 photos sur `/la-villa/`, 27 sur
+> `/le-jardin/`), `/api/rates` et `/api/reservation` fonctionnels, 18 redirections 301,
+> certificat TLS valide, en-têtes de sécurité appliqués. L'apex redirige en 301 vers `www`
+> en conservant chemin et query, et « Always Use HTTPS » force le HTTPS en amont.
+> Les MX d'OVH et les enregistrements Resend ont traversé la bascule intacts.
+>
+> **Configuration finale**
+>
+> | Élément | Valeur |
+> | --- | --- |
+> | Serveurs de noms | `emely.ns.cloudflare.com`, `vern.ns.cloudflare.com` |
+> | `www.leszines.fr` | Custom Domain du Worker `les-zines` (proxifié) |
+> | `leszines.fr` | `AAAA 100::` proxifié + Redirect Rule 301 vers `www` |
+> | Déploiement | Workers Builds sur `push` vers `main` (dépôt `ju150/les-zines`) |
+> | Variables | 3 dans `wrangler.jsonc`, `RESEND_API_KEY` en secret du tableau de bord |
+>
+> **Reste à faire**
+>
+> 1. **DKIM OVH** — la régénération lancée le 30 août n'était pas encore publiée à la
+>    bascule. Les serveurs d'OVH continuent de répondre pour cette zone : relever la
+>    nouvelle valeur avec `nslookup -type=TXT dpmail._domainkey.leszines.fr dns20.ovh.net`,
+>    vérifier qu'elle fait ~216 caractères et finit par `QIDAQAB`, puis l'ajouter en TXT
+>    chez Cloudflare. Voir « La clé DKIM d'OVH est tronquée » plus bas.
+> 2. **Surveillance** — aucune alerte n'existe aujourd'hui : la panne Netlify a été
+>    découverte par hasard. Un contrôle externe type UptimeRobot sur `www.leszines.fr`
+>    (gratuit, 5 min d'intervalle) comble ce trou.
+> 3. **`public/robots.txt`** — il accueille encore explicitement tous les crawlers IA, ce
+>    qui contredit le réglage « Training : Block » choisi côté Cloudflare.
+
 Le 30 août 2026, Netlify a mis en pause **toute l'équipe** (« This team has exceeded the
 credit limit »), pas seulement ce projet : `www.leszines.fr`, l'apex et l'adresse
 `grand-pasca-ebc693.netlify.app` répondaient tous `503 {"error":"usage_exceeded"}`.
