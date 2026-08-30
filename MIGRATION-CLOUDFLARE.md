@@ -53,19 +53,33 @@ arrière rapide.
 
 ## Ce qu'il reste à faire à la main
 
-### 1. Récupérer les variables d'environnement chez Netlify
+### 1. Les variables d'environnement
 
-Le tableau de bord reste accessible même équipe en pause :
-**Project configuration → Environment variables**. Noter les valeurs de :
+**Une seule chose à saisir dans le tableau de bord Cloudflare : `RESEND_API_KEY`,
+en type « Secret ».**
 
-```
-RESEND_API_KEY  RESERVATION_FROM  RESERVATION_TO  CONTACT_EMAIL
-TWILIO_ACCOUNT_SID  TWILIO_AUTH_TOKEN  TWILIO_FROM  TWILIO_TO
-```
+Les trois autres (`RESERVATION_FROM`, `RESERVATION_TO`, `CONTACT_EMAIL`) sont déclarées
+dans `wrangler.jsonc`, et c'est délibéré. `wrangler deploy` **remplace** les variables
+simples du Worker par celles du fichier de configuration : une variable saisie uniquement
+dans l'interface est effacée au déploiement suivant. C'est ce qui a fait échouer les
+premiers essais d'envoi — le Worker répondait `501 no_provider`. Ces trois valeurs sont
+de toute façon publiques (les deux adresses figurent sur la page Contact).
 
-Sans elles le site fonctionne quand même : le formulaire bascule automatiquement sur
-l'ouverture d'un e-mail pré-rempli. Mais l'envoi automatique et l'accusé de réception au
-client sont perdus tant qu'elles ne sont pas reportées.
+Les **secrets**, eux, sont gérés séparément par Cloudflare et survivent aux déploiements :
+la clé Resend est donc à sa place dans le tableau de bord, et nulle part dans le dépôt.
+
+⚠️ La clé Resend de l'ancien site est irrécupérable : Netlify ne réaffiche jamais un
+secret, et Resend non plus après création. Il faut en créer une nouvelle sur resend.com →
+API Keys → Create API key, avec la permission **Sending access** (pas *Full access* : le
+site ne fait qu'envoyer). Supprimer l'ancienne clé `netlify-send` une fois la bascule
+confirmée.
+
+Twilio (SMS d'alerte au propriétaire à chaque demande) n'a jamais été configuré sur ce
+site et ne le sera pas : c'est un service payant, jugé non nécessaire.
+
+Sans clé Resend, le site fonctionne quand même : le formulaire bascule automatiquement sur
+l'ouverture d'un e-mail pré-rempli chez le visiteur. Mais l'envoi automatique et l'accusé
+de réception au client sont perdus.
 
 ### 2. Déployer le Worker
 
@@ -77,9 +91,9 @@ Cloudflare → **Workers & Pages → Create → Import a repository** → `ju150
 | Deploy command | `npx wrangler deploy -c dist/server/wrangler.json` |
 | Version de Node | lue dans `.nvmrc` (22) |
 
-Puis **Settings → Variables and Secrets** : recopier les variables de l'étape 1
-(type « Secret » pour `RESEND_API_KEY` et `TWILIO_AUTH_TOKEN`), et **relancer un
-déploiement** — les variables ne sont lues qu'au déploiement suivant.
+Puis **Settings → Variables and Secrets** : ajouter `RESEND_API_KEY` en type « Secret »
+(et rien d'autre — voir l'étape 1), puis **relancer un déploiement** : les variables ne
+sont lues qu'au déploiement suivant.
 
 Le site est alors joignable sur `https://les-zines.<compte>.workers.dev`. **Tout vérifier
 là-dessus avant de toucher au DNS** : pages FR et EN, tarifs, formulaire de réservation.

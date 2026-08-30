@@ -4,11 +4,27 @@
   // `main` (dist/server/entry.mjs) et `assets` (dist/client) sont générés dans
   // dist/server/wrangler.json — ne pas les redéclarer ici.
   //
-  // `nodejs_compat` fournit les API Node au runtime et alimente `process.env` à partir
-  // des variables du tableau de bord ; l'endpoint de réservation lit de toute façon
-  // `locals.runtime.env` en priorité.
+  // `nodejs_compat` fournit les API Node au runtime. L'endpoint de réservation lit
+  // ses variables via `import { env } from 'cloudflare:workers'`.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "les-zines",
   "compatibility_date": "2026-08-01",
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_flags": ["nodejs_compat"],
+
+  // ——— Variables non sensibles ———
+  // Elles vivent ici et PAS dans le tableau de bord, pour une raison précise :
+  // `wrangler deploy` remplace les variables du Worker par celles de ce fichier.
+  // Une variable saisie uniquement dans l'interface est donc effacée au
+  // déploiement suivant — c'est ce qui a fait échouer les premiers essais d'envoi.
+  // Ces trois valeurs sont de toute façon publiques : les deux adresses sont
+  // affichées sur la page Contact.
+  //
+  // La clé Resend, elle, reste un SECRET du tableau de bord (Settings → Variables
+  // and Secrets → type « Secret »). Les secrets sont gérés à part et survivent aux
+  // déploiements ; ils n'ont rien à faire dans le dépôt.
+  "vars": {
+    "RESERVATION_FROM": "Villa Les Zines <reservation@leszines.fr>",
+    "RESERVATION_TO": "contact@leszines.fr",
+    "CONTACT_EMAIL": "contact@leszines.fr"
+  }
 }
