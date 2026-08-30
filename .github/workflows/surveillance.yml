@@ -1,0 +1,81 @@
+# Surveillance du site en production.
+#
+# Pourquoi ici et pas sur l'hébergeur : le 30 août 2026, Netlify a suspendu le compte
+# et le site est resté mort sans que personne ne soit prévenu. Un contrôle hébergé au
+# même endroit que le site serait tombé avec lui. GitHub Actions est indépendant de
+# Cloudflare comme d'OVH : c'est ce qui lui donne sa valeur.
+#
+# En cas d'échec, GitHub envoie un e-mail au propriétaire du dépôt (notification par
+# défaut sur les workflows en échec). Rien d'autre à configurer.
+#
+# Deux limites à connaître :
+#   - le déclenchement planifié de GitHub est « au mieux » : un retard de 5 à 15 min
+#     est normal, ce n'est pas une alerte temps réel ;
+#   - GitHub désactive les planifications d'un dépôt resté 60 jours sans activité
+#     (il prévient par e-mail avant). Sur un site peu modifié, y penser.
+# Pour une détection en 5 minutes, doubler ce contrôle d'un service externe.
+
+name: Surveillance du site
+
+on:
+  schedule:
+    # Toutes les heures à la 17e minute. Décalé volontairement : les planifications
+    # à l'heure pile sont les plus encombrées chez GitHub, donc les plus retardées.
+    - cron: '17 * * * *'
+  workflow_dispatch: # permet aussi de le lancer à la main depuis l'onglet Actions
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Le site répond
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.leszines.fr/)
+          echo "Page d'accueil : $code"
+          [ "$code" = "200" ] || { echo "::error::La page d'accueil répond $code au lieu de 200"; exit 1; }
+
+      - name: Les tarifs se chargent
+        run: |
+          # /api/rates alimente les tableaux de disponibilité. S'il tombe, le site
+          # affiche encore les tarifs de secours : la panne serait invisible à l'œil.
+          corps=$(curl -sS --max-time 30 https://www.leszines.fr/api/rates)
+          echo "$corps" | head -c 200; echo
+          echo "$corps" | grep -q '"weeks"' || { echo "::error::/api/rates ne renvoie pas de semaines"; exit 1; }
+
+      - name: Le formulaire de réservation est branché
+        run: |
+          # Un POST volontairement invalide : l'endpoint doit répondre 400, ce qui
+          # prouve qu'il s'exécute. Aucun e-mail n'est envoyé.
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-Type: application/json' --data 'invalide' \
+            --max-time 30 https://www.leszines.fr/api/reservation)
+          echo "/api/reservation : $code"
+          [ "$code" = "400" ] || { echo "::error::/api/reservation répond $code au lieu de 400 — l'endpoint est cassé"; exit 1; }
+
+      - name: L'apex redirige vers www
+        run: |
+          cible=$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 30 https://leszines.fr/la-villa/)
+          echo "Apex → $cible"
+          [ "$cible" = "https://www.leszines.fr/la-villa/" ] || { echo "::error::L'apex redirige vers '$cible'"; exit 1; }
+
+      - name: La messagerie du domaine est intacte
+        run: |
+          # Les MX portent contact@leszines.fr, par où arrivent les demandes de
+          # réservation. Une zone DNS mal éditée les ferait disparaître en silence.
+          mx=$(curl -sS --max-time 30 'https://dns.google/resolve?name=leszines.fr&type=MX')
+          echo "$mx" | grep -q 'mx1.mail.ovh.net' || { echo "::error::Les MX d'OVH ont disparu de la zone"; exit 1; }
+          echo "MX OVH présents"
+
+      - name: La clé d'envoi Resend est complète
+        run: |
+          # Sans cette clé, ou tronquée, le formulaire cesse d'envoyer les demandes —
+          # avec un 502 que rien ne relie au DNS. Elle avait justement été trouvée
+          # tronquée côté OVH pour l'autre sélecteur (dpmail) en août 2026.
+          cle=$(curl -sS --max-time 30 'https://dns.google/resolve?name=resend._domainkey.leszines.fr&type=TXT' \
+                | grep -o 'p=[A-Za-z0-9+/=]*' | head -1)
+          echo "Longueur de la clé : $(( ${#cle} - 2 )) caractères"
+          case "$cle" in
+            *QIDAQAB) echo "Clé Resend complète" ;;
+            *) echo "::error::La clé resend._domainkey est absente ou tronquée"; exit 1 ;;
+          esac
