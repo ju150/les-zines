@@ -9,8 +9,10 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   # Report-Only d'abord : surveiller la console sur le site déployé, puis renommer en
   # Content-Security-Policy une fois qu'aucune ressource légitime n'est bloquée.
-  # 'unsafe-inline' est requis par les scripts inline d'Astro ; frame-src pour Google Maps.
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; base-uri 'self'; form-action 'self'
+  # 'unsafe-inline' est requis par les scripts inline d'Astro ; frame-src pour Google Maps et
+  # le film de Lège-Cap Ferret ; script-src youtube.com pour l'API IFrame de ce film, chargée
+  # seulement au clic (YouTubeEmbed.astro).
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src https://www.google.com https://www.youtube-nocookie.com; connect-src 'self'; base-uri 'self'; form-action 'self'
 
 # Cache long pour les fichiers statiques immuables
 /fonts/*

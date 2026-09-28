@@ -1,0 +1,172 @@
+---
+import type { Lang } from '../i18n/ui';
+
+// Lecteur YouTube « façade » : on affiche NOTRE photo + un bouton, et rien de YouTube (ni cookie,
+// ni script, ni connexion) n'est chargé tant que le visiteur ne lance pas la vidéo → pas de
+// bandeau cookies, et la page reste légère. Sans JS, le lien ouvre la vidéo sur YouTube.
+interface Props {
+  lang: Lang;
+  /** YouTube video id (the `v=` part of the URL). */
+  id: string;
+  /** Accessible name of the film (link label + iframe title). */
+  title: string;
+  /** Our own poster image (.webp with a -900 variant), replaces YouTube's thumbnail. */
+  poster: string;
+  /** Button label, e.g. « Voir le film ». */
+  cta?: string;
+  /** Small line under the label, e.g. « 2 min 31 ». */
+  meta?: string;
+  /** Credit line shown under the video. */
+  credit?: string;
+}
+const { lang, id, title, poster, meta, credit } = Astro.props;
+const fr = lang === 'fr';
+const cta = Astro.props.cta ?? (fr ? 'Voir la vidéo' : 'Watch the video');
+---
+<!-- Sur laptop, le cadre est limité en hauteur (≈ écran − en-tête − marges) pour qu'on en voie
+     le haut et le bas en même temps ; sur grand écran il reprend toute la largeur. -->
+<figure class="reveal mx-auto lg:max-w-[calc((100svh_-_13rem)*16/9)]">
+  <div class="yt-embed relative aspect-video rounded-2xl overflow-hidden shadow-deep bg-pine-deep" data-yt-id={id} data-yt-title={title} data-lang={lang}>
+    <a
+      href={`https://www.youtube.com/watch?v=${id}`}
+      target="_blank"
+      rel="noopener"
+      class="yt-link group absolute inset-0 z-10 block rounded-2xl"
+    >
+      <span class="sr-only">{fr ? `Lire la vidéo : ${title}.` : `Play the video: ${title}.`}</span>
+      <img
+        src={poster}
+        srcset={`${poster.replace(/\.webp$/, '-900.webp')} 900w, ${poster} 1600w`}
+        sizes="(min-width: 1200px) 1136px, 100vw"
+        alt=""
+        class="yt-poster absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-[1.03]"
+        loading="lazy"
+      />
+      <span class="yt-veil absolute inset-0 bg-gradient-to-t from-pine-deep/40 via-pine-deep/5 to-pine-deep/10 transition-colors duration-500"></span>
+      <span class="absolute inset-0 grid place-items-center p-4">
+        <span class="yt-cta inline-flex items-center gap-3 sm:gap-4 rounded-full bg-white/95 py-2 pl-2 pr-5 sm:pr-7 shadow-deep transition-all duration-300 ease-smooth group-hover:-translate-y-0.5 group-hover:bg-white">
+          <span class="grid place-items-center w-11 h-11 sm:w-14 sm:h-14 shrink-0 rounded-full bg-terra text-white transition-transform duration-300 ease-smooth group-hover:scale-105 group-focus-visible:scale-105">
+            <svg class="yt-play w-5 h-5 sm:w-6 sm:h-6 ml-0.5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5Z"/></svg>
+            <svg class="yt-spin hidden w-6 h-6 sm:w-7 sm:h-7 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="2.5"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </span>
+          <span class="text-left leading-tight">
+            <span class="yt-label block font-semibold text-ink text-[0.95rem] sm:text-lg">{cta}</span>
+            <span class="yt-label-loading hidden font-semibold text-ink text-[0.95rem] sm:text-lg">
+              <span class="sm:hidden">{fr ? 'Lancement…' : 'Starting…'}</span>
+              <span class="hidden sm:inline">{fr ? 'Lancement de la vidéo…' : 'Starting the video…'}</span>
+            </span>
+            {meta && <span class="block text-xs sm:text-sm text-ink-mute mt-0.5">{meta}</span>}
+          </span>
+        </span>
+      </span>
+      <!-- Focus clavier : peint AU-DESSUS de la photo (un ring sur le lien serait masqué par ses
+           enfants et rogné par l'overflow). Bordure blanche + liseré terra = visible sur le ciel
+           comme sur la dune ; la bordure survit au mode contraste élevé (forced colors). -->
+      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-2xl group-focus-visible:border-[3px] group-focus-visible:border-white group-focus-visible:shadow-[inset_0_0_0_3px_#A5482B]"></span>
+    </a>
+    <span class="yt-status sr-only" aria-live="polite"></span>
+  </div>
+  {credit && <figcaption class="mt-3 text-sm text-ink-mute text-center">{credit}</figcaption>}
+</figure>
+
+<style>
+  /* Au clic : spinner + « Lancement de la vidéo… » + photo assombrie, jusqu'au vrai départ. */
+  .yt-embed[data-state] .yt-play,
+  .yt-embed[data-state] .yt-label { display: none; }
+  .yt-embed[data-state] .yt-spin,
+  .yt-embed[data-state] .yt-label-loading { display: block; }
+  .yt-embed[data-state] .yt-veil { background-color: rgb(14 50 45 / 0.35); }
+  .yt-embed[data-state] .yt-link { cursor: progress; }
+  /* Puis la photo s'efface en fondu sur la vidéo qui joue déjà dessous. */
+  .yt-link { transition: opacity 0.5s ease; }
+  .yt-link.is-leaving { opacity: 0; pointer-events: none; }
+</style>
+
+<script>
+  // Au clic, le lecteur YouTube démarre tout de suite SOUS la photo (le lien est en z-10), et l'API
+  // IFrame officielle se charge en parallèle, juste pour savoir quand la lecture a vraiment
+  // commencé : la photo s'efface à ce moment-là, sans jamais laisser voir la vignette YouTube.
+  // Safari et les mobiles bloquent l'autoplay avec son : on relance alors en muet ; en dernier
+  // recours on découvre le lecteur YouTube, qu'un tap lancera.
+  type YTPlayer = { playVideo(): void; mute(): void; getPlayerState(): number };
+  type YTNamespace = { Player: new (el: HTMLElement, opts: object) => YTPlayer; PlayerState: { PLAYING: number } };
+  const w = window as unknown as { YT?: YTNamespace; onYouTubeIframeAPIReady?: () => void };
+
+  let api: Promise<YTNamespace> | undefined;
+  const loadApi = () => (api ??= new Promise<YTNamespace>((resolve, reject) => {
+    if (w.YT?.Player) return resolve(w.YT);
+    const prev = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => { prev?.(); resolve(w.YT!); };
+    const s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    s.onerror = () => { api = undefined; reject(new Error('YouTube API blocked')); };
+    document.head.append(s);
+  }));
+
+  document.querySelectorAll<HTMLElement>('.yt-embed').forEach((box) => {
+    const link = box.querySelector<HTMLAnchorElement>('.yt-link');
+    const status = box.querySelector<HTMLElement>('.yt-status');
+    if (!link) return;
+    const fr = box.dataset.lang !== 'en';
+
+    link.addEventListener('click', (e) => {
+      // Ctrl/Cmd/Shift-click: let the browser open YouTube in a new tab as usual.
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      if (box.dataset.state) return; // déjà en cours de démarrage
+      box.dataset.state = 'loading';
+      link.setAttribute('aria-busy', 'true');
+      if (status) status.textContent = fr ? 'Chargement de la vidéo…' : 'Loading the video…';
+
+      const qs = new URLSearchParams({
+        autoplay: '1', playsinline: '1', rel: '0', hl: box.dataset.lang || 'fr',
+        enablejsapi: '1', origin: location.origin,
+      });
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${box.dataset.ytId}?${qs}`;
+      iframe.title = box.dataset.ytTitle || 'YouTube';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      // YouTube refuse de lire (erreur 153) si l'iframe n'envoie pas l'origine du site.
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.allowFullscreen = true;
+      iframe.className = 'absolute inset-0 w-full h-full border-0';
+      let loaded = false;
+      iframe.addEventListener('load', () => { loaded = true; }, { once: true });
+      box.prepend(iframe);
+
+      let shown = false;
+      const show = () => {
+        if (shown) return;
+        shown = true;
+        box.dataset.state = 'playing';
+        link.removeAttribute('aria-busy');
+        if (status) status.textContent = '';
+        if (document.activeElement === link) iframe.focus();
+        link.classList.add('is-leaving');
+        setTimeout(() => link.remove(), 500);
+      };
+      // Filet de sécurité : si YouTube ne répond jamais, on ne laisse pas la photo « charger » sans fin.
+      setTimeout(show, 8000);
+
+      loadApi().then(
+        (YT) => {
+          const player: YTPlayer = new YT.Player(iframe, {
+            events: {
+              onReady: () => {
+                box.dataset.state = shown ? 'playing' : 'ready';
+                if (player.getPlayerState() === YT.PlayerState.PLAYING) return show();
+                player.playVideo();
+                setTimeout(() => { if (!shown) { player.mute(); player.playVideo(); } }, 1000);
+                setTimeout(show, 3000);
+              },
+              onStateChange: (ev: { data: number }) => { if (ev.data === YT.PlayerState.PLAYING) show(); },
+              onError: () => show(),
+            },
+          });
+        },
+        // API bloquée (bloqueur de pub…) : on découvre le lecteur dès qu'il est chargé.
+        () => { if (loaded) show(); else iframe.addEventListener('load', () => setTimeout(show, 600), { once: true }); },
+      );
+    });
+  });
+</script>

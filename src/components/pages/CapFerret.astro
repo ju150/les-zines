@@ -2,6 +2,7 @@
 import type { Lang } from '../../i18n/ui';
 import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
+import YouTubeEmbed from '../YouTubeEmbed.astro';
 import { SITE } from '../../data/site';
 import JsonLd from '../JsonLd.astro';
 import { breadcrumbSchema } from '../../data/schema';
@@ -43,6 +44,32 @@ const activities = fr
         ? 'Le Cap Ferret, c’est deux visages à quelques pas l’un de l’autre : côté Bassin, les cabanes ostréicoles, les pinasses et les couchers de soleil ; côté océan, les grandes plages, les dunes et les vagues. Depuis la villa, tout se fait à pied ou à vélo, sans reprendre la voiture.'
         : 'Cap Ferret has two faces a few steps apart: on the Bay side, oyster huts, pinasses and sunsets; on the ocean side, wide beaches, dunes and waves. From the villa, everything is done on foot or by bike, without getting back in the car.'}
     </p>
+  </div>
+</section>
+
+<!-- ===== Le film de la commune (poster = notre photo ; lecteur chargé au clic) ===== -->
+<section class="pb-20 sm:pb-24">
+  <div class="wrap">
+    <!-- Centré, comme le cadre vidéo (plus étroit que la page sur laptop). -->
+    <div class="max-w-2xl mx-auto text-center mb-8 reveal">
+      <p class="eyebrow mb-3">{fr ? 'Le film' : 'The film'}</p>
+      <!-- lining-nums : en chiffres elzéviriens (défaut de Cormorant), « 11 » se lit « ıı ». -->
+      <h2 class="h2 lining-nums mb-4">{fr ? '11 villages, une presqu’île.' : '11 villages, one peninsula.'}</h2>
+      <p class="lead mx-auto">
+        {fr
+          ? 'Le Bassin, les cabanes ostréicoles, les plages, le phare : deux minutes et demie pour découvrir la presqu’île, filmée par sa commune.'
+          : 'The Bay, the oyster huts, the beaches, the lighthouse: two and a half minutes to discover the peninsula, filmed by its own town.'}
+      </p>
+    </div>
+    <YouTubeEmbed
+      lang={lang}
+      id={SITE.capFilmYoutubeId}
+      title={fr ? '11 villages, 1 presqu’île — Ville de Lège-Cap Ferret' : '11 villages, 1 peninsula — Town of Lège-Cap Ferret'}
+      poster="/photos/cap-ferret/presquile.webp"
+      cta={fr ? 'Voir le film' : 'Watch the film'}
+      meta="2 min 31"
+      credit={fr ? 'Film : Ville de Lège-Cap Ferret (vœux 2026).' : 'Film: Town of Lège-Cap Ferret (2026).'}
+    />
   </div>
 </section>
 

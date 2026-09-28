@@ -19,6 +19,9 @@ export const SITE = {
   mapsEmbed:
     'https://www.google.com/maps?q=Villa+Les+Zines%2C+Cap+Ferret&t=k&z=18&output=embed',
   mapsLink: 'https://maps.google.com/?q=Villa+Les+Zines+Cap+Ferret',
+  // Film « 11 villages, 1 presqu'île » de la Ville de Lège-Cap Ferret (vœux 2026, 2 min 31),
+  // chaîne YouTube officielle de la commune. Affiché sur la page Le Cap Ferret.
+  capFilmYoutubeId: 'GzIBkvQPsok',
   // Feuille Google « Tarifs & disponibilités — Villa Les Zines (2026-2027) », lue côté
   // serveur par /api/rates. Colonnes : Arrivée, Départ, Prix, Disponibilité, Zones, Afficher.
   // Doit être partagée « Tout le monde avec le lien : Lecteur ». Sinon → repli rates.json.
