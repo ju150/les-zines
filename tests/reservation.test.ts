@@ -113,6 +113,13 @@ describe('e-mails', () => {
     expect(buildConfirmation(sanitizeFields({ ...request, lang: 'en' }), 'c@example.com').subject).toMatch(/^Your booking request/);
     expect(buildConfirmation(sanitizeFields(request), 'c@example.com').subject).toMatch(/^Votre demande de réservation/);
   });
+
+  it('signe l’accusé de réception anglais en anglais, en texte comme en HTML', () => {
+    const mail = buildConfirmation(sanitizeFields({ ...request, lang: 'en' }), 'c@example.com');
+    expect(mail.text).toContain('Jean-Louis and Jean-Christophe Bernard');
+    expect(mail.html).toContain('Jean-Louis and Jean-Christophe Bernard');
+    expect(mail.html).not.toContain('Jean-Louis et');
+  });
 });
 
 describe('providers', () => {

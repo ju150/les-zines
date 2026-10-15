@@ -205,7 +205,7 @@ export function buildConfirmation(f: ReservationFields, replyTo: string): Mail {
           : `In the meantime, if you would like to add anything, simply reply to this email or call us on ${telLink(phoneIntl)}.`,
       )}
       <p style="margin:26px 0 0;">${fr ? 'Au plaisir de vous accueillir au Cap Ferret,' : 'Looking forward to welcoming you in Cap Ferret,'}<br>
-      <strong>${SIGNATURE.fr}</strong></p>
+      <strong>${fr ? SIGNATURE.fr : SIGNATURE.en}</strong></p>
     </div>
     <div style="padding:16px 28px;border-top:1px solid #E4DBCB;font-size:13px;color:#5F6D68;line-height:1.6;">
       ${SITE.name} · ${SITE.addressLine}<br>
