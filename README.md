@@ -1,81 +1,168 @@
-# Villa Les Zines — site web
+# Villa Les Zines · site de location au Cap Ferret
 
-Site de **location** (et vente discrète) de la Villa Les Zines, Cap Ferret.
-Astro + Tailwind, multi-pages, **bilingue FR/EN**, tarifs pilotés par Google Sheet, réservation e-mail/SMS.
+[![CI](https://github.com/ju150/les-zines/actions/workflows/ci.yml/badge.svg)](https://github.com/ju150/les-zines/actions/workflows/ci.yml)
+[![Surveillance](https://github.com/ju150/les-zines/actions/workflows/surveillance.yml/badge.svg)](https://github.com/ju150/les-zines/actions/workflows/surveillance.yml)
 
-## Démarrer
+**[www.leszines.fr](https://www.leszines.fr)** : le site d'une grande villa en bois du Cap Ferret, louée à la
+semaine en été et mise en vente en toute discrétion. Il est en production et sert de vrais
+clients : le propriétaire tient les tarifs dans une feuille Google, les visiteurs consultent les
+disponibilités en français ou en anglais et envoient leur demande de réservation depuis le site.
 
-```bash
-npm install
-npm run dev        # http://localhost:4321  (et /en/ pour l'anglais)
-npm run build      # génère dist/ (16 pages statiques + endpoint serveur)
-npm run preview    # sert le build
+| | |
+| --- | --- |
+| **Stack** | [Astro 7](https://astro.build) (pages statiques), TypeScript strict, Tailwind CSS |
+| **Hébergement** | Cloudflare Workers : fichiers statiques et deux routes serveur |
+| **Tarifs** | feuille Google du propriétaire, lue par `/api/rates`, avec un fichier de secours |
+| **Réservation** | e-mails par [Resend](https://resend.com), SMS Twilio en option, repli `mailto:` |
+| **Qualité** | typage (`astro check`), tests Vitest, audit SEO du build, scan de secrets, surveillance horaire |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  V["Visiteur<br/>(FR / EN)"]
+  subgraph CF["Cloudflare Workers"]
+    A[("Pages statiques<br/>dist/client")]
+    R["/api/rates"]
+    B["/api/reservation"]
+  end
+  S[("Feuille Google<br/>du propriétaire")]
+  J[("rates.json<br/>secours")]
+  M["Resend<br/>(e-mails)"]
+  T["Twilio<br/>(SMS, optionnel)"]
+  V -- "HTML, CSS, photos" --> A
+  V -- "tarifs à jour" --> R
+  R -- "export CSV" --> S
+  R -. "feuille injoignable" .-> J
+  V -- "demande de réservation" --> B
+  B --> M
+  B -.-> T
 ```
+
+Tout le site est pré-rendu au build. Seules deux routes tournent dans le Worker, et toute leur
+logique vit dans `src/lib/`, en fonctions pures qui reçoivent leur configuration en paramètre :
+elles se testent sans réseau et sans Cloudflare. Les routes de `src/pages/api/` se contentent de
+lire la requête et les variables d'environnement, puis d'appeler ces fonctions.
+
+## Choix techniques, et pourquoi
+
+**Un tableur plutôt qu'un CMS.** Le propriétaire n'a rien à apprendre : une ligne par semaine
+(arrivée, départ, prix, disponibilité). Le site déduit le reste : mois, numéro de semaine, nuits,
+zones de vacances scolaires, semaines passées. Le lecteur de la feuille
+([`src/lib/rates/sheet.ts`](src/lib/rates/sheet.ts)) accepte les formats de date que Google
+renvoie réellement, reconnaît les statuts à leur sens (« loué », « réservé », « complet »…) et
+déjoue deux pièges vécus : « indisponible » contient « dispo », et un « non » saisi dans la colonne
+Zones ne doit pas masquer la semaine. Chacun de ces cas a son test.
+
+**Jamais de tableau vide.** Les tableaux de disponibilités sont rendus au build à partir de
+`src/data/rates.json`, puis rafraîchis dans le navigateur par `/api/rates`. Si la feuille est
+injoignable, vide ou illisible, la route sert ce secours et l'indique (`"source": "local"`) ; la
+surveillance horaire le signale.
+
+**Une demande de réservation n'est jamais perdue.** La route
+([`src/lib/reservation/handler.ts`](src/lib/reservation/handler.ts)) filtre les robots par un
+champ pot de miel, nettoie les champs (pas de retour à la ligne dans l'objet d'un e-mail, ce qui
+empêcherait d'injecter des en-têtes), échappe tout le HTML, prévient le propriétaire puis envoie
+un accusé de réception au visiteur. Sans service d'envoi configuré, le navigateur bascule sur un
+e-mail pré-rempli ; l'échec de l'accusé de réception ne fait jamais échouer la demande.
+
+**SEO et visibilité dans les IA.**
+- URL canoniques à slash final, partout : un lien sans slash coûterait une redirection 301.
+- hreflang `fr`, `en` et `x-default` sans région, identiques dans les pages et dans le sitemap.
+- Données structurées JSON-LD : `VacationRental`, `RealEstateListing`, `BreadcrumbList`.
+- La semaine choisie voyage dans le fragment (`/reservation/#week=…`), pas dans la query : Google
+  ne voit qu'une seule page de réservation au lieu d'une par semaine.
+- [`llms.txt`](public/llms.txt) donne aux assistants IA une fiche de faits sans mise en page à
+  décoder ; [`robots.txt`](public/robots.txt) accueille les moteurs de recherche et les agents
+  déclenchés par la question d'un utilisateur, et refuse les robots d'entraînement, en cohérence
+  avec le réglage *AI Crawl Control* de Cloudflare.
+- 36 redirections 301 ([`_redirects`](public/_redirects)) conservent les adresses de l'ancien site.
+
+**Aucun secret dans le dépôt.** Clés et adresse de la feuille sont des secrets Cloudflare, lus en
+un seul endroit ([`src/lib/env.ts`](src/lib/env.ts)). La CI scanne tout l'historique git à chaque
+push. En-têtes de sécurité dans [`_headers`](public/_headers) (HSTS, `X-Frame-Options`, CSP en
+mode rapport).
+
+**Une surveillance hébergée ailleurs.** Le 30 août 2026, l'hébergeur précédent a suspendu le
+compte et le site est resté hors ligne sans que personne ne soit prévenu. Depuis, un workflow
+GitHub Actions ([`surveillance.yml`](.github/workflows/surveillance.yml)), indépendant de
+Cloudflare, vérifie chaque heure que les pages répondent, que les tarifs viennent bien de la
+feuille, que la route de réservation s'exécute, que l'apex redirige vers `www` et que la
+messagerie du domaine (MX, clé DKIM d'envoi) est intacte.
+
+## Qualité
+
+| Commande | Rôle |
+| --- | --- |
+| `npm run check` | typage TypeScript et Astro |
+| `npm test` | tests Vitest : lecture de la feuille, rendu des disponibilités, chargement des tarifs, réservation, traductions |
+| `npm run build` | construit le site dans `dist/` |
+| `npm run audit:seo` | audite le build : titres et descriptions, canonical, hreflang réciproques, un seul `h1`, JSON-LD valide, liens internes, `alt` des images, sitemap, pages orphelines |
+| `npm run verify` | les quatre à la suite, comme la CI |
+
+La [CI](.github/workflows/ci.yml) les exécute à chaque push et à chaque pull request, et
+[gitleaks](https://github.com/gitleaks/gitleaks) y scanne tous les commits de l'historique.
+Dependabot propose chaque mois une mise à jour groupée des dépendances, validée par la CI.
 
 ## Structure
 
 ```
 src/
-  pages/               Pages FR (/) et EN (/en/)  — 8 pages chacune
-    api/reservation.ts Endpoint réservation (e-mail + SMS)
-  components/          Nav, Footer, PageHeader, sections
-    pages/             Contenu de chaque page (bilingue, 1 seule source)
-  data/
-    rates.json         Tarifs 2026 de secours (si la Google Sheet n'est pas connectée)
-    site.ts            Coordonnées, nav, URL Google Sheet, embed Maps
-  i18n/ui.ts           Toutes les chaînes FR + EN
-  styles/global.css    Design system (couleurs, typo, boutons)
-public/photos/         Photos (jour, jardin, nuit, Montuzet)
-google-sheet/          Modèle CSV des tarifs + guide pour l'oncle
+  pages/               routes : 9 pages FR, leurs 9 équivalents EN sous /en/, 404
+    api/               rates.ts et reservation.ts : seules routes exécutées côté serveur
+  components/pages/    contenu de chaque page, une seule source pour les deux langues
+  components/          navigation, pied de page, en-têtes, visionneuse, JSON-LD
+  layouts/Base.astro   <head> commun : canonical, hreflang, Open Graph
+  lib/rates/           feuille → semaines → tableau de disponibilités
+  lib/reservation/     champs, e-mails, envoi, traitement d'une demande
+  lib/env.ts           seul accès aux variables d'environnement
+  i18n/ui.ts           toutes les chaînes FR et EN
+  data/                coordonnées, tarifs de secours, schémas JSON-LD
+tests/                 tests Vitest de src/lib et de l'i18n
+scripts/               audit SEO, manifeste des photos, optimisation des images et des polices
+docs/                  guide des tarifs, journal de migration, design system
+public/                photos, polices auto-hébergées, robots.txt, llms.txt, _headers, _redirects
 ```
 
-## Tarifs & disponibilités (Google Sheet)
+## Développement local
 
-Voir **`google-sheet/GUIDE-ONCLE.md`**. En résumé : l'oncle édite une feuille Google, la publie
-en CSV, on colle l'URL dans `src/data/site.ts` (`ratesSheetCsv`). Sans URL, le site utilise
-`src/data/rates.json` (déjà rempli avec les tarifs 2026).
+Prérequis : Node 22 (voir `.nvmrc`).
 
-## Réservation (e-mail + SMS)
-
-Le formulaire poste sur `/api/reservation`. Configurer les clés dans un fichier `.env`
-(voir `.env.example`) : **Brevo** (prioritaire) ou **Resend** pour l'e-mail, **Twilio** pour
-le SMS (optionnel). Sans clés, le formulaire ouvre automatiquement un e-mail pré-rempli —
-jamais de panne. Le champ caché `website` est un honeypot anti-spam : s'il est rempli, la
-demande est silencieusement ignorée.
+```bash
+npm ci
+cp .env.example .env   # facultatif : sans clés, les tarifs viennent de rates.json et le formulaire passe par mailto
+npm run dev            # http://localhost:4321 et /en/ pour l'anglais
+```
 
 ## Déploiement
 
-Adaptateur **Cloudflare Pages** (`@astrojs/cloudflare`) : pages statiques + Pages Functions
-pour `/api/rates` et `/api/reservation`. Renseigner les variables d'environnement
-(Resend/Twilio) dans Cloudflare → Workers & Pages → le projet → Settings → Variables and
-Secrets, puis relancer un déploiement. Le DNS reste chez **OVH** : `www` est un CNAME vers
-`<projet>.pages.dev`, l'apex `leszines.fr` redirige en 301 vers `www` — les enregistrements
-MX d'OVH (messagerie du domaine) ne bougent pas.
+Chaque push sur `main` est construit et déployé par Cloudflare Workers Builds
+(`npm run build`, puis `npx wrangler deploy -c dist/server/wrangler.json`). Les variables non
+sensibles sont dans [`wrangler.jsonc`](wrangler.jsonc) ; les secrets se saisissent dans le tableau
+de bord Cloudflare ou avec `npx wrangler secret put <NOM> --name les-zines` :
 
-Redirections et en-têtes : `public/_redirects` et `public/_headers` (la CSP est en
-Report-Only : à passer en `Content-Security-Policy` après vérification console sur le site
-déployé). `wrangler.jsonc` porte la date et les drapeaux de compatibilité du runtime.
+| Secret | Rôle |
+| --- | --- |
+| `RATES_SHEET_CSV_URL` | adresse d'export CSV de la feuille des tarifs |
+| `RESEND_API_KEY` | envoi des demandes et des accusés de réception |
+| `TWILIO_*` | SMS au propriétaire (optionnel, non utilisé aujourd'hui) |
 
-> Historique : le site était hébergé chez Netlify (`netlify.toml`, conservé pour mémoire)
-> jusqu'à la suspension de l'équipe pour dépassement de crédits, le 30 août 2026.
+Le détail de la mise en place, DNS compris, est dans le
+[journal de migration](docs/runbook-migration-cloudflare.md).
 
-## SEO
+## Documentation
 
-- `Base.astro` génère canonical, hreflang fr/en/x-default, Open Graph (image `public/photos/og.jpg`)
-  et Twitter Cards ; JSON-LD (VacationRental, RealEstateListing, BreadcrumbList) via `src/data/schema.ts`.
-- Sitemap : `@astrojs/sitemap` (`/sitemap-index.xml`), déclaré dans `public/robots.txt`.
-- Crawlers IA : recherche et agents autorisés, robots d'entraînement refusés. Le blocage
-  réel vient du réglage Cloudflare (AI Crawl Control), `public/robots.txt` déclare la même
-  politique en repli — les deux doivent rester cohérents, sinon le fichier gagne et annule
-  le réglage. Fiche d'infos pour les IA : `public/llms.txt`.
-- Après un changement de tarifs dans la Google Sheet, penser à resynchroniser
-  `src/data/rates.json` (fallback affiché en SSR) et à redéployer.
+- [Guide des tarifs](docs/guide-tarifs.md) : la feuille Google, colonne par colonne, pour le propriétaire.
+- [Journal de migration](docs/runbook-migration-cloudflare.md) : passage de Netlify à Cloudflare Workers.
+- [Design system](docs/design-system.md) : couleurs, typographie, composants.
+- [AGENTS.md](AGENTS.md) : règles du projet pour les agents de code.
 
-## Outils
+## Méthode
 
-- `node scripts-tools/optimize-images.mjs` : OG card, apple-touch-icon, conversion WebP des photos.
-- `node scripts-tools/selfhost-fonts.mjs` : re-télécharge les polices auto-hébergées (public/fonts/).
+Conçu, développé et maintenu par [Julien Bernard](https://github.com/ju150). Chaque changement est vérifié avant de partir en production (typage, tests,
+build, audit SEO), et les messages de commit expliquent le pourquoi autant que le quoi.
 
-## À compléter
+## Licence
 
-- Clés Brevo / Twilio pour l'envoi réel (variables d'environnement Netlify).
+Code publié à titre de démonstration, sans licence open source : tous droits réservés. Les
+photos, les textes et le nom « Villa Les Zines » appartiennent au propriétaire de la villa.
