@@ -19,20 +19,20 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.2.5",
-    "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.2.9",
+    "@astrojs/cloudflare": "^14.3.4",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.8",
     "flatpickr": "^4.6.13",
     "gsap": "^3.12.5",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "autoprefixer": "^10.5.4",
+    "autoprefixer": "^10.6.1",
     "node-html-parser": "^9.0.4",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.5",
     "typescript": "^6.0.3",
     "vitest": "^5.0.4",
-    "wrangler": "^4.127.1"
+    "wrangler": "^4.149.0"
   }
 }
