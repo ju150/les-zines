@@ -136,8 +136,10 @@ npm run dev            # http://localhost:4321 et /en/ pour l'anglais
 
 ## Déploiement
 
-Chaque push sur `main` est construit et déployé par Cloudflare Workers Builds
-(`npm run build`, puis `npx wrangler deploy -c dist/server/wrangler.json`). Les variables non
+Chaque push sur `main` est construit et déployé par Cloudflare Workers Builds : `npm run build`,
+puis `npx wrangler deploy`. Inutile de lui passer `-c` : le build écrit
+`.wrangler/deploy/config.json`, qui redirige wrangler vers la configuration générée par
+l'adaptateur (`dist/server/wrangler.json` : le Worker et ses fichiers statiques). Les variables non
 sensibles sont dans [`wrangler.jsonc`](wrangler.jsonc) ; les secrets sont des variables
 d'exécution du Worker (Settings → Variables and Secrets, type « Secret », ou
 `npx wrangler secret put <NOM> --name les-zines`), jamais des variables de build. Aucun n'est
