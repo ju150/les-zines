@@ -11,6 +11,11 @@ updates:
       dependances:
         patterns: ['*']
         update-types: [minor, patch]
+    # Une version majeure (Tailwind 4, TypeScript 7…) demande une migration : elle se fait à
+    # la main, sur une branche, pas par une pull request automatique vouée à échouer.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
