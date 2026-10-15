@@ -22,11 +22,8 @@ export const SITE = {
   // Film « 11 villages, 1 presqu'île » de la Ville de Lège-Cap Ferret (vœux 2026, 2 min 31),
   // chaîne YouTube officielle de la commune. Affiché sur la page Le Cap Ferret.
   capFilmYoutubeId: 'GzIBkvQPsok',
-  // Feuille Google « Tarifs & disponibilités — Villa Les Zines (2026-2027) », lue côté
-  // serveur par /api/rates. Colonnes : Arrivée, Départ, Prix, Disponibilité, Zones, Afficher.
-  // Doit être partagée « Tout le monde avec le lien : Lecteur ». Sinon → repli rates.json.
-  ratesSheetCsv:
-    'https://docs.google.com/spreadsheets/d/REDACTED_SHEET_ID/gviz/tq?tqx=out:csv',
+  // La feuille Google des tarifs n'est pas ici : son adresse est le secret RATES_SHEET_CSV_URL
+  // (lisible par quiconque a le lien, elle ne doit pas être publiée). Voir src/lib/rates/load.ts.
 } as const;
 
 // Navigation shown in the header (montuzet + à-vendre live in the footer / secondary).

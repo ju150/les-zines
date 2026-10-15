@@ -3,7 +3,7 @@ import type { Lang } from '../../i18n/ui';
 import { useTranslations, localizedPath } from '../../i18n/ui';
 import { SITE } from '../../data/site';
 import rates from '../../data/rates.json';
-import { renderAvailability } from '../../scripts/availability';
+import { renderAvailability } from '../../lib/rates/availability';
 import JsonLd from '../JsonLd.astro';
 import { vacationRentalSchema } from '../../data/schema';
 
@@ -208,7 +208,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
 </section>
 
 <script>
-  import { renderAvailability } from '../../scripts/availability';
+  import { renderAvailability } from '../../lib/rates/availability';
   const el = document.getElementById('home-avail');
   if (el) {
     const lang = el.dataset.lang || 'fr';

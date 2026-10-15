@@ -19,9 +19,13 @@
   // Ces trois valeurs sont de toute façon publiques : les deux adresses sont
   // affichées sur la page Contact.
   //
-  // La clé Resend, elle, reste un SECRET du tableau de bord (Settings → Variables
-  // and Secrets → type « Secret »). Les secrets sont gérés à part et survivent aux
-  // déploiements ; ils n'ont rien à faire dans le dépôt.
+  // Les secrets, eux, sont gérés à part par Cloudflare (Settings → Variables and Secrets,
+  // type « Secret », ou `npx wrangler secret put <NOM> --name les-zines`), survivent aux
+  // déploiements et n'ont rien à faire dans le dépôt :
+  //   RATES_SHEET_CSV_URL  adresse d'export CSV de la feuille Google des tarifs
+  //   RESEND_API_KEY       envoi des e-mails de réservation
+  //   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM, TWILIO_TO  SMS (optionnels)
+  // Modèle commenté pour le développement local : .env.example.
   "vars": {
     "RESERVATION_FROM": "Villa Les Zines <reservation@leszines.fr>",
     "RESERVATION_TO": "contact@leszines.fr",

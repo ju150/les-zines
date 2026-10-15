@@ -5,6 +5,8 @@
 // (mois affiché, format des dates, zones de vacances, semaine passée ou non) est déduit
 // par le code. La feuille Google reste donc ultra-simple : Arrivée, Départ, Prix, Dispo.
 
+import { escapeHtml as esc } from '../html';
+
 export type Week = {
   /** Date d'arrivée, ISO 'YYYY-MM-DD'. */
   start: string;
@@ -55,12 +57,9 @@ export interface AvailabilityOpts {
   scope?: Scope;
 }
 
-const esc = (s: string) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
-
 /**
  * Base du lien « Réserver », slash final garanti : « /reservation/#week=… ».
- * Sans le slash, Netlify 301 vers la forme avec slash — un aller-retour inutile
+ * Sans le slash, le serveur répond par un 301 vers la forme avec slash — un aller-retour inutile
  * pour le visiteur et pour Googlebot.
  *
  * La semaine voyage dans le FRAGMENT (#), pas dans la query (?). Une query crée une URL

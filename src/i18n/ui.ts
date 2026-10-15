@@ -5,7 +5,7 @@ export type Lang = keyof typeof languages;
 /**
  * Build a locale-aware path. slug '' → home.
  * Toujours avec slash final : les pages sont générées en dossiers (`/la-villa/index.html`)
- * et Netlify 301 « /la-villa » → « /la-villa/ ». Un lien sans slash ferait donc faire un
+ * et le serveur répond « /la-villa » → 301 → « /la-villa/ ». Un lien sans slash ferait donc faire un
  * aller-retour 301 au visiteur ET à Googlebot (rapport « Page avec redirection » en
  * Search Console). Le slash final est l'URL canonique déclarée dans Base.astro.
  */

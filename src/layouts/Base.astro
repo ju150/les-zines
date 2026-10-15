@@ -19,7 +19,7 @@ const { lang, title, description = '', transparentNav = false, image = '/photos/
 const t = useTranslations(lang);
 
 // Canonical + hreflang. Pages are prerendered, so Astro.url.pathname is the route
-// path at build time. Netlify 301s "/la-villa" → "/la-villa/", so the trailing-slash
+// path at build time. The server 301s "/la-villa" → "/la-villa/", so the trailing-slash
 // form is the canonical one.
 const site = Astro.site ?? new URL('https://www.leszines.fr');
 const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/';

@@ -1,9 +1,10 @@
 // Lecture de la feuille Google (CSV) → semaines exploitables par le tableau de disponibilités.
 //
-// Le format côté oncle est volontairement minimal (cf. google-sheet/GUIDE-ONCLE.md) :
+// Le format côté propriétaire est volontairement minimal (cf. docs/guide-tarifs.md) :
 //   Arrivée | Départ | Prix | Disponibilité | Zones | Afficher     (colonnes en trop ignorées)
 //
-// Ce module est isolé de la route /api/rates pour pouvoir être relu et testé seul :
+// Ce module est isolé de la route /api/rates pour pouvoir être relu et testé seul
+// (tests/sheet.test.ts) :
 // c'est lui qui décide qu'une semaine est louée, indisponible, sans zone ou masquée.
 
 import type { Week } from './availability';

@@ -3,7 +3,7 @@ import type { Lang } from '../../i18n/ui';
 import { useTranslations, localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import rates from '../../data/rates.json';
-import { renderAvailability, scopedWeeks } from '../../scripts/availability';
+import { renderAvailability, scopedWeeks } from '../../lib/rates/availability';
 import JsonLd from '../JsonLd.astro';
 import { vacationRentalSchema, breadcrumbSchema } from '../../data/schema';
 
@@ -80,7 +80,7 @@ const pastLabel = (n: number) =>
 </section>
 
 <script>
-  import { renderAvailability, scopedWeeks } from '../../scripts/availability';
+  import { renderAvailability, scopedWeeks } from '../../lib/rates/availability';
   const table = document.getElementById('rates-table');
   if (table) {
     const lang = table.dataset.lang || 'fr';

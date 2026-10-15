@@ -1,18 +1,17 @@
 ---
 import type { Lang } from '../../i18n/ui';
-import { useTranslations, localizedPath } from '../../i18n/ui';
+import { localizedPath } from '../../i18n/ui';
 import { SITE } from '../../data/site';
 import rates from '../../data/rates.json';
-import { renderAvailability } from '../../scripts/availability';
+import { renderAvailability } from '../../lib/rates/availability';
 import JsonLd from '../JsonLd.astro';
 import { breadcrumbSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
-const t = useTranslations(lang);
 const fr = lang === 'fr';
-// NOTE: this page is prerendered — query params (?week=…) don't exist at build time
-// and are read client-side in the script below.
+// Page pré-rendue : la semaine choisie (#week=…) n'existe pas au build, le script
+// ci-dessous la lit côté navigateur.
 const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 ---
 <JsonLd data={breadcrumbSchema(lang, 'reservation', fr ? 'Réservation' : 'Booking')} />
@@ -112,7 +111,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
   import flatpickr from 'flatpickr';
   import { French } from 'flatpickr/dist/l10n/fr.js';
   import 'flatpickr/dist/flatpickr.min.css';
-  import { renderAvailability } from '../../scripts/availability';
+  import { renderAvailability } from '../../lib/rates/availability';
   import { showConfirmation } from '../../scripts/confirmPopup';
 
   const form = document.getElementById('reservation-form') as HTMLFormElement;
