@@ -17,20 +17,22 @@
 > | `www.leszines.fr` | Custom Domain du Worker `les-zines` (proxifié) |
 > | `leszines.fr` | `AAAA 100::` proxifié + Redirect Rule 301 vers `www` |
 > | Déploiement | Workers Builds sur `push` vers `main` (dépôt `ju150/les-zines`) |
-> | Variables | 3 dans `wrangler.jsonc`, `RESEND_API_KEY` en secret du tableau de bord |
+> | Variables | 3 dans `wrangler.jsonc` ; secrets du tableau de bord : `RESEND_API_KEY`, `RATES_SHEET_CSV_URL` (depuis octobre 2026) |
 >
-> **Reste à faire**
+> **Suites (état au 15 octobre 2026)**
 >
 > 1. **DKIM OVH** — la régénération lancée le 30 août n'était pas encore publiée à la
->    bascule. Les serveurs d'OVH continuent de répondre pour cette zone : relever la
->    nouvelle valeur avec `nslookup -type=TXT dpmail._domainkey.leszines.fr dns20.ovh.net`,
+>    bascule. Relever la valeur avec `nslookup -type=TXT dpmail._domainkey.leszines.fr dns20.ovh.net`,
 >    vérifier qu'elle fait ~216 caractères et finit par `QIDAQAB`, puis l'ajouter en TXT
->    chez Cloudflare. Voir « La clé DKIM d'OVH est tronquée » plus bas.
-> 2. **Surveillance** — aucune alerte n'existe aujourd'hui : la panne Netlify a été
->    découverte par hasard. Un contrôle externe type UptimeRobot sur `www.leszines.fr`
->    (gratuit, 5 min d'intervalle) comble ce trou.
-> 3. **`public/robots.txt`** — il accueille encore explicitement tous les crawlers IA, ce
->    qui contredit le réglage « Training : Block » choisi côté Cloudflare.
+>    chez Cloudflare. Voir « La clé DKIM d'OVH est tronquée » plus bas. *À vérifier.*
+> 2. **Surveillance** — *fait* : contrôle horaire par GitHub Actions
+>    (`.github/workflows/surveillance.yml`), hébergé hors de Cloudflare.
+> 3. **`public/robots.txt`** — *fait* : il refuse désormais les robots d'entraînement, en
+>    cohérence avec le réglage « Training : Block » de Cloudflare.
+>
+> Ce document est le journal de la migration : les chemins cités (`netlify.toml`,
+> `scripts-tools/`) sont ceux de l'époque. Depuis, `netlify.toml` a été retiré du dépôt
+> (il reste dans l'historique git) et `scripts-tools/` est devenu `scripts/`.
 
 Le 30 août 2026, Netlify a mis en pause **toute l'équipe** (« This team has exceeded the
 credit limit »), pas seulement ce projet : `www.leszines.fr`, l'apex et l'adresse

@@ -1,4 +1,4 @@
-// One-shot image optimization (run: node scripts-tools/optimize-images.mjs)
+// One-shot image optimization (run: node scripts/optimize-images.mjs)
 // - Generates the OG card (1200×630) and apple-touch-icon from existing assets
 // - Converts the big hero/gallery photos referenced in src/ to resized WebP and removes the originals
 // - Recompresses the auto-scanned villa gallery JPEGs in place (same filenames)

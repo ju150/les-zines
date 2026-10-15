@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run photos && astro dev",
     "build": "npm run photos && astro build",
-    "photos": "node scripts-tools/photo-manifest.mjs",
+    "photos": "node scripts/photo-manifest.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

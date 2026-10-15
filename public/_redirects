@@ -1,4 +1,4 @@
-# Cloudflare Pages/Workers — portage des règles de `netlify.toml`.
+# Redirections 301 appliquées par Cloudflare (Workers Static Assets).
 # Format : <source> <destination> <code>. La PREMIÈRE règle qui correspond gagne.
 #
 # Ordre : toutes les règles littérales d'abord, celles à paramètre (`:page`) et à

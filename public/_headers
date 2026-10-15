@@ -1,4 +1,4 @@
-# Cloudflare Pages — portage des en-têtes de `netlify.toml`.
+# En-têtes HTTP appliqués par Cloudflare (Workers Static Assets).
 # Format : un motif de chemin, puis les en-têtes indentés de deux espaces.
 
 /*

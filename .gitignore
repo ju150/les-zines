@@ -1,17 +1,27 @@
-# build output
+# Build
 dist/
 .astro/
-.netlify/
 .wrangler/
-# dependencies
+
+# Dépendances
 node_modules/
-# logs
+
+# Journaux
 npm-debug.log*
-# environment variables
+
+# Variables d'environnement et secrets locaux (modèle : .env.example)
 .env
-.env.production
-# macOS / editor
+.env.*
+!.env.example
+.dev.vars*
+
+# Généré au build par scripts/photo-manifest.mjs
+src/data/photos.json
+
+# Outils locaux (éditeur, système)
+.netlify/
 .DS_Store
 *.local
-# photos sources (non utilisées par le build — servies depuis public/photos)
+
+# Photos sources, non servies (le site utilise public/photos)
 assets/

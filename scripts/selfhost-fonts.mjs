@@ -1,7 +1,7 @@
 // One-shot: download the Google Fonts woff2 files used by the site into public/fonts/
 // and emit src/styles/fonts.css with local @font-face rules (RGPD: no more requests
 // to fonts.googleapis.com / fonts.gstatic.com at runtime).
-// Run: node scripts-tools/selfhost-fonts.mjs
+// Run: node scripts/selfhost-fonts.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -18,7 +18,7 @@ const css = await (await fetch(CSS_URL, { headers: { 'User-Agent': UA } })).text
 
 // The css2 payload is a sequence of "/* subset */ @font-face { ... }" blocks.
 const blocks = [...css.matchAll(/\/\*\s*([\w-]+)\s*\*\/\s*(@font-face\s*\{[^}]+\})/g)];
-let out = '/* Polices auto-hébergées (générées par scripts-tools/selfhost-fonts.mjs) */\n';
+let out = '/* Polices auto-hébergées (générées par scripts/selfhost-fonts.mjs) */\n';
 let count = 0;
 for (const [, subset, face] of blocks) {
   if (!SUBSETS.has(subset)) continue;
