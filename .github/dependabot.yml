@@ -1,0 +1,21 @@
+# Mises à jour des dépendances : une pull request groupée par mois et par écosystème,
+# que la CI valide avant toute fusion (un push sur main part en production).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      dependances:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
