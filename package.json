@@ -1,13 +1,21 @@
 {
-  "name": "villa-les-zines",
+  "name": "les-zines",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Site de location de la Villa Les Zines au Cap Ferret : Astro, bilingue FR/EN, déployé sur Cloudflare Workers.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "npm run photos && astro dev",
     "build": "npm run photos && astro build",
-    "photos": "node scripts/photo-manifest.mjs",
     "preview": "astro preview",
+    "photos": "node scripts/photo-manifest.mjs",
+    "check": "npm run photos && astro check",
+    "test": "vitest run",
+    "audit:seo": "node scripts/seo-audit.mjs",
+    "verify": "npm run check && npm test && npm run build && npm run audit:seo",
     "astro": "astro"
   },
   "dependencies": {
@@ -19,8 +27,12 @@
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "autoprefixer": "^10.5.4",
+    "node-html-parser": "^9.0.4",
     "sharp": "^0.35.3",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.4",
     "wrangler": "^4.127.1"
   }
 }
