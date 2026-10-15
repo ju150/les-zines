@@ -18,11 +18,13 @@ Un push sur `main` part **en production** (Cloudflare Workers Builds). Rien n'y 
   paramètre. Les routes de `src/pages/api/` restent fines : lire la requête et l'environnement,
   appeler `src/lib`, renvoyer la réponse. Toute nouvelle logique arrive avec ses tests dans `tests/`.
 - **`src/lib/env.ts` est le seul accès aux variables d'environnement** et le seul import de
-  `cloudflare:workers`. Ne jamais utiliser `Astro.locals.runtime.env` : depuis Astro 6, il lève une
-  exception.
+  `cloudflare:workers`. Ne jamais utiliser `Astro.locals.runtime.env` (depuis Astro 6, il lève une
+  exception), ni `import.meta.env` pour un secret (Vite le fige au build).
 - **Aucun secret dans le dépôt**, ni en clair ni en commentaire : clés d'API, jetons, et l'adresse
   de la feuille Google des tarifs (lisible par quiconque a le lien). Les secrets vont dans
-  Cloudflare ; `.env.example` ne contient que des noms. La CI lance gitleaks sur tout l'historique.
+  Cloudflare, en variables d'exécution (Settings → Variables and Secrets, type « Secret »), jamais
+  en variables de build (Settings → Builds) ; `.env.example` ne contient que des noms. La CI lance
+  gitleaks sur tout l'historique.
 - **Variables non sensibles dans `wrangler.jsonc`**, pas dans le tableau de bord : `wrangler deploy`
   écrase celles saisies dans l'interface.
 - **Tout ce qui vient d'un visiteur ou de la feuille passe par `escapeHtml`** (`src/lib/html.ts`)

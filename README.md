@@ -138,8 +138,10 @@ npm run dev            # http://localhost:4321 et /en/ pour l'anglais
 
 Chaque push sur `main` est construit et déployé par Cloudflare Workers Builds
 (`npm run build`, puis `npx wrangler deploy -c dist/server/wrangler.json`). Les variables non
-sensibles sont dans [`wrangler.jsonc`](wrangler.jsonc) ; les secrets se saisissent dans le tableau
-de bord Cloudflare ou avec `npx wrangler secret put <NOM> --name les-zines` :
+sensibles sont dans [`wrangler.jsonc`](wrangler.jsonc) ; les secrets sont des variables
+d'exécution du Worker (Settings → Variables and Secrets, type « Secret », ou
+`npx wrangler secret put <NOM> --name les-zines`), jamais des variables de build. Aucun n'est
+lu par `import.meta.env`, que Vite fige au build : le bundle déployé n'en contient aucun.
 
 | Secret | Rôle |
 | --- | --- |
