@@ -122,8 +122,13 @@ Cloudflare → **Workers & Pages → Create → Import a repository** → `ju150
 | Réglage | Valeur |
 | --- | --- |
 | Build command | `npm run build` |
-| Deploy command | `npx wrangler deploy -c dist/server/wrangler.json` |
+| Deploy command | `npx wrangler deploy` (*) |
 | Version de Node | lue dans `.nvmrc` (22) |
+
+(*) Le build écrit `.wrangler/deploy/config.json`, qui redirige `wrangler deploy` vers
+`dist/server/wrangler.json` (« Using redirected Wrangler configuration ») : préciser
+`-c dist/server/wrangler.json` revient au même et n'est pas nécessaire. C'est la commande
+réglée en production.
 
 Puis **Settings → Variables and Secrets** : ajouter `RESEND_API_KEY` en type « Secret »
 (et rien d'autre — voir l'étape 1), puis **relancer un déploiement** : les variables ne
