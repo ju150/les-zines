@@ -45,7 +45,18 @@ jobs:
           # Des semaines, mais celles du fichier de secours : la feuille Google est
           # injoignable, ou le secret RATES_SHEET_CSV_URL manque. Les visiteurs verraient
           # des tarifs et des disponibilités figés sans que rien ne casse à l'écran.
-          echo "$corps" | grep -q '"source":"sheet"' || { echo "::error::/api/rates sert les tarifs de secours au lieu de la feuille Google"; exit 1; }
+          # Google met parfois plus de 5 s à répondre (délai maximal de /api/rates) : un
+          # repli isolé n'est pas une panne. Trois essais sur une minute avant d'alerter ;
+          # le paramètre unique de chaque essai évite de relire une réponse en cache.
+          for essai in 1 2 3; do
+            echo "$corps" | grep -q '"source":"sheet"' && exit 0
+            echo "Essai $essai : tarifs de secours servis"
+            [ "$essai" = 3 ] && break
+            sleep 30
+            corps=$(curl -sS --max-time 30 "https://www.leszines.fr/api/rates?surveillance=$essai-$(date +%s)")
+          done
+          echo "::error::/api/rates sert les tarifs de secours au lieu de la feuille Google (3 essais sur une minute)"
+          exit 1
 
       - name: Le formulaire de réservation est branché
         run: |
