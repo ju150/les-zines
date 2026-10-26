@@ -11,6 +11,29 @@
 /index.html            /            301
 /en/index.html         /en/         301
 
+# ——— URL sans slash final → URL canonique ———
+# Sans ces règles, Cloudflare ajoute lui-même le slash, mais en 307 (temporaire) :
+# Google garde alors l'URL sans slash en « Page avec redirection » au lieu de la
+# fusionner. Pas de boucle possible : les règles sont en correspondance exacte,
+# « /contact » ne correspond pas à « /contact/ ».
+/en                    /en/                     301
+/la-villa              /la-villa/               301
+/le-jardin             /le-jardin/              301
+/le-cap-ferret         /le-cap-ferret/          301
+/sejours-tarifs        /sejours-tarifs/         301
+/reservation           /reservation/            301
+/a-vendre              /a-vendre/               301
+/contact               /contact/                301
+/mentions-legales      /mentions-legales/       301
+/en/la-villa           /en/la-villa/            301
+/en/le-jardin          /en/le-jardin/           301
+/en/le-cap-ferret      /en/le-cap-ferret/       301
+/en/sejours-tarifs     /en/sejours-tarifs/      301
+/en/reservation        /en/reservation/         301
+/en/a-vendre           /en/a-vendre/            301
+/en/contact            /en/contact/             301
+/en/mentions-legales   /en/mentions-legales/    301
+
 # ——— Redirections des anciennes URL (ex-site Wix) vers les nouvelles pages ———
 # 301 permanent : préserve le référencement acquis et évite les 404 sur les liens
 # ou favoris pointant vers l'ancien site.
