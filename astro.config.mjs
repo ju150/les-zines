@@ -12,6 +12,12 @@ const BUILD_COMMIT = process.env.WORKERS_CI_COMMIT_SHA ?? '';
 export default defineConfig({
   site: 'https://www.leszines.fr',
   vite: { define: { __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT) } },
+  // Pas de sessions : le site n'en utilise aucune. Sans ce réglage, l'adaptateur Cloudflare
+  // ajoute d'office une liaison KV « SESSION » sans identifiant. `wrangler deploy` crée ce
+  // stockage en production, mais l'aperçu des pull requests (`wrangler preview`) refuse une
+  // liaison sans identifiant (« binding SESSION of type kv_namespace must have a namespace_id
+  // specified ») : chaque pull request affichait un contrôle Cloudflare en échec.
+  session: false,
   // Pages statiques par défaut ; les routes /api/ s'en excluent (`export const prerender =
   // false`) et tournent dans le Worker Cloudflare. Tailwind est branché via postcss.config.mjs.
   // Redirections et en-têtes : public/_redirects et public/_headers.
