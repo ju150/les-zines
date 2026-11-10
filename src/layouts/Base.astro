@@ -35,6 +35,9 @@ const ogLocale = lang === 'fr' ? 'fr_FR' : 'en_GB';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {/* L'icône .ico en premier : Bing, DuckDuckGo et les listes de sources des assistants la
+        cherchent à la racine et ne lisent pas le SVG — le site y apparaissait avec un rond gris. */}
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     {/*
