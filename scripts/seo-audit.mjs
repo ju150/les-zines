@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'node-html-parser';
 
 const DIST = fileURLToPath(new URL('../dist/client/', import.meta.url));
+const SRC = fileURLToPath(new URL('../src/', import.meta.url));
 const SITE = 'https://www.leszines.fr';
 const HREFLANGS = ['fr', 'en', 'x-default'];
 const TITLE_LENGTH = { min: 15, max: 65 };
@@ -19,6 +20,39 @@ if (!fs.existsSync(DIST)) {
   console.error('dist/client introuvable : lancer `npm run build` avant l’audit.');
   process.exit(1);
 }
+
+// ——— Les deux faits que le site a déjà annoncés faux aux moteurs ———
+// Jusqu'en novembre 2026, toutes les pages portaient le code postal 33950 (le bourg de Lège)
+// au lieu de 33970 (le Cap Ferret), et les données structurées un prix maximum périmé.
+// Rien ne le signalait : l'audit ne vérifiait que la syntaxe du JSON-LD. Il compare
+// maintenant ce que le build annonce aux deux sources de vérité, site.ts et rates.json.
+const POSTCODE = /postcode:\s*'(\d{5})'/.exec(fs.readFileSync(path.join(SRC, 'data/site.ts'), 'utf8'))?.[1];
+const WRONG_POSTCODE = '33950';
+if (!POSTCODE) {
+  console.error('Code postal introuvable dans src/data/site.ts : l’audit ne peut pas le contrôler.');
+  process.exit(1);
+}
+
+/**
+ * Prix le plus bas et le plus haut de la saison en cours de commercialisation, d'après
+ * rates.json. MÊME RÈGLE que rateSummary (src/lib/rates/summary.ts), à modifier ensemble :
+ * toutes les semaines des années qui ont encore un départ à venir ; à défaut, la dernière
+ * année connue. `null` seulement si aucune semaine n'a de prix.
+ */
+const seasonPrices = (() => {
+  const { weeks } = JSON.parse(fs.readFileSync(path.join(SRC, 'data/rates.json'), 'utf8'));
+  const today = new Date().toISOString().slice(0, 10);
+  const year = (w) => w.start.slice(0, 4);
+  const known = weeks.filter((w) => w.show !== false && w.price > 0 && /^\d{4}-\d{2}-\d{2}/.test(w.start ?? ''));
+  if (!known.length) return null;
+  const upcoming = new Set(known.filter((w) => w.end > today).map(year));
+  const seasonYears = upcoming.size ? upcoming : new Set([known.map(year).sort().at(-1)]);
+  const prices = known.filter((w) => seasonYears.has(year(w))).map((w) => w.price);
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+})();
+
+/** « 5 000 € – 9 900 € / semaine » ou « €5,000 – €9,900 per week » → [5000, 9900]. */
+const amountsIn = (text) => (String(text).match(/\d[\d\s,  ]*/g) ?? []).map((n) => Number(n.replace(/\D/g, '')));
 
 const errors = [];
 const warnings = [];
@@ -124,17 +158,80 @@ for (const page of pages.values()) {
   if (!ogImage) error(urlPath, 'og:image absente');
   else if (ogImage.startsWith(SITE) && !existsInDist(new URL(ogImage).pathname)) error(urlPath, `og:image introuvable : ${ogImage}`);
 
+  // Texte visible : aucune page ne doit réafficher l'ancien code postal.
+  if (root.querySelector('body')?.text.includes(WRONG_POSTCODE)) {
+    error(urlPath, `le code postal ${WRONG_POSTCODE} réapparaît dans la page (le bon est ${POSTCODE}, voir src/data/site.ts)`);
+  }
+
   page.jsonLd = [];
   for (const script of root.querySelectorAll('script[type="application/ld+json"]')) {
+    let data;
     try {
-      const data = JSON.parse(script.text);
-      for (const item of Array.isArray(data) ? data : [data]) {
-        if (!item['@context'] || !item['@type']) error(urlPath, 'bloc JSON-LD sans @context ou @type');
-        else page.jsonLd.push(item['@type']);
-      }
+      data = JSON.parse(script.text);
     } catch {
       error(urlPath, 'bloc JSON-LD illisible (JSON invalide)');
+      continue;
     }
+    for (const block of Array.isArray(data) ? data : [data]) {
+      if (!block['@context']) error(urlPath, 'bloc JSON-LD sans @context');
+      // Un bloc peut décrire plusieurs choses reliées entre elles (@graph) : chacune est contrôlée.
+      const nodes = Array.isArray(block['@graph']) ? block['@graph'] : [block];
+      for (const node of nodes) {
+        if (!node['@type']) {
+          error(urlPath, 'élément JSON-LD sans @type');
+          continue;
+        }
+        page.jsonLd.push(node['@type']);
+        checkJsonLdNode(urlPath, node, nodes);
+      }
+    }
+  }
+}
+
+// ——— Ce que chaque élément JSON-LD doit respecter ———
+/** Tous les objets imbriqués d'un élément, lui compris (adresses, logement contenu, offres…). */
+function* walk(value) {
+  if (!value || typeof value !== 'object') return;
+  if (!Array.isArray(value)) yield value;
+  for (const child of Object.values(value)) yield* walk(child);
+}
+
+function checkJsonLdNode(urlPath, node, siblings) {
+  const type = node['@type'];
+
+  for (const part of walk(node)) {
+    // Une seule adresse, celle de site.ts.
+    if (part.postalCode !== undefined && part.postalCode !== POSTCODE) {
+      error(urlPath, `JSON-LD ${type} : code postal « ${part.postalCode} » au lieu de « ${POSTCODE} »`);
+    }
+    // Une image annoncée aux moteurs doit exister dans le build.
+    for (const key of ['image', 'logo']) {
+      for (const src of [part[key]].flat().filter((v) => typeof v === 'string' && v.startsWith(SITE))) {
+        if (!existsInDist(new URL(src).pathname)) error(urlPath, `JSON-LD ${type} : ${key} introuvable dans le build (${src})`);
+      }
+    }
+  }
+
+  if (type === 'VacationRental') {
+    // Ce que Google exige d'une location de vacances.
+    if (!node.identifier) error(urlPath, 'JSON-LD VacationRental : identifier absent');
+    if (!node.containsPlace?.occupancy?.value) error(urlPath, 'JSON-LD VacationRental : containsPlace.occupancy.value absent');
+    const images = [node.image].flat().filter(Boolean);
+    if (images.length < 8) error(urlPath, `JSON-LD VacationRental : ${images.length} photo(s), 8 au minimum`);
+    // Le prix annoncé aux moteurs est celui du tableau des tarifs, pas une valeur recopiée.
+    if (seasonPrices) {
+      const amounts = amountsIn(node.priceRange ?? '');
+      if (Math.min(...amounts) !== seasonPrices.min || Math.max(...amounts) !== seasonPrices.max) {
+        error(urlPath, `JSON-LD VacationRental : priceRange « ${node.priceRange} » ne correspond pas à la saison de rates.json (${seasonPrices.min} à ${seasonPrices.max} €)`);
+      }
+    }
+  }
+
+  if (type === 'RealEstateListing') {
+    // L'annonce de vente doit dire quelle maison, à quelles conditions, et qui la vend.
+    if (!node['@id'] || !node.mainEntity || !node.offers) error(urlPath, 'JSON-LD RealEstateListing : @id, mainEntity ou offers absent');
+    const offer = siblings.find((n) => n['@id'] && n['@id'] === node.offers?.['@id']) ?? node.offers;
+    if (!offer?.seller) error(urlPath, 'JSON-LD RealEstateListing : l’offre n’a pas de vendeur (seller)');
   }
 }
 
@@ -172,7 +269,23 @@ for (const loc of inSitemap) {
   if (!pages.get(loc.slice(SITE.length))?.indexable) error(loc, 'listée dans le sitemap sans page indexable correspondante');
 }
 if (!read('robots.txt').includes(`Sitemap: ${SITE}/sitemap-index.xml`)) error('/robots.txt', 'ne déclare pas le sitemap');
-if (!read('llms.txt')) warn('/llms.txt', 'absent : les assistants IA n’ont pas de fiche de synthèse');
+
+// ——— llms.txt : la fiche lue telle quelle par les assistants IA ———
+// Une fiche fausse est pire qu'une fiche absente : elle est répétée mot pour mot.
+const llms = read('llms.txt');
+if (!llms) {
+  warn('/llms.txt', 'absent : les assistants IA n’ont pas de fiche de synthèse');
+} else {
+  if (!llms.includes(POSTCODE) || llms.includes(WRONG_POSTCODE)) error('/llms.txt', `doit porter le code postal ${POSTCODE}, et lui seul`);
+  if (seasonPrices && !amountsIn(llms).includes(seasonPrices.max)) {
+    error('/llms.txt', `n’annonce pas le prix maximum de la saison (${seasonPrices.max} €)`);
+  }
+}
+
+// ——— Clé IndexNow : le fichier doit contenir son propre nom, sinon Bing rejette les envois ———
+for (const file of fs.readdirSync(DIST).filter((f) => /^[a-f0-9]{32}\.txt$/.test(f))) {
+  if (read(file).trim() !== file.slice(0, -4)) error(`/${file}`, 'clé IndexNow : le contenu du fichier doit être identique à son nom');
+}
 
 // ——— Rapport ———
 const col = (value, width) => String(value).padEnd(width);
