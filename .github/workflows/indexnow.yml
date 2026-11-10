@@ -1,0 +1,78 @@
+# Prévenir Bing après une mise en ligne (protocole IndexNow).
+#
+# Pourquoi : sans signal, Bing repasse quand il veut. En novembre 2026 il affichait encore une
+# description supprimée 26 jours plus tôt. Son index alimente aussi Copilot et DuckDuckGo :
+# une adresse ou un prix corrigé y restait faux pendant des semaines.
+#
+# Comment : un push sur `main` est construit et déployé par Cloudflare, pas par GitHub. Ce
+# workflow attend donc que /version.txt affiche le commit poussé (preuve que les nouvelles
+# pages sont en ligne), puis envoie les adresses du sitemap à IndexNow.
+#
+# S'il échoue, GitHub envoie un e-mail. Deux causes possibles, et les deux méritent un coup
+# d'œil : le déploiement Cloudflare n'est pas arrivé en production au bout de 15 minutes, ou
+# IndexNow a refusé l'envoi (clé absente du site, par exemple).
+
+name: Prévenir Bing (IndexNow)
+
+on:
+  push:
+    branches: [main]
+    # Seulement quand le site lui-même change : une mise à jour de dépendances ou de
+    # documentation ne modifie aucune page, il n'y a rien à signaler.
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'astro.config.mjs'
+  workflow_dispatch: # à la main depuis l'onglet Actions, pour renvoyer toutes les pages
+
+permissions:
+  contents: read
+
+# Un seul envoi à la fois, et on n'interrompt jamais celui qui est en cours : relancer un
+# ancien run pendant un déploiement annulerait sinon celui qui attend les nouvelles pages.
+# Deux pushes rapprochés donnent au pire deux envois à quelques minutes d'écart, sans conséquence
+# (le premier reconnaît le commit plus récent en ligne, voir l'étape d'attente).
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+jobs:
+  prevenir:
+    name: Attendre la mise en ligne, puis prévenir les moteurs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tout l'historique : sert à reconnaître un commit plus récent déjà en ligne
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Attendre que ce commit soit en production
+        run: |
+          # 60 essais espacés de 15 s : un quart d'heure, pour un build qui en prend deux.
+          # Le paramètre change à chaque essai pour ne jamais relire une réponse en cache.
+          for essai in $(seq 1 60); do
+            en_ligne=$(curl -sS --max-time 20 "https://www.leszines.fr/version.txt?essai=$essai" | tr -d '[:space:]' || true)
+            if [ "$en_ligne" = "$GITHUB_SHA" ]; then
+              echo "Commit $GITHUB_SHA en ligne (essai $essai)."
+              exit 0
+            fi
+            # Un push plus récent (de la documentation, par exemple) a pu être déployé entre-temps :
+            # si le commit en ligne descend de celui qu'on attend, nos pages y sont déjà.
+            if echo "$en_ligne" | grep -Eq '^[0-9a-f]{40}$'; then
+              git fetch --quiet origin main || true
+              if git merge-base --is-ancestor "$GITHUB_SHA" "$en_ligne" 2>/dev/null; then
+                echo "Commit $en_ligne en ligne : il contient $GITHUB_SHA (essai $essai)."
+                exit 0
+              fi
+            fi
+            echo "Essai $essai : en ligne = '${en_ligne:-rien}', attendu = $GITHUB_SHA"
+            sleep 15
+          done
+          echo "::error::Le commit $GITHUB_SHA n'est pas arrivé en production en 15 minutes : vérifier le build dans Cloudflare."
+          exit 1
+
+      - name: Envoyer les pages à IndexNow
+        run: node scripts/indexnow.mjs

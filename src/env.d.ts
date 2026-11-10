@@ -6,3 +6,6 @@
 declare module 'cloudflare:workers' {
   export const env: Record<string, unknown>;
 }
+
+// Commit construit, remplacé au build par Vite (astro.config.mjs). Chaîne vide en local.
+declare const __BUILD_COMMIT__: string;
