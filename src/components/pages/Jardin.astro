@@ -4,6 +4,7 @@
 // runtime Workers, sans accès disque — le scan y renvoyait une galerie vide.
 import photoManifest from '../../data/photos.json';
 import type { Lang } from '../../i18n/ui';
+import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import Lightbox from '../Lightbox.astro';
 import JsonLd from '../JsonLd.astro';
@@ -35,7 +36,8 @@ const gallery = [
 <JsonLd data={breadcrumbSchema(lang, 'le-jardin', fr ? 'Le Jardin' : 'The Garden')} />
 <PageHeader
   image="/photos/jardin-1.webp"
-  eyebrow={fr ? 'Le Jardin & les extérieurs' : 'The Garden & outdoors'}
+  imageAlt={fr ? 'Le jardin de la Villa Les Zines : pelouse, arbres et transats' : 'The garden of Villa Les Zines: lawn, trees and sun loungers'}
+  h1={fr ? 'Le jardin clos et les terrasses de la villa, au Cap Ferret' : 'The villa’s walled garden and terraces, Cap Ferret'}
   title={fr ? '700 m² de pins, d’ombre et de soleil.' : '700 m² of pines, shade and sun.'}
   intro={fr
     ? 'Un jardin clos et arboré, plusieurs terrasses en bois, un barbecue, des transats et des hamacs.'
@@ -52,7 +54,7 @@ const gallery = [
   </div>
 </section>
 
-<section class="pb-28">
+<section class="pb-16">
   <div class="wrap grid grid-cols-2 lg:grid-cols-3 gap-4">
     {gallery.map((g, i) => (
       <figure class:list={['overflow-hidden rounded-2xl reveal', i === 0 && 'col-span-2 lg:col-span-2 lg:row-span-2']}>
@@ -60,6 +62,14 @@ const gallery = [
              class="js-lb w-full h-full object-cover aspect-[4/3] cursor-pointer hover:scale-[1.05] transition-transform duration-700 ease-smooth" loading="lazy" />
       </figure>
     ))}
+  </div>
+</section>
+
+{/* La page n'avait aucune issue dans son contenu : on arrivait au bas de la galerie sans suite. */}
+<section class="pb-28">
+  <div class="wrap flex flex-wrap gap-3 justify-center">
+    <a href={localizedPath(lang, 'sejours-tarifs')} class="btn btn-primary">{fr ? 'Voir les tarifs et les disponibilités' : 'See rates and availability'}</a>
+    <a href={localizedPath(lang, 'la-villa')} class="btn btn-ghost">{fr ? 'Découvrir l’intérieur de la villa' : 'See inside the villa'}</a>
   </div>
 </section>
 

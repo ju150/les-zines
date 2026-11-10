@@ -13,7 +13,8 @@ const fr = lang === 'fr';
 <JsonLd data={breadcrumbSchema(lang, 'contact', 'Contact')} />
 <PageHeader
   image="/photos/villa-jardin.webp"
-  eyebrow={fr ? 'Contact' : 'Contact'}
+  imageAlt={fr ? 'La Villa Les Zines et son jardin au Cap Ferret' : 'Villa Les Zines and its garden in Cap Ferret'}
+  h1={fr ? 'Contacter la Villa Les Zines : location ou visite' : 'Contact Villa Les Zines: rental or viewing'}
   title={fr ? 'Parlons de votre séjour.' : 'Let’s talk about your stay.'}
   intro={fr
     ? 'Pour une location comme pour une visite, écrivez-nous ou appelez directement, nous répondons vite.'
@@ -26,7 +27,7 @@ const fr = lang === 'fr';
       <div class="space-y-8">
         <div>
           <div class="text-xs uppercase tracking-eyebrow text-ink-mute mb-1">{fr ? 'Téléphone' : 'Phone'}</div>
-          <a href={`tel:${SITE.phoneIntl}`} class="font-serif text-3xl text-pine hover:text-terra transition-colors">{SITE.phone}</a>
+          <a href={`tel:${SITE.phoneIntl}`} class="font-serif text-3xl text-pine hover:text-terra transition-colors">{fr ? SITE.phone : SITE.phoneIntlDisplay}</a>
         </div>
         <div>
           <div class="text-xs uppercase tracking-eyebrow text-ink-mute mb-1">Email</div>

@@ -1,0 +1,43 @@
+---
+// Questions fréquentes en texte TOUJOURS visible : pas d'accordéon, pas d'onglet. Une réponse
+// repliée est une réponse que les moteurs de réponse reprennent moins bien, et qu'un
+// visiteur pressé ne lit pas. Contenu : src/data/faq.ts.
+import { SEASON, type Faq } from '../data/faq';
+
+interface Props {
+  items: Faq[];
+  title: string;
+  eyebrow?: string;
+  /**
+   * Phrase de synthèse des tarifs, insérée à la place du repère SEASON d'une réponse. Elle
+   * est posée dans un <span data-season-sentence> : la page des tarifs la réécrit dans le
+   * navigateur avec les semaines de la feuille, pour qu'elle ne contredise jamais le tableau.
+   */
+  season?: string;
+}
+const { items, title, eyebrow, season = '' } = Astro.props;
+
+// Une réponse devient [avant, après] autour du repère ; sans repère, [réponse].
+const parts = (answer: string) => answer.split(SEASON);
+// Sans tarif connu, la phrase disparaît avec le point qui la suivait.
+const withoutSeason = ([before, after = '']: string[]) => before + after.replace(/^\.\s*/, '');
+---
+<section class="pb-24 sm:pb-28">
+  <div class="wrap">
+    {eyebrow && <p class="eyebrow mb-3 reveal">{eyebrow}</p>}
+    <h2 class="h2 mb-10 reveal">{title}</h2>
+    <div class="grid md:grid-cols-2 gap-x-12 gap-y-9">
+      {items.map((item) => (
+        <div class="border-t border-line pt-5 reveal">
+          {/* lining-nums : en chiffres elzéviriens (défaut de Cormorant), « 11 » se lit « ıı ». */}
+          <h3 class="text-[1.4rem] leading-snug lining-nums text-ink mb-2">{item.q}</h3>
+          {parts(item.a).length > 1 && season ? (
+            <p class="text-ink-soft">{parts(item.a)[0]}<span data-season-sentence>{season}</span>{parts(item.a)[1]}</p>
+          ) : (
+            <p class="text-ink-soft">{withoutSeason(parts(item.a))}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

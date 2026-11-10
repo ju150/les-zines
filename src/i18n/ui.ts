@@ -61,7 +61,11 @@ export const ui = {
     t_loc_eye: 'Le Cap Ferret',
     t_loc_h: 'Le meilleur du Cap, à pied ou à vélo.',
     t_loc_p: 'La jetée Bélisaire, le marché, les plages de l’océan et du Bassin, les cabanes à huîtres : tout est à quelques minutes.',
-    discover: 'Découvrir',
+    // Trois libellés distincts : trois liens « Découvrir » identiques vers trois pages
+    // différentes ne disent rien de leur destination, ni à un lecteur d'écran ni à un moteur.
+    discover_villa: 'Découvrir la villa',
+    discover_garden: 'Voir le jardin',
+    discover_cap: 'Explorer le Cap Ferret',
 
     //, , , Rates teaser, , , 
     rate_eye: 'Séjours & disponibilités',
@@ -89,6 +93,7 @@ export const ui = {
     foot_legal: 'Mentions légales',
     foot_rights: 'Tous droits réservés',
     foot_sale_line: 'Villa à vendre, prix sur demande',
+    foot_maps: 'Avis et plan sur Google Maps',
 
     //, , , Common, , , 
     phone_label: 'Téléphone',
@@ -137,7 +142,9 @@ export const ui = {
     t_loc_eye: 'Cap Ferret',
     t_loc_h: 'The best of the Cap, on foot or by bike.',
     t_loc_p: 'The Bélisaire jetty, the market, the ocean and Bay beaches, the oyster huts: all a few minutes away.',
-    discover: 'Discover',
+    discover_villa: 'Discover the villa',
+    discover_garden: 'See the garden',
+    discover_cap: 'Explore Cap Ferret',
 
     rate_eye: 'Stays & availability',
     rate_h: 'Weekly rental, Saturday to Saturday.',
@@ -150,7 +157,7 @@ export const ui = {
     sale_cta: 'Request a visit',
     sale_price: 'Price on request',
 
-    mont_eye: 'Also worth discovering, the family',
+    mont_eye: 'Also worth discovering, as a family',
     mont_h: 'Le Chai de Montuzet',
     mont_p: 'Stay in a renovated Bordeaux wine cellar in the countryside: three rooms and a pool.',
     mont_cta: 'Visit Montuzet',
@@ -161,6 +168,7 @@ export const ui = {
     foot_legal: 'Legal notice',
     foot_rights: 'All rights reserved',
     foot_sale_line: 'Villa for sale, price on request',
+    foot_maps: 'Reviews and map on Google Maps',
 
     phone_label: 'Phone',
     email_label: 'Email',

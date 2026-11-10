@@ -31,9 +31,13 @@ const year = new Date().getFullYear();
     <div>
       <div class="text-xs uppercase tracking-eyebrow text-white/70 mb-4">{t('foot_contact')}</div>
       <ul class="space-y-2 text-sm">
-        <li><a href={`tel:${SITE.phoneIntl}`} class="hover:text-white transition-colors">{SITE.phone}</a></li>
+        <li><a href={`tel:${SITE.phoneIntl}`} class="hover:text-white transition-colors">{lang === 'fr' ? SITE.phone : SITE.phoneIntlDisplay}</a></li>
         <li><a href={`mailto:${SITE.email}`} class="hover:text-white transition-colors">{SITE.email}</a></li>
         <li class="text-white/65 pt-1">{SITE.street}<br />{SITE.postcode} {SITE.city}</li>
+        {/* La fiche Google de la villa : c'est là que sont les avis des locataires. */}
+        <li class="pt-2">
+          <a href={SITE.mapsLink} target="_blank" rel="noopener" class="hover:text-white transition-colors underline underline-offset-4 decoration-white/30">{t('foot_maps')}</a>
+        </li>
       </ul>
     </div>
   </div>

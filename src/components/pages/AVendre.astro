@@ -3,18 +3,56 @@ import type { Lang } from '../../i18n/ui';
 import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import JsonLd from '../JsonLd.astro';
+import Faq from '../Faq.astro';
 import { realEstateListingSchema, breadcrumbSchema } from '../../data/schema';
+import { saleFaq } from '../../data/faq';
+import { SITE } from '../../data/site';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const fr = lang === 'fr';
+
+// La fiche du bien, en texte. Avant elle, la page ne disait nulle part « Bassin d'Arcachon »
+// ni « jetée Bélisaire », et un acheteur (ou un assistant répondant à « villa à vendre au Cap
+// Ferret ») n'y trouvait que six chiffres dans des cartes. Uniquement des faits déjà publiés
+// ailleurs sur le site : la surface habitable, l'année de construction et le caractère
+// « maison individuelle » s'ajouteront ici quand le propriétaire les aura confirmés.
+const sheet = fr
+  ? [
+      ['Type de bien', 'Villa en bois « esprit Bassin », sur terrain clos'],
+      ['Situation', `Cap Ferret, commune de ${SITE.city} (${SITE.postcode}, Gironde), à 400 m de la jetée Bélisaire, entre Bassin d’Arcachon et océan`],
+      ['Terrain', '700 m², clos et arboré (pins, arbres fruitiers)'],
+      ['Pièces', '8, dont une pièce de vie de 60 m² avec cuisine ouverte'],
+      ['Chambres', '6, toutes climatisées (lits 160×200), plus un grenier-dortoir de 4 couchages'],
+      ['Salles d’eau', '4, plus une douche et un WC extérieurs'],
+      ['Extérieurs', 'Grandes terrasses en caillebotis, exposées plein sud'],
+      ['Accessibilité', 'Une chambre et une salle d’eau de plain-pied (PMR)'],
+      ['Performance énergétique', 'DPE classe C, GES classe B'],
+      ['Usage actuel', 'Location saisonnière à la semaine, pour 12 à 16 personnes'],
+      ['Vente', 'De gré à gré, prix sur demande'],
+      ['Visites', 'Sur rendez-vous, par le formulaire de contact ou par téléphone'],
+    ]
+  : [
+      ['Property type', 'Timber “esprit Bassin” villa on a walled plot'],
+      ['Location', `Cap Ferret, ${SITE.city} (${SITE.postcode}, Gironde, France), 400 m from the Bélisaire jetty, between Arcachon Bay and the Atlantic`],
+      ['Plot', '700 m², walled, planted with pines and fruit trees'],
+      ['Rooms', '8, including a 60 m² living room with open kitchen'],
+      ['Bedrooms', '6, all air-conditioned (160×200 beds), plus a 4-bed attic dorm'],
+      ['Bathrooms', '4, plus an outdoor shower and WC'],
+      ['Outdoors', 'Large south-facing wood-deck terraces'],
+      ['Accessibility', 'A step-free ground-floor bedroom and bathroom, for guests with reduced mobility'],
+      ['Energy performance', 'French DPE rating C, greenhouse-gas rating B'],
+      ['Current use', 'Weekly holiday rental, sleeps 12 to 16'],
+      ['Sale', 'Private sale, price on request'],
+      ['Viewings', 'By appointment, via the contact form or by phone'],
+    ];
 
 const facts = [
   { n: '8', fr: ['pièces', '6 chambres + dortoir enfants'], en: ['rooms', '6 bedrooms + kids’ dorm'] },
   { n: '12–16', fr: ['couchages', 'Idéal pour deux familles'], en: ['sleeps', 'Ideal for two families'] },
   { n: '700 m²', fr: ['de terrain', 'Jardin clos et arboré'], en: ['of land', 'Walled, wooded garden'] },
   { n: '4', fr: ['salles d’eau', '+ douche & WC extérieurs'], en: ['bathrooms', '+ outdoor shower & WC'] },
-  { n: 'DPE C', fr: ['GES B', 'Maison bois performante'], en: ['GHG B', 'Efficient timber house'] },
+  { n: 'DPE C', fr: ['GES B', 'Maison bois performante'], en: ['Greenhouse-gas rating B', 'French energy rating C: an efficient timber house'] },
   { n: 'Centre', fr: ['du Cap Ferret', 'À pied des plages & du marché'], en: ['of Cap Ferret', 'Walk to beaches & market'] },
 ];
 
@@ -46,10 +84,15 @@ const slides = [
 ---
 <JsonLd data={realEstateListingSchema(lang)} />
 <JsonLd data={breadcrumbSchema(lang, 'a-vendre', fr ? 'À vendre' : 'For sale')} />
+{/* Ici c'est la GRANDE phrase qui dit le sujet (« villa à vendre au Cap Ferret ») et le
+    surtitre qui porte le ton : cette page est la seule annonce de vente de la villa, elle
+    doit pouvoir être trouvée. Le titre précédent, « Transmettre une maison de famille. »,
+    ne contenait ni « villa », ni « vendre », ni « Cap Ferret ». */}
 <PageHeader
   image="/photos/nuit-1.webp"
-  eyebrow={fr ? 'À vendre, en toute discrétion' : 'For sale, discreetly'}
-  title={fr ? 'Transmettre une maison de famille.' : 'Passing on a family home.'}
+  imageAlt={fr ? 'La Villa Les Zines illuminée à la tombée de la nuit' : 'Villa Les Zines lit up at nightfall'}
+  eyebrow={fr ? 'Transmettre une maison de famille, en toute discrétion' : 'Passing on a family home, discreetly'}
+  title={fr ? 'Villa en bois à vendre au cœur du Cap Ferret' : 'Timber villa for sale in the heart of Cap Ferret'}
   intro={fr
     ? 'La villa continue d’être louée, mais elle est aussi à vendre. Si le lieu vous touche, parlons-en simplement.'
     : 'The villa is still rented, but it is also for sale. If the place speaks to you, let’s simply talk.'}
@@ -163,6 +206,30 @@ const slides = [
   }
 </script>
 
+<!-- Fiche du bien, en texte -->
+<section class="pb-20">
+  <div class="wrap">
+    <div class="max-w-2xl mb-8 reveal">
+      <p class="eyebrow mb-3">{fr ? 'La fiche' : 'Fact sheet'}</p>
+      <h2 class="h2">{fr ? 'Le bien en bref.' : 'The property at a glance.'}</h2>
+    </div>
+    <dl class="card grid sm:grid-cols-2 gap-x-10 px-6 sm:px-9 py-3 reveal">
+      {sheet.map(([label, value]) => (
+        <div class="py-4 border-b border-line">
+          <dt class="text-xs uppercase tracking-wide font-semibold text-ink-mute mb-1">{label}</dt>
+          <dd class="text-ink">{value}</dd>
+        </div>
+      ))}
+    </dl>
+    <p class="mt-5 text-sm text-ink-mute reveal">
+      {fr ? 'Pour aller plus loin : ' : 'Find out more: '}
+      <a href={`${localizedPath(lang, 'la-villa')}#plan`} class="text-pine font-semibold hover:text-terra">{fr ? 'le plan de la villa' : 'the floor plan'}</a>,{' '}
+      <a href={localizedPath(lang, 'le-jardin')} class="text-pine font-semibold hover:text-terra">{fr ? 'le jardin et les terrasses' : 'the garden and terraces'}</a>,{' '}
+      <a href={localizedPath(lang, 'le-cap-ferret')} class="text-pine font-semibold hover:text-terra">{fr ? 'la situation au Cap Ferret' : 'the location in Cap Ferret'}</a>.
+    </p>
+  </div>
+</section>
+
 <!-- Atouts -->
 <section class="pb-24">
   <div class="wrap grid lg:grid-cols-2 gap-10 lg:gap-16">
@@ -170,11 +237,17 @@ const slides = [
       <p class="eyebrow mb-4">{fr ? 'Les atouts' : 'The highlights'}</p>
       <h2 class="h2">{fr ? 'Pourquoi la Villa Les Zines.' : 'Why Villa Les Zines.'}</h2>
     </div>
-    <ul class="space-y-4 reveal">
-      {atouts.map((a) => (
-        <li class="flex gap-3 text-ink-soft text-lg"><svg class="w-6 h-6 mt-0.5 shrink-0 stroke-terra fill-none" stroke-width="1.6" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>{a}</li>
-      ))}
-    </ul>
+    <div class="reveal">
+      <ul class="space-y-4">
+        {atouts.map((a) => (
+          <li class="flex gap-3 text-ink-soft text-lg"><svg class="w-6 h-6 mt-0.5 shrink-0 stroke-terra fill-none" stroke-width="1.6" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>{a}</li>
+        ))}
+      </ul>
+      {/* Le « rapport locatif » s'appuie sur du concret : l'archive des semaines louées. */}
+      <a href={`${localizedPath(lang, 'sejours-tarifs')}#past-weeks`} class="inline-block mt-6 text-pine font-semibold hover:text-terra">
+        {fr ? 'Voir les semaines louées la saison passée →' : 'See the weeks booked last season →'}
+      </a>
+    </div>
   </div>
 </section>
 
@@ -191,7 +264,14 @@ const slides = [
       </p>
       <div class="flex flex-wrap gap-3 justify-center">
         <a href={localizedPath(lang, 'contact')} class="btn btn-primary">{fr ? 'Demander une visite' : 'Request a visit'}</a>
+        <a href={`tel:${SITE.phoneIntl}`} class="btn btn-light">{fr ? SITE.phone : SITE.phoneIntlDisplay}</a>
       </div>
     </div>
   </div>
 </section>
+
+<Faq
+  eyebrow={fr ? 'La vente' : 'The sale'}
+  title={fr ? 'Questions fréquentes' : 'Frequently asked questions'}
+  items={saleFaq(lang)}
+/>
