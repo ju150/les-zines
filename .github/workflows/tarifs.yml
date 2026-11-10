@@ -1,0 +1,34 @@
+# Les prix que lisent les moteurs sont-ils encore ceux de la feuille du propriétaire ?
+#
+# Le propriétaire change ses tarifs dans une feuille Google, et le tableau du site suit tout
+# seul dans le navigateur. Les robots, eux, n'exécutent pas le JavaScript : ils lisent ce qui
+# a été rendu au build à partir de src/data/rates.json (tableau statique, titre de la page,
+# données structurées, llms.txt). En novembre 2026 ce fichier avait trois mois de retard et
+# le site annonçait aux moteurs un prix maximum périmé, sans que rien ne le signale.
+#
+# Ce contrôle échoue (donc GitHub envoie un e-mail) dès qu'un prix, une date ou une semaine
+# diffère. Le remède tient en trois gestes : `npm run tarifs:sync`, relire, pousser.
+# Les changements de statut (une semaine qui vient d'être louée) ne déclenchent rien : ils
+# sont trop fréquents pour exiger un déploiement à chaque réservation.
+
+name: Tarifs à jour pour les moteurs
+
+on:
+  schedule:
+    - cron: '23 6 * * *' # chaque matin ; décalé de l'heure pile, plus encombrée chez GitHub
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  comparer:
+    name: rates.json contre la feuille du propriétaire
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/rates-sync.mjs
