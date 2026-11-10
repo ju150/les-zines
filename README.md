@@ -69,14 +69,30 @@ e-mail pré-rempli ; l'échec de l'accusé de réception ne fait jamais échouer
 **SEO et visibilité dans les IA.**
 - URL canoniques à slash final, partout : un lien sans slash coûterait une redirection 301.
 - hreflang `fr`, `en` et `x-default` sans région, identiques dans les pages et dans le sitemap.
-- Données structurées JSON-LD : `VacationRental`, `RealEstateListing`, `BreadcrumbList`.
+- Données structurées JSON-LD : `VacationRental`, `RealEstateListing`, `WebSite`, `BreadcrumbList`.
+  Un même lieu garde le même identifiant sur toutes les pages et dans les deux langues, et le
+  site y déclare la fiche Google de la villa, celle qui porte les avis.
+- **Une seule source par fait.** L'adresse vient de `src/data/site.ts`, les prix du tableau des
+  tarifs ([`src/data/season.ts`](src/data/season.ts)). Titres, descriptions, données structurées,
+  questions fréquentes et `llms.txt` en sont déduits : un prix recopié à la main finit faux.
+  L'audit du build refuse un code postal ou un prix qui divergerait, et un
+  [contrôle quotidien](.github/workflows/tarifs.yml) prévient quand le fichier de secours des
+  tarifs, celui que lisent les robots, s'écarte de la feuille du propriétaire.
+- Chaque page a un `<h1>` qui dit son sujet et le lieu ; la grande phrase d'en-tête, elle, garde
+  le ton. Questions fréquentes en texte toujours visible, jamais en accordéon.
 - La semaine choisie voyage dans le fragment (`/reservation/#week=…`), pas dans la query : Google
   ne voit qu'une seule page de réservation au lieu d'une par semaine.
-- [`llms.txt`](public/llms.txt) donne aux assistants IA une fiche de faits sans mise en page à
-  décoder ; [`robots.txt`](public/robots.txt) accueille les moteurs de recherche et les agents
-  déclenchés par la question d'un utilisateur, et refuse les robots d'entraînement, en cohérence
-  avec le réglage *AI Crawl Control* de Cloudflare.
-- 36 redirections 301 ([`_redirects`](public/_redirects)) conservent les adresses de l'ancien site.
+- `/llms.txt` donne aux assistants IA une fiche de faits sans mise en page à décoder. Il est
+  généré au build ([`src/lib/llms.ts`](src/lib/llms.ts)) ; [`robots.txt`](public/robots.txt)
+  accueille les moteurs de recherche et les agents déclenchés par la question d'un utilisateur,
+  et refuse les robots d'entraînement, en cohérence avec le réglage *AI Crawl Control* de
+  Cloudflare. Seule exception, expliquée dans le fichier : le jeton `Google-Extended`, rouvert
+  parce qu'il conditionne la présence du site dans l'application Gemini.
+- Après chaque mise en ligne, un [workflow](.github/workflows/indexnow.yml) attend que le commit
+  soit en production (`/version.txt`) puis signale les pages à Bing par IndexNow, dont l'index
+  alimente aussi Copilot et DuckDuckGo.
+- Des redirections 301 ([`_redirects`](public/_redirects)) conservent les adresses de l'ancien
+  site et ramènent les URL sans slash final, comme `/sitemap.xml`, vers leur forme canonique.
 
 **Aucun secret dans le dépôt.** Clés et adresse de la feuille sont des secrets Cloudflare, lus en
 un seul endroit ([`src/lib/env.ts`](src/lib/env.ts)). La CI scanne tout l'historique git à chaque
@@ -97,8 +113,11 @@ messagerie du domaine (MX, clé DKIM d'envoi) est intacte.
 | `npm run check` | typage TypeScript et Astro |
 | `npm test` | tests Vitest : lecture de la feuille, rendu des disponibilités, chargement des tarifs, réservation, traductions |
 | `npm run build` | construit le site dans `dist/` |
-| `npm run audit:seo` | audite le build : titres et descriptions, canonical, hreflang réciproques, un seul `h1`, JSON-LD valide, liens internes, `alt` des images, sitemap, pages orphelines |
+| `npm run audit:seo` | audite le build : titres et descriptions, canonical, hreflang réciproques, un seul `h1`, JSON-LD valide et conforme à `site.ts` et aux tarifs, liens internes, `alt` des images, sitemap, pages orphelines, `llms.txt` |
 | `npm run verify` | les quatre à la suite, comme la CI |
+| `npm run indexnow -- --dry-run` | montre ce qui serait signalé à Bing, sans rien envoyer |
+| `npm run tarifs:ecart` | compare le fichier de secours des tarifs à la feuille du propriétaire |
+| `npm run tarifs:sync` | recopie la feuille dans `src/data/rates.json` (à relire, puis pousser) |
 
 La [CI](.github/workflows/ci.yml) les exécute à chaque push et à chaque pull request, et
 [gitleaks](https://github.com/gitleaks/gitleaks) y scanne tous les commits de l'historique.
@@ -113,15 +132,16 @@ src/
   components/pages/    contenu de chaque page, une seule source pour les deux langues
   components/          navigation, pied de page, en-têtes, visionneuse, JSON-LD
   layouts/Base.astro   <head> commun : canonical, hreflang, Open Graph
-  lib/rates/           feuille → semaines → tableau de disponibilités
+  lib/rates/           feuille → semaines → tableau de disponibilités, résumé de la saison
   lib/reservation/     champs, e-mails, envoi, traitement d'une demande
+  lib/llms.ts          texte de /llms.txt
   lib/env.ts           seul accès aux variables d'environnement
   i18n/ui.ts           toutes les chaînes FR et EN
-  data/                coordonnées, tarifs de secours, schémas JSON-LD
-tests/                 tests Vitest de src/lib et de l'i18n
-scripts/               audit SEO, manifeste des photos, optimisation des images et des polices
+  data/                coordonnées, tarifs de secours, saison, questions fréquentes, schémas JSON-LD
+tests/                 tests Vitest de src/lib, des données structurées et de l'i18n
+scripts/               audit SEO, IndexNow, manifeste des photos, optimisation des images et des polices
 docs/                  guide des tarifs, journal de migration, design system
-public/                photos, polices auto-hébergées, robots.txt, llms.txt, _headers, _redirects
+public/                photos, polices auto-hébergées, robots.txt, clé IndexNow, _headers, _redirects
 ```
 
 ## Développement local

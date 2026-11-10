@@ -25,8 +25,15 @@ Un push sur `main` part **en production** (Cloudflare Workers Builds). Rien n'y 
   Cloudflare, en variables d'exécution (Settings → Variables and Secrets, type « Secret »), jamais
   en variables de build (Settings → Builds) ; `.env.example` ne contient que des noms. La CI lance
   gitleaks sur tout l'historique.
+  Le fichier `public/<32 caractères hexadécimaux>.txt` n'en est pas un : c'est la clé IndexNow,
+  que le protocole impose de servir en clair à la racine du site. Ne pas la déplacer ni la
+  renommer sans changer aussi son contenu (identique à son nom).
 - **Variables non sensibles dans `wrangler.jsonc`**, pas dans le tableau de bord : `wrangler deploy`
   écrase celles saisies dans l'interface.
+- **Aucun calcul de date au chargement d'un module.** Le site est pré-rendu dans le runtime
+  Workers, où `new Date()` vaut le 1er janvier 1970 tant qu'aucune page n'est en cours de rendu.
+  Ce qui dépend de « aujourd'hui » (saison en cours, semaines passées) s'écrit en fonction,
+  appelée depuis une page : voir `src/data/season.ts`.
 - **Tout ce qui vient d'un visiteur ou de la feuille passe par `escapeHtml`** (`src/lib/html.ts`)
   avant d'atterrir dans une page ou un e-mail.
 
@@ -44,7 +51,19 @@ Un push sur `main` part **en production** (Cloudflare Workers Builds). Rien n'y 
 - **Photos** : les déposer dans `public/photos/villa/<thème>/`. `src/data/photos.json` est généré
   au build par `scripts/photo-manifest.mjs` et n'est pas versionné.
 - **Tarifs** : la feuille Google fait foi. `src/data/rates.json` n'est qu'un secours, à
-  resynchroniser de temps en temps (format dans `docs/guide-tarifs.md`).
+  resynchroniser de temps en temps (format dans `docs/guide-tarifs.md`). C'est pourtant lui que
+  lisent les robots, qui n'exécutent pas le JavaScript : un secours périmé, ce sont des prix
+  périmés dans les moteurs. `npm run tarifs:sync` le recopie depuis la feuille ; le workflow
+  `tarifs.yml` échoue chaque matin tant qu'un prix ou une semaine diffère.
+- **Un fait, une source.** Adresse et téléphone : `src/data/site.ts`. Année et prix de la saison :
+  `src/data/season.ts`. Ne jamais les recopier dans un titre, une description, le JSON-LD ou
+  `llms.txt` : `npm run audit:seo` échoue si le code postal ou la fourchette de prix divergent.
+- **Ne rien affirmer que le propriétaire n'a pas confirmé** (heures d'arrivée, animaux,
+  stationnement, surface habitable, année de construction…). Un champ absent vaut mieux qu'un
+  champ deviné : les assistants IA le répètent tel quel.
+- **Un `<h1>` qui dit le sujet de la page et le lieu** (le nom de la villa est dans chaque
+  `<title>`). Pour garder une grande phrase d'ambiance en en-tête, passer le titre factuel à
+  `PageHeader` par la propriété `h1`.
 
 ## Style
 
