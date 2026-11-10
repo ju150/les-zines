@@ -30,14 +30,34 @@ if (!keyFile) fail('aucune clé dans public/ (fichier nommé <32 caractères hex
 const key = fs.readFileSync(path.join(PUBLIC, keyFile), 'utf8').trim();
 if (key !== keyFile.slice(0, -4)) fail(`le fichier ${keyFile} doit contenir exactement son propre nom, sans l’extension.`);
 
+// Juste après un déploiement, Cloudflare ne sert pas encore la nouvelle version depuis tous
+// ses serveurs : le premier envoi réel (10 novembre 2026) a échoué parce que /version.txt
+// affichait déjà le bon commit alors que le fichier de la clé répondait encore 404, quelques
+// secondes plus tard. On insiste donc deux minutes avant de conclure. Le paramètre ajouté à
+// l'adresse évite de relire une réponse en cache ; il n'a aucun effet sur le fichier servi.
+const ATTEMPTS = dryRun ? 1 : 12;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const get = async (url) => {
-  const res = await fetch(url, { headers: { 'User-Agent': 'villa-les-zines-indexnow' } });
-  if (!res.ok) throw new Error(`${url} répond ${res.status}`);
-  return res.text();
+  let lastError;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(`${url}?indexnow=${Date.now()}`, { headers: { 'User-Agent': 'villa-les-zines-indexnow' } });
+      if (res.ok) return res.text();
+      lastError = new Error(`${url} répond ${res.status}`);
+    } catch (error) {
+      lastError = new Error(`${url} est injoignable (${error.message})`);
+    }
+    if (attempt < ATTEMPTS) await sleep(10_000);
+  }
+  throw lastError;
 };
 const locs = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 
 try {
+  // Le moteur va relire la clé à cette adresse : si elle n'y est pas, il rejette tout l'envoi.
+  // Contrôlée en premier : c'est le fichier le plus récent, donc le dernier à se propager.
+  if ((await get(`${ORIGIN}/${keyFile}`)).trim() !== key) fail(`la clé servie par ${ORIGIN}/${keyFile} n’est pas celle du dépôt.`);
+
   // Les adresses viennent du sitemap EN LIGNE : on n'annonce que des pages réellement servies.
   // Les 18 pages partent à chaque fois. Le protocole préfère qu'on ne signale que ce qui a
   // changé, mais un changement de pied de page ou de tarif touche presque toutes les pages, et
@@ -45,9 +65,6 @@ try {
   const sitemaps = locs(await get(`${ORIGIN}/sitemap-index.xml`));
   const urlList = [...new Set((await Promise.all(sitemaps.map(get))).flatMap(locs))].filter((url) => url.startsWith(`${ORIGIN}/`));
   if (!urlList.length) fail('le sitemap en ligne ne liste aucune page.');
-
-  // Le moteur va relire la clé à cette adresse : si elle n'y est pas, il rejette tout l'envoi.
-  if ((await get(`${ORIGIN}/${keyFile}`)).trim() !== key) fail(`la clé servie par ${ORIGIN}/${keyFile} n’est pas celle du dépôt.`);
 
   if (dryRun) {
     console.log(`IndexNow (essai à blanc) : ${urlList.length} adresses seraient envoyées, clé publiée à ${ORIGIN}/${keyFile}`);

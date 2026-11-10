@@ -54,7 +54,8 @@ jobs:
           # 60 essais espacés de 15 s : un quart d'heure, pour un build qui en prend deux.
           # Le paramètre change à chaque essai pour ne jamais relire une réponse en cache.
           for essai in $(seq 1 60); do
-            en_ligne=$(curl -sS --max-time 20 "https://www.leszines.fr/version.txt?essai=$essai" | tr -d '[:space:]' || true)
+            # -f : tant que /version.txt n'existe pas, la page 404 du site ne doit pas être prise pour une réponse.
+            en_ligne=$(curl -fsS --max-time 20 "https://www.leszines.fr/version.txt?essai=$essai" 2>/dev/null | tr -d '[:space:]' || true)
             if [ "$en_ligne" = "$GITHUB_SHA" ]; then
               echo "Commit $GITHUB_SHA en ligne (essai $essai)."
               exit 0
