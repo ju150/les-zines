@@ -20,3 +20,14 @@
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Photos : une semaine, sans « immutable » — une photo remplacée garde le même nom de fichier.
+/photos/*
+  Cache-Control: public, max-age=604800
+
+# Jeu de caractères explicite pour la fiche destinée aux assistants IA. Cloudflare servait
+# ce fichier en « text/plain » tout court : un client qui se fie à l'en-tête (la bibliothèque
+# Python requests, par exemple) le décodait alors en ISO-8859-1 et lisait « LÃ¨ge-Cap-Ferret ».
+# Un fichier texte n'a pas de balise <meta charset> pour se rattraper, contrairement aux pages.
+/llms.txt
+  Content-Type: text/plain; charset=utf-8

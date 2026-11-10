@@ -11,6 +11,11 @@
 /index.html            /            301
 /en/index.html         /en/         301
 
+# ——— Adresse par défaut du sitemap ———
+# Beaucoup d'outils essaient /sitemap.xml sans lire robots.txt ; le vrai fichier est
+# l'index généré par Astro.
+/sitemap.xml           /sitemap-index.xml       301
+
 # ——— URL sans slash final → URL canonique ———
 # Sans ces règles, Cloudflare ajoute lui-même le slash, mais en 307 (temporaire) :
 # Google garde alors l'URL sans slash en « Page avec redirection » au lieu de la

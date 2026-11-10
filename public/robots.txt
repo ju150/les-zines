@@ -6,6 +6,7 @@
 # la RFC 9309 fait gagner le `Allow`, et ce fichier annulerait le réglage Cloudflare.
 # C'était le cas jusqu'au 30 août 2026 — GPTBot, ClaudeBot, Google-Extended et
 # Applebot-Extended étaient bloqués par Cloudflare, puis ré-autorisés ici.
+# Une seule exception, voulue et expliquée plus bas : Google-Extended.
 #
 # La politique : les robots qui APPORTENT des visiteurs sont bienvenus (moteurs de
 # recherche, et robots déclenchés par la question d'un utilisateur). Ceux qui aspirent
@@ -25,9 +26,6 @@ User-agent: GPTBot
 Disallow: /
 
 User-agent: ClaudeBot
-Disallow: /
-
-User-agent: Google-Extended
 Disallow: /
 
 User-agent: Applebot-Extended
@@ -68,6 +66,20 @@ Allow: /
 Disallow: /api/
 
 User-agent: Perplexity-User
+Allow: /
+Disallow: /api/
+
+# ——— Google-Extended : autorisé, par exception au bloc Cloudflare ———
+# Ce n'est pas un robot mais un jeton : il ne fait aucune requête. L'interdire n'a donc jamais
+# économisé de bande passante ; cela ne faisait que sortir le site des réponses de
+# l'application Gemini, dont Google règle l'accès par ce jeton (la recherche Google et ses
+# résumés IA, eux, dépendent de Googlebot). Interdit d'août à novembre 2026 avec les robots
+# d'entraînement, rouvert parce que la villa a besoin d'être citée par les assistants.
+# Le bloc Cloudflare en tête dit encore « Disallow: / » pour ce jeton : les deux groupes
+# sont fusionnés et, à chemin de même longueur, la RFC 9309 fait gagner l'Allow. C'est ici le
+# mécanisme recherché. Pour le rendre inutile : Cloudflare → AI Crawl Control → autoriser
+# l'entraînement pour Google-Extended, ou désactiver le robots.txt géré.
+User-agent: Google-Extended
 Allow: /
 Disallow: /api/
 
