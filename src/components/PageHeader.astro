@@ -1,16 +1,31 @@
 ---
 interface Props {
-  eyebrow: string;
+  /** Petit surtitre au-dessus de la grande phrase. Inutile quand `h1` est fourni : il le remplace. */
+  eyebrow?: string;
+  /** La grande phrase de l'en-tête. */
   title: string;
   intro?: string;
   image: string;
   imageAlt?: string;
+  /**
+   * Titre factuel de la page (« Villa en bois de 6 chambres au Cap Ferret »).
+   *
+   * Les grandes phrases d'en-tête donnent le ton (« Une grande maison en bois, esprit
+   * Bassin. ») mais ne nomment ni la villa ni le lieu. Or c'est le <h1> que les moteurs et
+   * les assistants retiennent comme sujet de la page. Quand `h1` est fourni, il prend la
+   * place du surtitre et porte la balise <h1> ; la grande phrase reste affichée à
+   * l'identique, en simple paragraphe. Le dessin de la page ne change pas, son sujet si.
+   */
+  h1?: string;
 }
-const { eyebrow, title, intro, image, imageAlt = '' } = Astro.props;
+const { eyebrow, title, intro, image, imageAlt = '', h1 } = Astro.props;
 // Every optimized hero (.webp hors galeries villa/) a une variante mobile -900.webp.
 const srcset = image.endsWith('.webp') && !image.includes('/villa/')
   ? `${image.replace(/\.webp$/, '-900.webp')} 900w, ${image} 1600w`
   : undefined;
+// Les mêmes classes pour la grande phrase, qu'elle soit <h1> ou <p> : la règle de base
+// `h1, h2, h3` (police serif, interlignage serré) est donc réécrite ici pour le <p>.
+const display = 'text-[clamp(2.2rem,5.2vw,4.4rem)] font-serif font-semibold leading-[1.05] tracking-[-0.01em] max-w-[20ch] [text-wrap:balance] reveal';
 ---
 <header class="relative min-h-[62svh] flex items-end text-white overflow-hidden">
   <div class="absolute inset-0 -z-10">
@@ -18,8 +33,22 @@ const srcset = image.endsWith('.webp') && !image.includes('/villa/')
     <div class="absolute inset-0 bg-gradient-to-b from-pine-deep/55 via-pine-deep/20 to-pine-deep/85"></div>
   </div>
   <div class="wrap w-full pb-14 sm:pb-20 pt-32">
-    <p class="eyebrow !text-white/90 mb-4 reveal">{eyebrow}</p>
-    <h1 class="text-[clamp(2.2rem,5.2vw,4.4rem)] font-semibold max-w-[20ch] [text-wrap:balance] reveal">{title}</h1>
+    {h1 ? (
+      <>
+        {/* font-sans + interlignage du corps de texte : annulent la règle de base des titres, pour
+            garder l'allure exacte du surtitre. Le halo sombre est propre à ce <h1> : ce petit texte
+            tombe dans la partie la plus claire du voile de la photo, où son contraste passait sous
+            le seuil de lisibilité (2,5:1 mesuré sur certaines pages) — acceptable pour un simple
+            libellé, pas pour le titre principal. */}
+        <h1 class="eyebrow !text-white/90 font-sans leading-[1.65] mb-4 [text-shadow:0_0_2px_rgba(14,50,45,.9),0_0_10px_rgba(14,50,45,.8)] reveal">{h1}</h1>
+        <p class={display}>{title}</p>
+      </>
+    ) : (
+      <>
+        {eyebrow && <p class="eyebrow !text-white/90 mb-4 reveal">{eyebrow}</p>}
+        <h1 class={display}>{title}</h1>
+      </>
+    )}
     {intro && <p class="lead !text-white/90 !max-w-[56ch] mt-5 reveal">{intro}</p>}
   </div>
 </header>

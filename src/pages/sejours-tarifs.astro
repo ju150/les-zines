@@ -1,8 +1,21 @@
 ---
 import Base from '../layouts/Base.astro';
 import SejoursTarifs from '../components/pages/SejoursTarifs.astro';
+import { seasonPrices, seasonYear } from '../data/season';
 const lang = 'fr' as const;
+// L'année et la fourchette viennent du tableau des tarifs : le titre annonçait encore
+// « 2026-2027 » alors que la saison 2026 était close. Espaces ordinaires (et non insécables) :
+// un titre et une description sont affichés tels quels par les moteurs.
+// Sans aucun tarif connu (feuille vide), titre et description se passent de chiffres.
+const year = seasonYear();
+const prices = seasonPrices(lang, ' ');
+const title = year
+  ? `Tarifs ${year} & disponibilités, villa Cap Ferret | Villa Les Zines`
+  : 'Tarifs & disponibilités, villa au Cap Ferret | Villa Les Zines';
+const description = year
+  ? `Location de la Villa Les Zines au Cap Ferret en ${year} : ${prices} la semaine, du samedi au samedi. Ménage, linge et taxe de séjour inclus.`
+  : 'Location de la Villa Les Zines au Cap Ferret : à la semaine, du samedi au samedi, en juillet et août. Ménage, linge et taxe de séjour inclus.';
 ---
-<Base lang={lang} transparentNav={true} title="Séjours & Tarifs, disponibilités 2026-2027 | Villa Les Zines" description="Tarifs et disponibilités 2026 et 2027 au Cap Ferret. Location à la semaine du samedi au samedi, courts séjours hors saison. Demande de réservation en ligne.">
+<Base lang={lang} transparentNav={true} title={title} description={description}>
   <SejoursTarifs lang={lang} />
 </Base>

@@ -8,11 +8,29 @@ import { localizedPath } from '../../i18n/ui';
 import PageHeader from '../PageHeader.astro';
 import Lightbox from '../Lightbox.astro';
 import JsonLd from '../JsonLd.astro';
-import { breadcrumbSchema } from '../../data/schema';
+import { breadcrumbSchema, vacationRentalSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const fr = lang === 'fr';
+
+// Répartition lue sur le plan d'architecte (public/photos/plan.webp). Écrite en texte sous
+// le plan : une image ne se lit pas, et « où dort qui » est la première question d'un groupe.
+const layout = fr
+  ? [
+      ['Maison principale, rez-de-chaussée', 'Pièce de vie de 60 m² avec cuisine ouverte, chambres 1 et 2 (lit 160×200), une salle d’eau et un WC.'],
+      ['Maison principale, étage', 'Chambres 3 et 4 (lit 160×200) et une salle d’eau.'],
+      ['Aile', 'Chambres 5 et 6 (lit 160×200) et deux salles d’eau.'],
+      ['Grenier-dortoir', 'Quatre couchages 80×200, accès par l’extérieur.'],
+      ['Dehors', 'Terrasses en bois et douche extérieure.'],
+    ]
+  : [
+      ['Main house, ground floor', '60 m² living room with open kitchen, bedrooms 1 and 2 (160×200 bed), a shower room and a WC.'],
+      ['Main house, upper floor', 'Bedrooms 3 and 4 (160×200 bed) and a shower room.'],
+      ['Wing', 'Bedrooms 5 and 6 (160×200 bed) and two shower rooms.'],
+      ['Attic dorm', 'Four 80×200 beds, outdoor access.'],
+      ['Outside', 'Wood-deck terraces and an outdoor shower.'],
+    ];
 
 const features = [
   { fr: ['6 chambres + dortoir', 'Lits 160×200, dortoir 4 couchages 80×200'], en: ['6 bedrooms + dorm', '160×200 beds, dorm sleeps 4 in 80×200'] },
@@ -21,8 +39,12 @@ const features = [
   { fr: ['4 salles d’eau', '+ une douche et un WC extérieurs'], en: ['4 bathrooms', '+ an outdoor shower and WC'] },
   { fr: ['Climatisation', 'Dans toute la maison'], en: ['Air conditioning', 'Throughout the house'] },
   { fr: ['Grandes terrasses', 'Caillebotis bois, plein sud'], en: ['Large terraces', 'Wood decking, south-facing'] },
-  { fr: ['Wifi fibre', 'Connexion fibre dans toute la villa'], en: ['Fibre wifi', 'Fibre connection throughout the villa'] },
-  { fr: ['Chambre et salle d’eau accessibles', 'Une chambre et une salle d’eau de plain-pied (PMR)'], en: ['Accessible bedroom & bathroom', 'A ground-floor bedroom and bathroom'] },
+  { fr: ['Wifi fibre', 'Connexion fibre incluse, dans toute la villa'], en: ['Fibre wifi', 'Fibre connection included, throughout the villa'] },
+  { fr: ['Chambre et salle d’eau accessibles', 'Une chambre et une salle d’eau de plain-pied (PMR)'], en: ['Accessible bedroom & bathroom', 'A step-free ground-floor bedroom and bathroom, for guests with reduced mobility'] },
+  // Deux lignes déjà dites ailleurs sur le site, répétées ici parce que les données structurées
+  // émises sur cette page les affirment (barbecue, lave-linge) : le balisage suit ce qu'on lit.
+  { fr: ['Jardin clos et arboré', 'Terrasses en bois, barbecue, transats et hamacs'], en: ['Walled, wooded garden', 'Wood terraces, barbecue, sun loungers and hammocks'] },
+  { fr: ['Lave-linge', 'À disposition pendant le séjour'], en: ['Washing machine', 'Available during your stay'] },
 ];
 
 // Each theme folder's 01.jpg is the « avant » photo → used as the chapter cover.
@@ -40,10 +62,13 @@ const themes = themeDefs
 
 const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photos/terrasse.webp';
 ---
+{/* Bloc complet (lits, équipements) : c'est la seule page qui les montre. */}
+<JsonLd data={vacationRentalSchema(lang, { slug: 'la-villa', detail: 'full' })} />
 <JsonLd data={breadcrumbSchema(lang, 'la-villa', fr ? 'La Villa' : 'The Villa')} />
 <PageHeader
   image={cover}
-  eyebrow={fr ? 'La Villa' : 'The Villa'}
+  imageAlt={fr ? 'La pièce de vie de la Villa Les Zines, ouverte sur le jardin' : 'The living space of Villa Les Zines, opening onto the garden'}
+  h1={fr ? 'Villa en bois de 6 chambres au Cap Ferret' : '6-bedroom timber villa in Cap Ferret'}
   title={fr ? 'Une grande maison en bois, esprit Bassin.' : 'A large timber house, esprit Bassin.'}
   intro={fr
     ? 'Six chambres, une vaste pièce de vie et de grandes terrasses : la villa accueille 12 à 16 personnes en toute liberté.'
@@ -57,8 +82,8 @@ const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photo
       <h2 class="h2 mb-5">{fr ? 'Tout le monde sous le même toit.' : 'Everyone under one roof.'}</h2>
       <p class="lead">
         {fr
-          ? 'Au rez-de-chaussée, une grande pièce de vie de 60 m² prolonge la cuisine ouverte vers la terrasse et le jardin. À l’étage et dans l’aile, les six chambres climatisées et le grenier-dortoir offrent de vrais espaces à chacun, parfait pour deux familles ou une grande tablée d’amis.'
-          : 'On the ground floor, a large 60 m² living room extends the open kitchen towards the terrace and garden. Upstairs and in the wing, the six air-conditioned bedrooms and the attic dorm give everyone real space, perfect for two families or a big gathering of friends.'}
+          ? 'Au rez-de-chaussée, une grande pièce de vie de 60 m² prolonge la cuisine ouverte vers la terrasse et le jardin. Les six chambres climatisées, réparties entre le rez-de-chaussée, l’étage et l’aile, et le grenier-dortoir offrent de vrais espaces à chacun, parfait pour deux familles ou une grande tablée d’amis.'
+          : 'On the ground floor, a large 60 m² living room extends the open kitchen towards the terrace and garden. The six air-conditioned bedrooms, spread across the ground floor, the upper floor and the wing, and the attic dorm give everyone real space, perfect for two families or a big gathering of friends.'}
       </p>
     </div>
     <ul class="grid sm:grid-cols-2 gap-x-8 reveal">
@@ -152,15 +177,27 @@ const cover = themes.find((t) => t.slug === 'vie-cuisine')?.photos[0] || '/photo
         width="1960" height="1410"
       />
       <figcaption class="px-5 py-3 border-t border-line text-sm text-ink-mute">
-        {fr ? 'Plan d’ensemble' : 'Overview plan — ground floor, upper floor and attic dorm (outdoor access).'}
+        {fr
+          ? 'Plan d’ensemble : rez-de-chaussée, étage et grenier-dortoir (accès extérieur).'
+          : 'Overview plan — ground floor, upper floor and attic dorm (outdoor access).'}
       </figcaption>
     </figure>
+    <dl class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 mt-8 reveal">
+      {layout.map(([place, detail]) => (
+        <div>
+          <dt class="font-semibold text-ink">{place}</dt>
+          <dd class="text-ink-soft text-sm mt-1">{detail}</dd>
+        </div>
+      ))}
+    </dl>
   </div>
 </section>
 
 <section class="pb-28 pt-16">
-  <div class="wrap text-center">
+  <div class="wrap flex flex-wrap gap-3 justify-center">
     <a href={localizedPath(lang, 'reservation')} class="btn btn-primary">{fr ? 'Réserver un séjour' : 'Book a stay'}</a>
+    <a href={localizedPath(lang, 'sejours-tarifs')} class="btn btn-ghost">{fr ? 'Voir les tarifs et les disponibilités' : 'See rates and availability'}</a>
+    <a href={localizedPath(lang, 'le-jardin')} class="btn btn-ghost">{fr ? 'Voir le jardin' : 'See the garden'}</a>
   </div>
 </section>
 

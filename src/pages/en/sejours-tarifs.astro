@@ -1,8 +1,19 @@
 ---
 import Base from '../../layouts/Base.astro';
 import SejoursTarifs from '../../components/pages/SejoursTarifs.astro';
+import { seasonPrices, seasonYear } from '../../data/season';
 const lang = 'en' as const;
+// Year and price span come from the rates table (see src/pages/sejours-tarifs.astro).
+// With no known rate at all (empty sheet), title and description do without figures.
+const year = seasonYear();
+const prices = seasonPrices(lang);
+const title = year
+  ? `${year} rates & availability, Cap Ferret rental | Villa Les Zines`
+  : 'Rates & availability, Cap Ferret villa rental | Villa Les Zines';
+const description = year
+  ? `Rent Villa Les Zines in Cap Ferret in ${year}: ${prices} per week, Saturday to Saturday. Cleaning, linen and tourist tax included.`
+  : 'Rent Villa Les Zines in Cap Ferret: by the week, Saturday to Saturday, in July and August. Cleaning, linen and tourist tax included.';
 ---
-<Base lang={lang} transparentNav={true} title="Stays & Rates, 2026-2027 availability | Villa Les Zines" description="2026 and 2027 rates and availability for Villa Les Zines in Cap Ferret. Weekly rental Saturday to Saturday, short off-season stays. Online booking request.">
+<Base lang={lang} transparentNav={true} title={title} description={description}>
   <SejoursTarifs lang={lang} />
 </Base>

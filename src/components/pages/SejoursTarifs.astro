@@ -5,7 +5,10 @@ import PageHeader from '../PageHeader.astro';
 import rates from '../../data/rates.json';
 import { renderAvailability, scopedWeeks } from '../../lib/rates/availability';
 import JsonLd from '../JsonLd.astro';
+import Faq from '../Faq.astro';
 import { vacationRentalSchema, breadcrumbSchema } from '../../data/schema';
+import { rentalFaq } from '../../data/faq';
+import { seasonSentence } from '../../data/season';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -13,9 +16,17 @@ const t = useTranslations(lang);
 const fr = lang === 'fr';
 const reservationBase = localizedPath(lang, 'reservation');
 
+// « Saison 2027 : de 5 000 € à 9 900 € la semaine selon la période », lue dans les mêmes
+// semaines que le tableau. Rendue ici pour les robots, puis réécrite par le script du bas de
+// page avec les semaines de la feuille (éléments [data-season-sentence]).
+const season = seasonSentence(lang);
+
+// L'anglais disait « normal use » là où le français dit « usage limité » : deux promesses
+// opposées. Le français est le texte du propriétaire, l'anglais s'aligne dessus. S'il existe
+// un plafond chiffré, l'écrire ici dans les deux langues (et dans src/data/faq.ts).
 const included = fr
   ? ['Wifi fibre', 'Lave-linge', 'Forfait eau, gaz et électricité (usage limité)', 'Taxe de séjour', 'Ménage de fin de séjour', 'Linge de maison : draps, serviettes, torchons']
-  : ['Fibre wifi', 'Washing machine', 'Water, gas and electricity package (normal use)', 'Tourist tax', 'End-of-stay cleaning', 'Household linen: sheets, towels, cloths'];
+  : ['Fibre wifi', 'Washing machine', 'Water, gas and electricity package (limited use)', 'Tourist tax', 'End-of-stay cleaning', 'Household linen: sheets, towels, tea towels'];
 
 const tableHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase });
 
@@ -29,11 +40,14 @@ const pastLabel = (n: number) =>
     ? `Voir ${n > 1 ? `les ${n} semaines déjà passées` : 'la semaine déjà passée'}`
     : `Show ${n > 1 ? `the ${n} past weeks` : 'the past week'}`;
 ---
-<JsonLd data={vacationRentalSchema(lang)} />
+<JsonLd data={vacationRentalSchema(lang, { slug: 'sejours-tarifs' })} />
 <JsonLd data={breadcrumbSchema(lang, 'sejours-tarifs', fr ? 'Séjours & Tarifs' : 'Stays & Rates')} />
 <PageHeader
   image="/photos/terrasse.webp"
-  eyebrow={t('rate_eye')}
+  imageAlt={fr ? 'La terrasse en bois et la pièce de vie ouverte de la Villa Les Zines' : 'The wood-deck terrace and open living room of Villa Les Zines'}
+  h1={fr
+    ? 'Tarifs et disponibilités de la Villa Les Zines, Cap Ferret'
+    : 'Rates and availability for Villa Les Zines, Cap Ferret'}
   title={t('rate_h')}
   intro={fr
     ? 'Retrouvez les semaines disponibles et faites votre demande de réservation. Courts séjours possibles hors saison.'
@@ -42,11 +56,18 @@ const pastLabel = (n: number) =>
 
 <section class="py-20 sm:py-24">
   <div class="wrap">
-    <h2 class="h2 mb-8 reveal">{fr ? 'Tarifs & disponibilités' : 'Rates & availability'}</h2>
+    <h2 class="h2 mb-4 reveal">{fr ? 'Tarifs & disponibilités' : 'Rates & availability'}</h2>
+    {/* Le tableau, lu sans mise en page, n'est qu'une suite de fragments (« 9 900 € », « / sem. »,
+        « Disponible »). Cette phrase dit la fourchette en clair, pour un lecteur comme pour un moteur. */}
+    {season && (
+      <p class="lead mb-8 reveal"><span data-season-sentence>{season}</span>{fr ? ', du samedi au samedi.' : ', Saturday to Saturday.'}</p>
+    )}
 
     <div id="rates-table" class="av-table card overflow-hidden reveal" data-lang={lang} data-resbase={reservationBase} set:html={tableHtml}></div>
 
-    <details id="past-weeks" class="av-more reveal" hidden={!pastWeeks.length}>
+    {/* scroll-mt-32 et non 24 : la cible arrive décalée de 28 px par l'animation .reveal, et se
+        retrouverait sinon collée sous la barre de navigation. */}
+    <details id="past-weeks" class="av-more scroll-mt-32 reveal" hidden={!pastWeeks.length}>
       <summary id="past-summary">{pastLabel(pastWeeks.length)}</summary>
       <div id="past-table" class="av-table card overflow-hidden mt-3" set:html={pastHtml}></div>
     </details>
@@ -79,8 +100,16 @@ const pastLabel = (n: number) =>
   </div>
 </section>
 
+<Faq
+  eyebrow={fr ? 'Avant de réserver' : 'Before you book'}
+  title={fr ? 'Questions fréquentes' : 'Frequently asked questions'}
+  items={rentalFaq(lang)}
+  season={season}
+/>
+
 <script>
   import { renderAvailability, scopedWeeks } from '../../lib/rates/availability';
+  import { rateSummary, seasonSentence } from '../../lib/rates/summary';
   const table = document.getElementById('rates-table');
   if (table) {
     const lang = table.dataset.lang || 'fr';
@@ -89,6 +118,9 @@ const pastLabel = (n: number) =>
     const details = document.getElementById('past-weeks') as HTMLDetailsElement | null;
     const summary = document.getElementById('past-summary');
     const pastTable = document.getElementById('past-table');
+    // La page À vendre renvoie ici (« voir les semaines louées ») : arriver sur un dépliant
+    // fermé obligerait à chercher où cliquer.
+    if (details && location.hash === '#past-weeks') details.open = true;
     // Le SSR est figé à la date du build : c'est ce rendu client, à la vraie date du
     // visiteur, qui décide au final ce qui est encore réservable et ce qui est archivé.
     fetch('/api/rates')
@@ -97,6 +129,14 @@ const pastLabel = (n: number) =>
         if (!d?.weeks?.length) return;
         const opts = { mode: 'links' as const, lang, reservationBase: resBase };
         table.innerHTML = renderAvailability(d.weeks, opts);
+        // La phrase de synthèse (au-dessus du tableau et dans les questions fréquentes) suit
+        // la feuille elle aussi : sinon elle annoncerait encore « de 5 000 € à 9 900 € » au-dessus
+        // d'un tableau où le propriétaire vient de passer une semaine à 10 500 €.
+        const season = rateSummary(d.weeks);
+        if (season) {
+          const sentence = seasonSentence(season, lang);
+          document.querySelectorAll('[data-season-sentence]').forEach((el) => { el.textContent = sentence; });
+        }
         if (!details || !summary || !pastTable) return;
         const n = scopedWeeks(d.weeks, 'past').length;
         details.hidden = n === 0;

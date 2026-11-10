@@ -5,7 +5,7 @@ import { SITE } from '../../data/site';
 import rates from '../../data/rates.json';
 import { renderAvailability } from '../../lib/rates/availability';
 import JsonLd from '../JsonLd.astro';
-import { vacationRentalSchema } from '../../data/schema';
+import { vacationRentalSchema, webSiteSchema } from '../../data/schema';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
@@ -16,6 +16,8 @@ const reservationBase = localizedPath(lang, 'reservation');
 const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reservationBase, onlyAvailable: true });
 ---
 <JsonLd data={vacationRentalSchema(lang)} />
+{/* Nom du site pour les moteurs : un seul par domaine, donc sur l'accueil français (la racine). */}
+{fr && <JsonLd data={webSiteSchema()} />}
 <!-- ===== HERO ===== -->
 <section class="relative min-h-[100svh] flex items-end text-white overflow-hidden">
   <div class="absolute inset-0 -z-10">
@@ -76,7 +78,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
       <p class="eyebrow mb-4">{t('t_villa_eye')}</p>
       <h2 class="h2 mb-5">{t('t_villa_h')}</h2>
       <p class="lead mb-7">{t('t_villa_p')}</p>
-      <a href={localizedPath(lang, 'la-villa')} class="btn btn-ghost">{t('discover')} →</a>
+      <a href={localizedPath(lang, 'la-villa')} class="btn btn-ghost">{t('discover_villa')} →</a>
     </div>
   </div>
 </section>
@@ -88,7 +90,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
       <p class="eyebrow mb-4">{t('t_jardin_eye')}</p>
       <h2 class="h2 mb-5">{t('t_jardin_h')}</h2>
       <p class="lead mb-7">{t('t_jardin_p')}</p>
-      <a href={localizedPath(lang, 'le-jardin')} class="btn btn-ghost">{t('discover')} →</a>
+      <a href={localizedPath(lang, 'le-jardin')} class="btn btn-ghost">{t('discover_garden')} →</a>
     </div>
     <div class="rounded-2xl overflow-hidden shadow-deep reveal">
       <img src="/photos/jardin-1.webp" srcset="/photos/jardin-1-900.webp 900w, /photos/jardin-1.webp 1600w" sizes="(min-width: 768px) 50vw, 100vw" alt={fr ? 'Le jardin arboré de 700 m²' : 'The 700 m² wooded garden'} class="w-full h-full object-cover aspect-[4/3]" loading="lazy" />
@@ -155,7 +157,7 @@ const availHtml = renderAvailability(rates.weeks, { mode: 'links', lang, reserva
       <p class="eyebrow mb-4">{t('t_loc_eye')}</p>
       <h2 class="h2 mb-5">{t('t_loc_h')}</h2>
       <p class="lead mb-7">{t('t_loc_p')}</p>
-      <a href={localizedPath(lang, 'le-cap-ferret')} class="btn btn-ghost">{t('discover')} →</a>
+      <a href={localizedPath(lang, 'le-cap-ferret')} class="btn btn-ghost">{t('discover_cap')} →</a>
     </div>
   </div>
 </section>

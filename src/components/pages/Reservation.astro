@@ -18,7 +18,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
 <section class="pt-28 sm:pt-32 pb-6">
   <div class="wrap max-w-4xl page-in">
     <p class="eyebrow mb-3">{fr ? 'Réservation' : 'Booking'}</p>
-    <h1 class="h2 mb-4">{fr ? 'Réserver votre séjour' : 'Book your stay'}</h1>
+    <h1 class="h2 mb-4">{fr ? 'Réserver la Villa Les Zines, au Cap Ferret' : 'Book Villa Les Zines, Cap Ferret'}</h1>
     <p class="lead">{fr
       ? 'Choisissez une semaine disponible (ou vos dates pour un court séjour hors saison), laissez vos coordonnées, et nous vous répondons rapidement pour confirmer.'
       : 'Choose an available week (or your dates for a short off-season stay), leave your details, and we’ll get back to you quickly to confirm.'}</p>
@@ -74,7 +74,7 @@ const tableHtml = renderAvailability(rates.weeks, { mode: 'select', lang });
     <div class="flex flex-wrap items-center gap-5">
       <button type="submit" class="btn btn-primary">{fr ? 'Envoyer ma demande' : 'Send my request'}</button>
       <div class="text-sm text-ink-mute">
-        {fr ? 'ou appelez le' : 'or call'} <a href={`tel:${SITE.phoneIntl}`} class="text-pine font-semibold hover:text-terra">{SITE.phone}</a>
+        {fr ? 'ou appelez le' : 'or call'} <a href={`tel:${SITE.phoneIntl}`} class="text-pine font-semibold hover:text-terra">{fr ? SITE.phone : SITE.phoneIntlDisplay}</a>
       </div>
     </div>
     <p id="form-status" class="text-sm text-ink-soft mt-4" role="status" aria-live="polite"></p>
