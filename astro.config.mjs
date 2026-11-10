@@ -2,9 +2,16 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import sitemap from '@astrojs/sitemap';
 
+// Commit en cours de construction. Cloudflare Workers Builds le fournit dans cette variable ;
+// en local elle est vide. Figé dans le build (« define ») puis servi par /version.txt : c'est
+// ce qui permet au workflow IndexNow de savoir que CE commit est bien arrivé en production
+// avant de prévenir Bing. Ce n'est pas un secret : le dépôt est public.
+const BUILD_COMMIT = process.env.WORKERS_CI_COMMIT_SHA ?? '';
+
 // https://astro.build
 export default defineConfig({
   site: 'https://www.leszines.fr',
+  vite: { define: { __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT) } },
   // Pages statiques par défaut ; les routes /api/ s'en excluent (`export const prerender =
   // false`) et tournent dans le Worker Cloudflare. Tailwind est branché via postcss.config.mjs.
   // Redirections et en-têtes : public/_redirects et public/_headers.
